@@ -1,0 +1,49 @@
+name: Deploy
+
+# Triggers on version tags (e.g. v1.2.0) — deliberately not on every push to
+# main, so a deploy is always a conscious, versioned action.
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    # This job needs the following repository secrets before it will run
+    # for real: DOCKER_USERNAME, DOCKER_PASSWORD (or switch to GHCR using
+    # GITHUB_TOKEN, which needs no extra secrets). Until configured, this
+    # workflow will simply fail at the login step — safe by default.
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Docker login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/csc-os-backend:${{ github.ref_name }}
+            ${{ secrets.DOCKER_USERNAME }}/csc-os-backend:latest
+
+      # Deploying the freshly-pushed image to your host is environment-
+      # specific (SSH + docker compose pull/up, a managed platform's CLI,
+      # Kubernetes rollout, etc.) — add that step here once a target is chosen.
+      # Example (SSH-based VPS):
+      # - name: Deploy over SSH
+      #   uses: appleboy/ssh-action@v1
+      #   with:
+      #     host: ${{ secrets.DEPLOY_HOST }}
+      #     username: ${{ secrets.DEPLOY_USER }}
+      #     key: ${{ secrets.DEPLOY_SSH_KEY }}
+      #     script: |
+      #       cd /opt/csc-os
+      #       docker compose pull app
+      #       docker compose up -d app

@@ -1,0 +1,16 @@
+node_modules
+dist
+logs
+*.log
+.env
+.env.*
+!.env.example
+.git
+.github
+.gitignore
+.vscode
+.idea
+coverage
+uploads/temp
+README.md
+DEPLOYMENT.md

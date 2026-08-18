@@ -1,0 +1,15 @@
+import { Role } from './auth.types';
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        userId: string;
+        role: Role;
+        tokenVersion: number;
+      };
+    }
+  }
+}
+
+export {};

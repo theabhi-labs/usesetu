@@ -1,0 +1,53 @@
+import dotenv from 'dotenv';
+import { cleanEnv, str, port, num, url } from 'envalid';
+
+dotenv.config();
+
+/**
+ * Validates and exports strongly-typed environment variables.
+ * App will refuse to boot if any required variable is missing/invalid.
+ */
+export const env = cleanEnv(process.env, {
+  NODE_ENV: str({ choices: ['development', 'production', 'test'], default: 'development' }),
+  PORT: port({ default: 5000 }),
+
+  // Database
+  MONGO_URI: str(),
+
+  // JWT
+  JWT_ACCESS_SECRET: str(),
+  JWT_REFRESH_SECRET: str(),
+  JWT_ACCESS_EXPIRY: str({ default: '15m' }),
+  JWT_REFRESH_EXPIRY: str({ default: '30d' }),
+
+  // Cookies
+  COOKIE_SECRET: str(),
+
+  // Client
+  CLIENT_URL: str({ default: 'http://localhost:5173' }),
+
+  // Brevo (Email)
+  BREVO_API_KEY: str(),
+  BREVO_SENDER_EMAIL: str(),
+  BREVO_SENDER_NAME: str({ default: 'CSC OS' }),
+
+  // ImageKit
+  IMAGEKIT_PUBLIC_KEY: str(),
+  IMAGEKIT_PRIVATE_KEY: str(),
+  IMAGEKIT_URL_ENDPOINT: url(),
+
+  // Security
+  RATE_LIMIT_WINDOW_MS: num({ default: 15 * 60 * 1000 }),
+  RATE_LIMIT_MAX: num({ default: 100 }),
+
+  // OTP
+  OTP_EXPIRY_MINUTES: num({ default: 10 }),
+  ACCOUNT_LOCK_MAX_ATTEMPTS: num({ default: 5 }),
+  ACCOUNT_LOCK_DURATION_MINUTES: num({ default: 30 }),
+
+  // Request Management
+  APPLICATION_NUMBER_PREFIX: str({ default: 'CSC' }),
+});
+
+export const isProd = env.NODE_ENV === 'production';
+export const isDev = env.NODE_ENV === 'development';

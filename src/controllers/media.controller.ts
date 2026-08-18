@@ -1,0 +1,60 @@
+import { Request, Response } from 'express';
+import { asyncHandler } from '../utils/asyncHandler';
+import { ApiError } from '../utils/ApiError';
+import { ApiResponse } from '../utils/ApiResponse';
+import { MediaAsset } from '../models/mediaAsset.model';
+import { uploadToImageKit, deleteFromImageKit } from '../services/imagekit.service';
+
+export const uploadMedia = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.file) throw ApiError.badRequest('No file provided');
+
+  const folder = (req.body.folder as string) || 'general';
+  const uploaded = await uploadToImageKit(req.file.buffer, req.file.originalname, `media/${folder}`);
+
+  const asset = await MediaAsset.create({
+    url: uploaded.url,
+    fileId: uploaded.fileId,
+    fileName: req.file.originalname,
+    folder,
+    mimeType: req.file.mimetype,
+    size: req.file.size,
+    tags: req.body.tags ? String(req.body.tags).split(',').map((t) => t.trim()) : [],
+    uploadedBy: req.user!.userId,
+  });
+
+  res.status(201).json(new ApiResponse(201, asset, 'File uploaded'));
+});
+
+export const listMedia = asyncHandler(async (req: Request, res: Response) => {
+  const { folder, search, page = '1', limit = '40' } = req.query as Record<string, string>;
+
+  const filter: Record<string, unknown> = {};
+  if (folder) filter.folder = folder;
+  if (search) filter.$text = { $search: search };
+
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 40));
+
+  const [assets, total] = await Promise.all([
+    MediaAsset.find(filter)
+      .sort({ createdAt: -1 })
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum)
+      .lean(),
+    MediaAsset.countDocuments(filter),
+  ]);
+
+  res.status(200).json(
+    new ApiResponse(200, { assets, pagination: { page: pageNum, limit: limitNum, total, totalPages: Math.ceil(total / limitNum) } }),
+  );
+});
+
+export const deleteMedia = asyncHandler(async (req: Request, res: Response) => {
+  const asset = await MediaAsset.findById(req.params.id);
+  if (!asset) throw ApiError.notFound('Media asset not found');
+
+  await deleteFromImageKit(asset.fileId);
+  await asset.deleteOne();
+
+  res.status(200).json(new ApiResponse(200, {}, 'Media asset deleted'));
+});

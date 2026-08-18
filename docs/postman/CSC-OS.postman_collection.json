@@ -1,0 +1,241 @@
+{
+  "info": {
+    "name": "CSC Operating System API",
+    "description": "Core request set covering every module of the CSC OS backend. Import alongside CSC-OS-Local.postman_environment.json.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        { "name": "Liveness", "request": { "method": "GET", "url": "{{healthUrl}}/live" } },
+        { "name": "Readiness", "request": { "method": "GET", "url": "{{healthUrl}}/ready" } }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Customer\",\n  \"email\": \"customer@example.com\",\n  \"mobile\": \"9876543210\",\n  \"password\": \"Passw0rd!23\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data?.data?.accessToken) pm.environment.set('accessToken', data.data.accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"superadmin@cscos.local\",\n  \"password\": \"ChangeMe@123\"\n}"
+            }
+          }
+        },
+        { "name": "Me", "request": { "method": "GET", "url": "{{baseUrl}}/auth/me" } }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        { "name": "Public Tree", "request": { "method": "GET", "url": "{{baseUrl}}/categories/public" } },
+        {
+          "name": "Create Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "exec": ["const d = pm.response.json(); if (d?.data?._id) pm.environment.set('categoryId', d.data._id);"] }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/categories",
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Certificates\"\n}", "options": { "raw": { "language": "json" } } },
+            "header": [{ "key": "Content-Type", "value": "application/json" }]
+          }
+        },
+        { "name": "List Categories", "request": { "method": "GET", "url": "{{baseUrl}}/categories" } }
+      ]
+    },
+    {
+      "name": "Services",
+      "item": [
+        { "name": "Public Services", "request": { "method": "GET", "url": "{{baseUrl}}/services/public" } },
+        {
+          "name": "Create Service",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "exec": ["const d = pm.response.json(); if (d?.data?._id) pm.environment.set('serviceId', d.data._id);"] }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/services",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"{{categoryId}}\",\n  \"name\": \"Caste Certificate\",\n  \"serviceFee\": 20,\n  \"govtFee\": 30,\n  \"cscFee\": 10\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Forms",
+      "item": [
+        {
+          "name": "Create Form",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/forms",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"service\": \"{{serviceId}}\",\n  \"title\": \"Caste Certificate Application\",\n  \"fields\": [\n    { \"fieldKey\": \"fullName\", \"sectionKey\": \"default\", \"type\": \"text\", \"label\": \"Full Name\", \"required\": true },\n    { \"fieldKey\": \"aadhaar\", \"sectionKey\": \"default\", \"type\": \"aadhaar\", \"label\": \"Aadhaar Number\", \"required\": true }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }]
+          }
+        },
+        { "name": "Public Form by Slug", "request": { "method": "GET", "url": "{{baseUrl}}/forms/public/{{formSlug}}" } },
+        {
+          "name": "Submit Form",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/forms/public/{{formSlug}}/submit",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"values\": { \"fullName\": \"Ravi Kumar\", \"aadhaar\": \"123456789012\" }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Workflows",
+      "item": [
+        { "name": "List Templates", "request": { "method": "GET", "url": "{{baseUrl}}/workflows/templates" } },
+        {
+          "name": "Create Workflow",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/workflows",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"service\": \"{{serviceId}}\",\n  \"name\": \"Standard Workflow\",\n  \"isDefault\": true,\n  \"stages\": [\n    { \"key\": \"applied\", \"title\": \"Applied\", \"statusType\": \"initial\", \"completionPercentage\": 10 },\n    { \"key\": \"completed\", \"title\": \"Completed\", \"statusType\": \"final\", \"isFinal\": true, \"completionPercentage\": 100 }\n  ],\n  \"transitions\": [\n    { \"fromStage\": \"applied\", \"toStage\": \"completed\", \"label\": \"Complete\", \"allowedRoles\": [\"admin\", \"super_admin\"] }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Requests",
+      "item": [
+        { "name": "Admin Queue", "request": { "method": "GET", "url": "{{baseUrl}}/requests?page=1&limit=20" } },
+        { "name": "My Requests", "request": { "method": "GET", "url": "{{baseUrl}}/requests/my" } },
+        { "name": "Track (Public)", "request": { "method": "GET", "url": "{{baseUrl}}/requests/track/{{applicationNumber}}" } },
+        {
+          "name": "Move Stage",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/requests/{{requestId}}/stage",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetStage\": \"completed\",\n  \"remark\": \"All checks passed\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Queue",
+      "item": [
+        { "name": "Live Status", "request": { "method": "GET", "url": "{{baseUrl}}/queue/current?service={{serviceId}}" } },
+        {
+          "name": "Generate Token",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/queue/token",
+            "body": { "mode": "raw", "raw": "{\n  \"service\": \"{{serviceId}}\"\n}", "options": { "raw": { "language": "json" } } },
+            "header": [{ "key": "Content-Type", "value": "application/json" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Appointments",
+      "item": [
+        { "name": "Available Slots", "request": { "method": "GET", "url": "{{baseUrl}}/appointments/slots?service={{serviceId}}&date=2026-08-25" } }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Record Payment",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/payments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"request\": \"{{requestId}}\",\n  \"paymentType\": \"full\",\n  \"paymentMethod\": \"cash\",\n  \"amount\": 60\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }]
+          }
+        },
+        { "name": "Invoice", "request": { "method": "GET", "url": "{{baseUrl}}/payments/request/{{requestId}}/invoice" } }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        { "name": "My Notifications", "request": { "method": "GET", "url": "{{baseUrl}}/notifications" } },
+        { "name": "Unread Count", "request": { "method": "GET", "url": "{{baseUrl}}/notifications/unread-count" } }
+      ]
+    },
+    {
+      "name": "CMS",
+      "item": [
+        { "name": "Site Settings", "request": { "method": "GET", "url": "{{baseUrl}}/cms/settings" } },
+        { "name": "Public FAQs", "request": { "method": "GET", "url": "{{baseUrl}}/cms/faqs/public" } }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        { "name": "KPI Summary", "request": { "method": "GET", "url": "{{baseUrl}}/dashboard/kpi" } },
+        { "name": "Request Analytics", "request": { "method": "GET", "url": "{{baseUrl}}/dashboard/analytics/requests" } }
+      ]
+    }
+  ]
+}
