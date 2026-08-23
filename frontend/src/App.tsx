@@ -16,8 +16,8 @@ export default function App() {
     const initializeSession = async () => {
       try {
         const response = await authApi.getMe();
-        // Set user session in Zustand
-        setSession(response.user, null);
+        const currentToken = useAuthStore.getState().accessToken;
+        setSession(response.user, currentToken);
       } catch (err) {
         // Safe to ignore on startup, user is anonymous
       } finally {

@@ -15,6 +15,7 @@ export const requestQuerySchema = z.object({
     status: z.nativeEnum(RequestStatus).optional(),
     priority: z.nativeEnum(RequestPriority).optional(),
     assignedTo: z.string().optional(),
+    customer: z.string().optional(),
     search: z.string().optional(),
     dateFrom: z.string().optional(),
     dateTo: z.string().optional(),

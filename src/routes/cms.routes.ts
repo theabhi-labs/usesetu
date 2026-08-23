@@ -53,6 +53,9 @@ router.get('/banners/public', getPublicBanners);
 router.get('/faqs/public', getPublicFaqs);
 router.get('/announcements/public', getPublicAnnouncements);
 
+// ═══════════════ Authenticated Customer/Staff/Admin ═══════════════
+router.post('/media', isAuthenticated, uploadImage.single('file'), uploadMedia);
+
 // ═══════════════ Admin — everything else ═══════════════
 router.use(isAuthenticated, authorizeRoles(Role.SUPER_ADMIN, Role.ADMIN));
 
@@ -82,7 +85,6 @@ router.get('/announcements', getAnnouncements);
 router.put('/announcements/:id', validate(updateAnnouncementSchema), updateAnnouncement);
 router.delete('/announcements/:id', validate(idParamSchema), deleteAnnouncement);
 
-router.post('/media', uploadImage.single('file'), uploadMedia);
 router.get('/media', listMedia);
 router.delete('/media/:id', validate(idParamSchema), deleteMedia);
 

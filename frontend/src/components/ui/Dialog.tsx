@@ -4,7 +4,7 @@ import { Button } from './Button';
 interface DialogProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
+  title?: string;
   children: React.ReactNode;
 }
 
@@ -35,16 +35,34 @@ export function Dialog({ isOpen, onClose, title, children }: DialogProps) {
       {/* Content Container */}
       <div className="z-10 w-full max-w-lg overflow-hidden rounded-lg border border-border bg-surface text-text-primary shadow-xl transition-all animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border p-4">
-          <h3 className="text-lg font-semibold">{title}</h3>
-          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0 rounded-full flex items-center justify-center">
-            ✕
-          </Button>
-        </div>
+        {title && (
+          <div className="flex items-center justify-between border-b border-border p-4">
+            <h3 className="text-lg font-semibold">{title}</h3>
+            <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0 rounded-full flex items-center justify-center">
+              ✕
+            </Button>
+          </div>
+        )}
 
         {/* Body */}
         <div className="p-6 max-h-[80vh] overflow-y-auto">{children}</div>
       </div>
     </div>
   );
+}
+
+export function DialogContent({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return <div className={className}>{children}</div>;
+}
+
+export function DialogHeader({ children }: { children: React.ReactNode }) {
+  return <div className="border-b border-border pb-3 mb-4">{children}</div>;
+}
+
+export function DialogTitle({ children }: { children: React.ReactNode }) {
+  return <h3 className="text-lg font-semibold">{children}</h3>;
+}
+
+export function DialogFooter({ children }: { children: React.ReactNode }) {
+  return <div className="mt-6 flex justify-end gap-2 border-t border-border pt-4">{children}</div>;
 }

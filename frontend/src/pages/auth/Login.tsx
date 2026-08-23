@@ -24,6 +24,7 @@ export function Login() {
     register,
     handleSubmit,
     setError,
+    watch,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -37,7 +38,12 @@ export function Login() {
     setGeneralError(null);
     try {
       const response = await login.mutateAsync(data);
-      if (response.user.role === 'customer') {
+      const params = new URLSearchParams(window.location.search);
+      const redirectUrl = params.get('redirect');
+
+      if (redirectUrl) {
+        navigate(redirectUrl);
+      } else if (response.user.role === 'customer') {
         navigate('/portal');
       } else {
         navigate('/admin');
@@ -67,8 +73,18 @@ export function Login() {
       </div>
 
       {generalError && (
-        <div className="p-3 rounded-md bg-error/10 border border-error/25 text-sm text-error font-medium">
-          {generalError}
+        <div className="p-3 rounded-md bg-error/10 border border-error/25 text-sm text-error font-medium space-y-2 text-left">
+          <p>{generalError}</p>
+          {generalError.includes('Please verify your email before logging in') && (
+            <div className="pt-1 select-none">
+              <Link
+                to={`/verify-otp?email=${encodeURIComponent(watch('email') || '')}`}
+                className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-bold text-white bg-error hover:bg-error/90 rounded-md transition-colors shadow-sm cursor-pointer"
+              >
+                Verify Email Now &rarr;
+              </Link>
+            </div>
+          )}
         </div>
       )}
 

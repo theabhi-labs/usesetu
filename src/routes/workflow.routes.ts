@@ -33,12 +33,12 @@ router.use(isAuthenticated, authorizeRoles(Role.SUPER_ADMIN, Role.ADMIN, Role.ST
 
 router.get('/templates', getWorkflowTemplates);
 router.get('/history/:requestId', getRequestHistory);
+router.get('/:id', validate(workflowIdParamSchema), getWorkflowById);
 
 router.use(authorizeRoles(Role.SUPER_ADMIN, Role.ADMIN));
 
 router.get('/', getWorkflows);
 router.post('/', validate(createWorkflowSchema), createWorkflow);
-router.get('/:id', validate(workflowIdParamSchema), getWorkflowById);
 router.put('/:id', validate(updateWorkflowSchema), updateWorkflow);
 router.patch('/:id/publish', validate(workflowIdParamSchema), publishWorkflow);
 router.post('/:id/duplicate', validate(workflowIdParamSchema), duplicateWorkflow);

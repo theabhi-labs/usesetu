@@ -43,6 +43,23 @@ interface IRequestDocument {
   uploadedAt: Date;
 }
 
+export interface ICompletionDocument {
+  url: string;
+  fileId: string;
+  originalName: string;
+  size: number;
+  mimeType: string;
+  uploadedBy: mongoose.Types.ObjectId;
+  uploadedAt: Date;
+  downloadPolicy: 'once' | 'permanent';
+  downloadCount: number;
+  downloads: Array<{
+    downloadedBy: mongoose.Types.ObjectId;
+    downloadedAt: Date;
+    ipAddress?: string;
+  }>;
+}
+
 export interface IRequest extends Document {
   applicationNumber: string;
 
@@ -65,7 +82,10 @@ export interface IRequest extends Document {
   priority: RequestPriority;
 
   assignedTo?: mongoose.Types.ObjectId;
+  acceptedBy?: mongoose.Types.ObjectId;
+  acceptedAt?: Date;
   documents: mongoose.Types.DocumentArray<IRequestDocument>;
+  completionDocument?: ICompletionDocument;
 
   // Denormalized payment snapshot for fast list filtering ("show all with
   // pending payment") without joining the Payment collection on every read.
@@ -110,6 +130,31 @@ const requestDocumentSchema = new Schema<IRequestDocument>(
   { _id: true },
 );
 
+const completionDocumentSchema = new Schema<ICompletionDocument>(
+  {
+    url: { type: String, required: true },
+    fileId: { type: String, required: true },
+    originalName: { type: String, required: true },
+    size: { type: Number, required: true },
+    mimeType: { type: String, required: true },
+    uploadedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    uploadedAt: { type: Date, default: Date.now },
+    downloadPolicy: { type: String, enum: ['once', 'permanent'], default: 'permanent' },
+    downloadCount: { type: Number, default: 0 },
+    downloads: {
+      type: [
+        {
+          downloadedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+          downloadedAt: { type: Date, default: Date.now },
+          ipAddress: String,
+        }
+      ],
+      default: []
+    }
+  },
+  { _id: false }
+);
+
 const requestSchema = new Schema<IRequest>(
   {
     applicationNumber: { type: String, required: true, unique: true },
@@ -130,7 +175,10 @@ const requestSchema = new Schema<IRequest>(
     priority: { type: String, enum: Object.values(RequestPriority), default: RequestPriority.NORMAL },
 
     assignedTo: { type: Schema.Types.ObjectId, ref: 'User', index: true },
+    acceptedBy: { type: Schema.Types.ObjectId, ref: 'User', index: true },
+    acceptedAt: { type: Date },
     documents: { type: [requestDocumentSchema], default: [] },
+    completionDocument: { type: completionDocumentSchema },
 
     paymentSummary: {
       totalAmount: { type: Number, default: 0 },

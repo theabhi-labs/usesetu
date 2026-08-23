@@ -1,4 +1,5 @@
 import { Request as ExpressRequest, Response } from 'express';
+import axios from 'axios';
 import { asyncHandler } from '../utils/asyncHandler';
 import { ApiError } from '../utils/ApiError';
 import { ApiResponse } from '../utils/ApiResponse';
@@ -11,7 +12,7 @@ import { uploadToImageKit } from '../services/imagekit.service';
 import { Role } from '../types/auth.types';
 
 const ADMIN_LIST_PROJECTION =
-  'applicationNumber customerName customerMobile service category status priority currentStage completionPercentage assignedTo paymentSummary createdAt';
+  'applicationNumber customerName customerMobile service category status priority currentStage completionPercentage assignedTo acceptedBy acceptedAt paymentSummary createdAt';
 
 // ---------------------------------------------------------------------------
 // GET /api/v1/requests  (Admin/Staff — the main work queue)
@@ -25,6 +26,7 @@ export const getRequests = asyncHandler(async (req: ExpressRequest, res: Respons
     status,
     priority,
     assignedTo,
+    customer,
     search,
     dateFrom,
     dateTo,
@@ -37,7 +39,17 @@ export const getRequests = asyncHandler(async (req: ExpressRequest, res: Respons
   if (category) filter.category = category;
   if (status) filter.status = status;
   if (priority) filter.priority = priority;
-  if (assignedTo) filter.assignedTo = assignedTo;
+  if (assignedTo) {
+    if (assignedTo === 'unassigned') {
+      filter.$or = [
+        { assignedTo: { $exists: false } },
+        { assignedTo: null }
+      ];
+    } else {
+      filter.assignedTo = assignedTo;
+    }
+  }
+  if (customer) filter.customer = customer;
   if (dateFrom || dateTo) {
     filter.createdAt = {
       ...(dateFrom ? { $gte: new Date(dateFrom) } : {}),
@@ -65,6 +77,7 @@ export const getRequests = asyncHandler(async (req: ExpressRequest, res: Respons
       .select(ADMIN_LIST_PROJECTION)
       .populate('service', 'name slug')
       .populate('assignedTo', 'name')
+      .populate('acceptedBy', 'name')
       .sort(sort)
       .skip((pageNum - 1) * limitNum)
       .limit(limitNum)
@@ -95,6 +108,7 @@ export const getMyRequests = asyncHandler(async (req: ExpressRequest, res: Respo
     RequestModel.find(filter)
       .select(ADMIN_LIST_PROJECTION)
       .populate('service', 'name slug icon')
+      .populate('assignedTo', 'name')
       .sort({ createdAt: -1 })
       .skip((pageNum - 1) * limitNum)
       .limit(limitNum)
@@ -118,15 +132,46 @@ export const getRequestById = asyncHandler(async (req: ExpressRequest, res: Resp
     .populate('service', 'name slug icon')
     .populate('category', 'name slug')
     .populate('customer', 'name email mobile')
-    .populate('assignedTo', 'name email');
+    .populate('assignedTo', 'name email')
+    .populate('acceptedBy', 'name email')
+    .populate('workflow')
+    .populate({
+      path: 'formSubmission',
+      populate: {
+        path: 'form',
+        select: 'fields'
+      }
+    });
 
   if (!request) throw ApiError.notFound('Request not found');
 
-  if (req.user!.role === Role.CUSTOMER && String(request.customer) !== req.user!.userId) {
+  const customerId = (request.customer as any)?._id
+    ? (request.customer as any)._id.toString()
+    : request.customer.toString();
+
+  if (req.user!.role === Role.CUSTOMER && customerId !== req.user!.userId) {
     throw ApiError.forbidden('You do not have access to this request');
   }
 
-  res.status(200).json(new ApiResponse(200, request));
+  const historyQuery: Record<string, any> = { request: request._id };
+  if (req.user!.role === Role.CUSTOMER) {
+    historyQuery.isCustomerVisible = true;
+  }
+
+  const timelineLogs = await WorkflowHistory.find(historyQuery)
+    .populate('changedBy', 'name')
+    .sort({ createdAt: 1 })
+    .lean();
+
+  const responseData = {
+    ...request.toJSON(),
+    timeline: timelineLogs.map((log) => ({
+      ...log,
+      operatorName: (log.changedBy as any)?.name || 'System / Desk',
+    })),
+  };
+
+  res.status(200).json(new ApiResponse(200, responseData));
 });
 
 // ---------------------------------------------------------------------------
@@ -134,8 +179,9 @@ export const getRequestById = asyncHandler(async (req: ExpressRequest, res: Resp
 // ---------------------------------------------------------------------------
 export const trackRequest = asyncHandler(async (req: ExpressRequest, res: Response) => {
   const request = await RequestModel.findOne({ applicationNumber: req.params.applicationNumber })
-    .select('applicationNumber currentStage status completionPercentage createdAt completedOn service')
+    .select('applicationNumber currentStage status completionPercentage createdAt completedOn service workflow')
     .populate('service', 'name')
+    .populate('workflow')
     .lean();
 
   if (!request) throw ApiError.notFound('No application found with this number');
@@ -417,4 +463,142 @@ export const getRequestStats = asyncHandler(async (_req: ExpressRequest, res: Re
   ]);
 
   res.status(200).json(new ApiResponse(200, statusCounts));
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/v1/requests/:id/accept  (Staff/Admin — accept available request)
+// ---------------------------------------------------------------------------
+export const acceptRequest = asyncHandler(async (req: ExpressRequest, res: Response) => {
+  const staffId = req.user!.userId;
+
+  // Double-accept protection: atomic check that assignedTo is null/empty
+  const request = await RequestModel.findOneAndUpdate(
+    {
+      _id: req.params.id,
+      $or: [
+        { assignedTo: { $exists: false } },
+        { assignedTo: null }
+      ]
+    },
+    {
+      $set: {
+        assignedTo: staffId,
+        acceptedBy: staffId,
+        acceptedAt: new Date()
+      }
+    },
+    { new: true }
+  ).populate('assignedTo', 'name');
+
+  if (!request) {
+    const exists = await RequestModel.findById(req.params.id);
+    if (!exists) {
+      throw ApiError.notFound('Request not found');
+    }
+    throw ApiError.conflict('This request has already been accepted or assigned');
+  }
+
+  await RequestActivity.create({
+    request: request._id,
+    action: 'ASSIGNED',
+    performedBy: staffId,
+    performedByRole: req.user!.role,
+    description: `Request accepted by staff member (ID: ${staffId})`,
+  });
+
+  res.status(200).json(new ApiResponse(200, request, 'Request accepted successfully'));
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/v1/requests/:id/completion-document  (Admin/Staff — upload, multer field: "file")
+// ---------------------------------------------------------------------------
+export const uploadCompletionDocument = asyncHandler(async (req: ExpressRequest, res: Response) => {
+  const request = await RequestModel.findById(req.params.id);
+  if (!request) throw ApiError.notFound('Request not found');
+
+  if (!req.file) throw ApiError.badRequest('No file provided');
+
+  const downloadPolicy = req.body.downloadPolicy === 'once' ? 'once' : 'permanent';
+
+  const uploaded = await uploadToImageKit(
+    req.file.buffer,
+    req.file.originalname,
+    `requests/${request.applicationNumber}/receiving`,
+  );
+
+  request.completionDocument = {
+    url: uploaded.url,
+    fileId: uploaded.fileId,
+    originalName: req.file.originalname,
+    size: req.file.size,
+    mimeType: req.file.mimetype,
+    uploadedBy: req.user!.userId as any,
+    uploadedAt: new Date(),
+    downloadPolicy,
+    downloadCount: 0,
+    downloads: [],
+  };
+  await request.save();
+
+  await RequestActivity.create({
+    request: request._id,
+    action: 'RECEIVING_UPLOADED',
+    performedBy: req.user!.userId,
+    performedByRole: req.user!.role,
+    description: `Uploaded completion document: ${req.file.originalname} (Policy: ${downloadPolicy})`,
+  });
+
+  res.status(200).json(new ApiResponse(200, request, 'Completion document uploaded successfully'));
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/v1/requests/:id/completion-document/download  (Customer/Staff/Admin)
+// ---------------------------------------------------------------------------
+export const downloadCompletionDocument = asyncHandler(async (req: ExpressRequest, res: Response) => {
+  const request = await RequestModel.findById(req.params.id);
+  if (!request) throw ApiError.notFound('Request not found');
+
+  const isCustomer = req.user!.role === Role.CUSTOMER;
+  if (isCustomer && String(request.customer) !== req.user!.userId) {
+    throw ApiError.forbidden('You do not have access to this request');
+  }
+
+  const doc = request.completionDocument;
+  if (!doc || !doc.url) {
+    throw ApiError.notFound('Completion document has not been uploaded for this request');
+  }
+
+  // If downloadPolicy is "once", check if it has already been downloaded
+  if (doc.downloadPolicy === 'once' && doc.downloadCount > 0) {
+    throw ApiError.badRequest('This receiving document was configured for one-time download and has already been downloaded.');
+  }
+
+  // Increment download count and audit log
+  doc.downloadCount += 1;
+  doc.downloads.push({
+    downloadedBy: req.user!.userId as any,
+    downloadedAt: new Date(),
+    ipAddress: req.ip,
+  });
+  await request.save();
+
+  // Log in RequestActivity
+  await RequestActivity.create({
+    request: request._id,
+    action: 'RECEIVING_DOWNLOADED',
+    performedBy: req.user!.userId,
+    performedByRole: req.user!.role,
+    description: `Downloaded completion document: ${doc.originalName} (Download #${doc.downloadCount})`,
+  });
+
+  // Stream the file from ImageKit with attachment headers to force download
+  try {
+    const responseStream = await axios.get(doc.url, { responseType: 'stream' });
+    res.setHeader('Content-Type', doc.mimeType || 'application/octet-stream');
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(doc.originalName)}"`);
+    responseStream.data.pipe(res);
+  } catch (error) {
+    // Fallback redirect if proxy streaming fails
+    res.redirect(doc.url);
+  }
 });

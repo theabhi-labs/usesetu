@@ -54,3 +54,10 @@ export const TableCell = React.forwardRef<HTMLTableCellElement, React.TdHTMLAttr
   )
 );
 TableCell.displayName = 'TableCell';
+
+// Alias exports for clean dashboard table imports
+export const THead = TableHeader;
+export const TBody = TableBody;
+export const TR = TableRow;
+export const TH = TableHead;
+export const TD = TableCell;

@@ -10,6 +10,7 @@ import {
   resetPassword,
   changePassword,
   getMe,
+  verifyCustomerCard,
 } from '../controllers/auth.controller';
 import { validate } from '../middlewares/validate.middleware';
 import { isAuthenticated } from '../middlewares/auth.middleware';
@@ -35,5 +36,6 @@ router.post('/forgot-password', authRateLimiter, validate(forgotPasswordSchema),
 router.post('/reset-password', authRateLimiter, validate(resetPasswordSchema), resetPassword);
 router.post('/change-password', isAuthenticated, validate(changePasswordSchema), changePassword);
 router.get('/me', isAuthenticated, getMe);
+router.get('/verify-card/:token', verifyCustomerCard);
 
 export default router;

@@ -68,6 +68,11 @@ export interface IService extends Document {
   // this with a `workflow` ObjectId reference without breaking existing data.
   customStatusWorkflow: string[];
 
+  requiresCompletionDocument: boolean;
+  customerCanViewCompletionDocument: boolean;
+  customerCanDownloadCompletionDocument: boolean;
+  defaultDownloadPolicy: 'once' | 'permanent';
+
   seo: {
     title?: string;
     description?: string;
@@ -134,6 +139,11 @@ const serviceSchema = new Schema<IService>(
     },
 
     customStatusWorkflow: { type: [String], default: ['applied', 'processing', 'completed'] },
+
+    requiresCompletionDocument: { type: Boolean, default: false },
+    customerCanViewCompletionDocument: { type: Boolean, default: true },
+    customerCanDownloadCompletionDocument: { type: Boolean, default: true },
+    defaultDownloadPolicy: { type: String, enum: ['once', 'permanent'], default: 'permanent' },
 
     seo: {
       title: { type: String },

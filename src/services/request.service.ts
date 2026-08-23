@@ -7,7 +7,7 @@ import { WorkflowHistory } from '../models/workflowHistory.model';
 import { RequestActivity } from '../models/requestActivity.model';
 import { User } from '../models/user.model';
 import { generateApplicationNumber } from './applicationNumber.service';
-import { getInitialStage, moveStage, TransitionContext } from './workflowEngine.service';
+import { getInitialStage, TransitionContext } from './workflowEngine.service';
 import { emitEvent } from './eventBus.service';
 import { Role } from '../types/auth.types';
 import { ApiError } from '../utils/ApiError';
@@ -48,13 +48,28 @@ export const createRequestFromSubmission = async (submissionId: string) => {
       const service = await Service.findById(submission.service).session(session);
       if (!service) throw ApiError.badRequest('Service no longer exists');
 
-      const workflow = await Workflow.findOne({
+      let workflow = await Workflow.findOne({
         service: service._id,
         status: WorkflowStatus.PUBLISHED,
         isDefault: true,
       }).session(session);
+
       if (!workflow) {
-        throw ApiError.badRequest('This service has no published default workflow configured — contact an administrator');
+        workflow = await Workflow.findOne({
+          service: service._id,
+          status: WorkflowStatus.DRAFT,
+          isDefault: true,
+        }).session(session);
+      }
+
+      if (!workflow) {
+        workflow = await Workflow.findOne({
+          service: service._id,
+        }).session(session);
+      }
+
+      if (!workflow) {
+        throw ApiError.badRequest('This service has no workflow configured — contact an administrator');
       }
 
       const initialStage = getInitialStage(workflow);
@@ -168,7 +183,7 @@ export const moveRequestStage = async (
   targetStage: string,
   actorId: string,
   actorRole: Role,
-  context: TransitionContext,
+  _context: TransitionContext,
   remark?: string,
 ) => {
   const request = await RequestModel.findById(requestId);
@@ -177,27 +192,37 @@ export const moveRequestStage = async (
   const workflow = await Workflow.findById(request.workflow);
   if (!workflow) throw ApiError.internal('Workflow referenced by this request no longer exists');
 
-  const result = moveStage(workflow, request.currentStage, targetStage, actorRole, context, remark);
+  const targetStageObj = workflow.stages.find((s) => s.key === targetStage);
+  if (!targetStageObj) throw ApiError.badRequest(`Target stage "${targetStage}" does not exist on this workflow`);
+
+  const serviceObj = await Service.findById(request.service);
+  if (!serviceObj) throw ApiError.internal('Service referenced by this request no longer exists');
+
+  const isTargetStageFinal = targetStageObj.statusType === 'final' || targetStageObj.isFinal;
+  if (isTargetStageFinal && serviceObj.requiresCompletionDocument && !request.completionDocument) {
+    throw ApiError.badRequest('A completion / receiving document is required before completing this service.');
+  }
 
   const previousStage = request.currentStage;
-  request.currentStage = result.newStageKey;
-  request.completionPercentage = result.completionPercentage;
-  request.status = result.isRejectTransition
+  request.currentStage = targetStageObj.key;
+  request.completionPercentage = targetStageObj.completionPercentage;
+  
+  request.status = targetStageObj.statusType === 'rejected'
     ? RequestStatus.REJECTED
-    : result.isCancelTransition
+    : targetStageObj.statusType === 'cancelled'
       ? RequestStatus.CANCELLED
-      : result.isFinal
+      : targetStageObj.statusType === 'final'
         ? RequestStatus.COMPLETED
         : RequestStatus.IN_PROGRESS;
 
-  if (result.isFinal) request.completedOn = new Date();
+  if (targetStageObj.statusType === 'final') request.completedOn = new Date();
   await request.save();
 
   await WorkflowHistory.create({
     request: request._id,
     workflow: workflow._id,
     fromStage: previousStage,
-    toStage: result.newStageKey,
+    toStage: targetStageObj.key,
     changedBy: actorId,
     changedByRole: actorRole,
     remark,
@@ -209,21 +234,20 @@ export const moveRequestStage = async (
     action: 'STAGE_CHANGED',
     performedBy: actorId,
     performedByRole: actorRole,
-    description: `${result.transitionLabel}: ${previousStage} → ${result.newStageKey}`,
+    description: `Stage moved to "${targetStageObj.title}"`,
   });
 
-  // NOTE: notification dispatch (email/in-app per result.notify flags) is
-  // wired in by the Notification & Automation module.
   emitEvent('request.stage_changed', {
     userId: String(request.customer),
     requestId: String(request._id),
     applicationNumber: request.applicationNumber,
     customerName: request.customerName,
     fromStage: previousStage,
-    toStage: result.newStageKey,
-    stageName: result.transitionLabel,
+    toStage: targetStageObj.key,
+    stageName: targetStageObj.title,
   });
-  if (result.isFinal) {
+
+  if (targetStageObj.statusType === 'final') {
     emitEvent('request.completed', {
       userId: String(request.customer),
       requestId: String(request._id),

@@ -26,7 +26,7 @@ export const applySecurityMiddlewares = (app: Application): void => {
   app.use(
     rateLimit({
       windowMs: env.RATE_LIMIT_WINDOW_MS,
-      max: env.RATE_LIMIT_MAX,
+      max: env.NODE_ENV === 'development' ? 10000 : env.RATE_LIMIT_MAX,
       standardHeaders: true,
       legacyHeaders: false,
       message: { success: false, message: 'Too many requests, please try again later.' },
@@ -44,7 +44,7 @@ export const applySecurityMiddlewares = (app: Application): void => {
  */
 export const authRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: env.NODE_ENV === 'development' ? 1000 : 10,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Too many attempts. Please try again after 15 minutes.' },
@@ -52,7 +52,7 @@ export const authRateLimiter = rateLimit({
 
 export const otpRateLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
-  max: 5,
+  max: env.NODE_ENV === 'development' ? 1000 : 5,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Too many OTP requests. Please try again after 10 minutes.' },

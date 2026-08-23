@@ -31,13 +31,17 @@ router.get('/public', validate(serviceQuerySchema), getPublicServices);
 router.get('/featured', getFeaturedServices);
 router.get('/public/:slug', getPublicServiceBySlug);
 
-// Admin/Super Admin managed routes
-router.use(isAuthenticated, authorizeRoles(Role.SUPER_ADMIN, Role.ADMIN));
+// Manage routes — read operations allowed for Admin, Super Admin, and Staff
+router.use(isAuthenticated);
 
-router.get('/', validate(serviceQuerySchema), getServices);
+router.get('/', authorizeRoles(Role.SUPER_ADMIN, Role.ADMIN, Role.STAFF), validate(serviceQuerySchema), getServices);
+router.get('/:id', authorizeRoles(Role.SUPER_ADMIN, Role.ADMIN, Role.STAFF), validate(serviceIdParamSchema), getServiceById);
+
+// Mutations restricted to Admin/Super Admin
+router.use(authorizeRoles(Role.SUPER_ADMIN, Role.ADMIN));
+
 router.post('/', uploadImage.single('image'), validate(createServiceSchema), createService);
 router.patch('/reorder', reorderServices);
-router.get('/:id', validate(serviceIdParamSchema), getServiceById);
 router.put('/:id', uploadImage.single('image'), validate(updateServiceSchema), updateService);
 router.patch('/:id/status', validate(serviceIdParamSchema), toggleServiceStatus);
 router.patch('/:id/featured', validate(serviceIdParamSchema), toggleServiceFeatured);

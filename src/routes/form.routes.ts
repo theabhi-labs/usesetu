@@ -23,7 +23,7 @@ const router = Router();
 // token if the customer is logged in; isAuthenticated is intentionally NOT
 // applied here so anonymous/guest submissions remain possible where allowed)
 router.get('/public/:slug', getPublicFormBySlug);
-router.post('/public/:slug/submit', validate(submitFormSchema), submitForm);
+router.post('/public/:slug/submit', isAuthenticated, validate(submitFormSchema), submitForm);
 
 // Admin/Super Admin managed routes
 router.use(isAuthenticated, authorizeRoles(Role.SUPER_ADMIN, Role.ADMIN));

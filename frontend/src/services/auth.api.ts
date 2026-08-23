@@ -81,4 +81,9 @@ export const authApi = {
     const res = await api.get<ApiResponse<{ user: User }>>('/auth/me');
     return res.data.data;
   },
+
+  verifyCard: async (token: string): Promise<any> => {
+    const res = await api.get<ApiResponse<any>>(`/auth/verify-card/${token}`);
+    return res.data.data;
+  },
 };

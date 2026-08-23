@@ -294,5 +294,38 @@ export const changePassword = asyncHandler(async (req: Request, res: Response) =
 export const getMe = asyncHandler(async (req: Request, res: Response) => {
   const user = await User.findById(req.user!.userId);
   if (!user) throw ApiError.notFound('User not found');
+
+  if (!user.cardVerificationToken) {
+    user.cardVerificationToken = crypto.randomBytes(16).toString('hex');
+    await user.save();
+  }
+
   res.status(200).json(new ApiResponse(200, { user }, 'Current user fetched'));
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/v1/auth/verify-card/:token  (public)
+// ---------------------------------------------------------------------------
+export const verifyCustomerCard = asyncHandler(async (req: Request, res: Response) => {
+  const { token } = req.params;
+  const user = await User.findOne({ cardVerificationToken: token }).select('name role isActive avatar createdAt mobile');
+
+  if (!user) {
+    throw ApiError.notFound('Invalid or expired card verification token');
+  }
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        name: user.name,
+        role: user.role,
+        isActive: user.isActive,
+        memberSince: user.createdAt,
+        customerId: 'CUST-' + String(user._id).substring(18).toUpperCase(),
+        mobile: user.mobile.substring(0, 5) + 'XXXXX',
+      },
+      'Card verified successfully'
+    )
+  );
 });

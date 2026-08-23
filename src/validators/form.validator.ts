@@ -67,8 +67,8 @@ const formFieldSchema = z.object({
   conditional: conditionalLogicSchema.optional(),
   calculated: z
     .object({
-      formula: z.string(),
-      dependsOn: z.array(z.string()),
+      formula: z.string().optional(),
+      dependsOn: z.array(z.string()).optional(),
     })
     .optional(),
 });

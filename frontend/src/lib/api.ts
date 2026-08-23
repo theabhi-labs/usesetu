@@ -25,12 +25,21 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
-// Request Interceptor: Attach access token
+// Request Interceptor: Attach access token and clean empty query params
 api.interceptors.request.use(
   (config) => {
     const token = useAuthStore.getState().accessToken;
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    if (config.params) {
+      const cleanParams = { ...config.params };
+      Object.keys(cleanParams).forEach((key) => {
+        if (cleanParams[key] === '') {
+          delete cleanParams[key];
+        }
+      });
+      config.params = cleanParams;
     }
     return config;
   },
@@ -76,7 +85,8 @@ api.interceptors.response.use(
         );
 
         const { accessToken, user } = refreshResponse.data.data;
-        useAuthStore.getState().setSession(user, accessToken);
+        const currentUser = useAuthStore.getState().user;
+        useAuthStore.getState().setSession(user || currentUser, accessToken);
 
         processQueue(null, accessToken);
         isRefreshing = false;

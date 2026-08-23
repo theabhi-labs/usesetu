@@ -249,15 +249,15 @@ export const deleteForm = asyncHandler(async (req: Request, res: Response) => {
 // GET /api/v1/forms/public/:slug  (Public — the live published version)
 // ---------------------------------------------------------------------------
 export const getPublicFormBySlug = asyncHandler(async (req: Request, res: Response) => {
-  // Index-backed: { slug: 1, status: 1, version: -1 }
-  const form = await Form.findOne({ slug: req.params.slug, status: FormStatus.PUBLISHED })
+  const service = await Service.findOne({ slug: req.params.slug }).lean();
+  if (!service) throw ApiError.notFound('Service not found');
+
+  const form = await Form.findOne({ service: service._id, status: FormStatus.PUBLISHED })
     .sort({ version: -1 })
     .lean();
 
   if (!form) throw ApiError.notFound('Form not found or not published');
 
-  // Strip fields the customer shouldn't see the internals of (e.g. calculated
-  // formulas are server-only business logic).
   const safeFields = form.fields.map(({ calculated: _calculated, ...rest }) => rest);
 
   res.status(200).json(new ApiResponse(200, { ...form, fields: safeFields }));
@@ -267,7 +267,10 @@ export const getPublicFormBySlug = asyncHandler(async (req: Request, res: Respon
 // POST /api/v1/forms/public/:slug/submit  (Public — customer submission)
 // ---------------------------------------------------------------------------
 export const submitForm = asyncHandler(async (req: Request, res: Response) => {
-  const form = await Form.findOne({ slug: req.params.slug, status: FormStatus.PUBLISHED }).sort({ version: -1 });
+  const service = await Service.findOne({ slug: req.params.slug }).lean();
+  if (!service) throw ApiError.notFound('Service not found');
+
+  const form = await Form.findOne({ service: service._id, status: FormStatus.PUBLISHED }).sort({ version: -1 });
   if (!form) throw ApiError.notFound('Form not found or not published');
 
   const rawValues = req.body.values as Record<string, unknown>;

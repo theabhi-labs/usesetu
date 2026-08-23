@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import { Role } from '../types/auth.types';
 
 export interface IUser extends Document {
@@ -35,6 +36,7 @@ export interface IUser extends Document {
 
   lastLoginAt?: Date;
   lastLoginIp?: string;
+  cardVerificationToken?: string;
 
   createdAt: Date;
   updatedAt: Date;
@@ -85,6 +87,7 @@ const userSchema = new Schema<IUser>(
 
     lastLoginAt: { type: Date },
     lastLoginIp: { type: String },
+    cardVerificationToken: { type: String, unique: true, sparse: true },
   },
   { timestamps: true },
 );
@@ -92,6 +95,9 @@ const userSchema = new Schema<IUser>(
 userSchema.index({ role: 1, isActive: 1 });
 
 userSchema.pre('save', async function (next) {
+  if (!this.cardVerificationToken) {
+    this.cardVerificationToken = crypto.randomBytes(16).toString('hex');
+  }
   if (!this.isModified('password')) return next();
   this.password = await bcrypt.hash(this.password, 12);
   next();
