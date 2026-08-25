@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IMediaAsset extends Document {
@@ -30,5 +31,7 @@ const mediaAssetSchema = new Schema<IMediaAsset>(
 
 mediaAssetSchema.index({ folder: 1, createdAt: -1 });
 mediaAssetSchema.index({ fileName: 'text', tags: 'text' });
+
+mediaAssetSchema.plugin(tenantPlugin);
 
 export const MediaAsset: Model<IMediaAsset> = mongoose.model<IMediaAsset>('MediaAsset', mediaAssetSchema);

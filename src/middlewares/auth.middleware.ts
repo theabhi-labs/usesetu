@@ -19,7 +19,9 @@ export const isAuthenticated = asyncHandler(async (req: Request, _res: Response,
 
   const payload = verifyAccessToken(token);
 
-  const user = await User.findById(payload.userId).select('isActive tokenVersion role');
+  const user = await User.findById(payload.userId)
+    .select('isActive tokenVersion role tenantId')
+    .setOptions({ bypassTenantQuery: true });
   if (!user) throw ApiError.unauthorized('User no longer exists');
   if (!user.isActive) throw ApiError.forbidden('Account is deactivated');
   if (user.tokenVersion !== payload.tokenVersion) {
@@ -30,7 +32,14 @@ export const isAuthenticated = asyncHandler(async (req: Request, _res: Response,
     userId: payload.userId,
     role: payload.role,
     tokenVersion: payload.tokenVersion,
+    tenantId: user.tenantId ? String(user.tenantId) : undefined,
   };
+
+  // Security Check: Host Tenant vs Authenticated User Tenant mismatch
+  const hostTenantId = (req as any).application?.tenantId ? String((req as any).application.tenantId) : undefined;
+  if (hostTenantId && user.tenantId && String(user.tenantId) !== hostTenantId) {
+    throw ApiError.forbidden('Host and token tenant mismatch: Access denied to cross-tenant resources');
+  }
 
   next();
 });

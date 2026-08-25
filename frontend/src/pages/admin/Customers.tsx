@@ -143,7 +143,7 @@ export function Customers() {
                     </TD>
                     <TD className="text-right select-none">
                       <Button
-                        size="xs"
+                        size="sm"
                         variant="secondary"
                         onClick={() => navigate(`/admin/customers/${c._id}`)}
                       >

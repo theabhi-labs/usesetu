@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 interface IWorkingHours {
@@ -63,6 +64,8 @@ const appointmentSettingsSchema = new Schema<IAppointmentSettings>(
   },
   { timestamps: true },
 );
+
+appointmentSettingsSchema.plugin(tenantPlugin);
 
 export const AppointmentSettings: Model<IAppointmentSettings> = mongoose.model<IAppointmentSettings>(
   'AppointmentSettings',

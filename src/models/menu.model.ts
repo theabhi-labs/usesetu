@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 interface IMenuItem {
@@ -43,4 +44,6 @@ const menuSchema = new Schema<IMenu>(
 );
 
 // One menu document per location — location already unique-indexed above.
+menuSchema.plugin(tenantPlugin);
+
 export const Menu: Model<IMenu> = mongoose.model<IMenu>('Menu', menuSchema);

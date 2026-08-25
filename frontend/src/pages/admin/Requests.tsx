@@ -5,7 +5,7 @@ import { requestApi } from '../../services/request.api';
 import { serviceApi } from '../../services/service.api';
 import { useAuthStore } from '../../store/authStore';
 import { api } from '../../lib/api';
-import type { Request, RequestStatus, RequestPriority } from '../../types/request.types';
+import type { Request } from '../../types/request.types';
 import type { Service } from '../../types/service.types';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
@@ -15,7 +15,7 @@ import { Skeleton } from '../../components/ui/Skeleton';
 import { Badge } from '../../components/ui/Badge';
 import { StatusPill } from '../../components/ui/StatusPill';
 import { Table, THead, TBody, TR, TH, TD } from '../../components/ui/Table';
-import { Search, Download, Trash2, CheckCircle, Ban, Tag, UserPlus } from 'lucide-react';
+import { Download } from 'lucide-react';
 
 export function Requests() {
   const queryClient = useQueryClient();
@@ -59,7 +59,7 @@ export function Requests() {
       };
 
       if (activeQueueTab === 'my' && user) {
-        params.assignedTo = user.userId;
+        params.assignedTo = (user as any).id || (user as any).userId;
       } else if (activeQueueTab === 'unassigned') {
         params.assignedTo = 'unassigned';
       }
@@ -347,7 +347,7 @@ export function Requests() {
                       <Badge
                         variant={
                           req.priority === 'urgent' || req.priority === 'vip'
-                            ? 'error'
+                            ? 'danger'
                             : req.priority === 'normal'
                             ? 'secondary'
                             : 'warning'
@@ -363,7 +363,7 @@ export function Requests() {
                       <div className="flex justify-end items-center gap-2">
                         {!req.assignedTo && (
                           <Button
-                            size="xs"
+                            size="sm"
                             onClick={() => acceptMutation.mutate(req._id)}
                             disabled={acceptMutation.isPending}
                           >
@@ -371,7 +371,7 @@ export function Requests() {
                           </Button>
                         )}
                         <Link to={`/admin/requests/${req._id}`}>
-                          <Button size="xs" variant="secondary">
+                          <Button size="sm" variant="secondary">
                             Process
                           </Button>
                         </Link>

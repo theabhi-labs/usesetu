@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 import { Role } from '../types/auth.types';
 
@@ -173,5 +174,7 @@ workflowSchema.pre(/^find/, function (this: mongoose.Query<unknown, IWorkflow>, 
   }
   next();
 });
+
+workflowSchema.plugin(tenantPlugin);
 
 export const Workflow: Model<IWorkflow> = mongoose.model<IWorkflow>('Workflow', workflowSchema);

@@ -19,18 +19,15 @@ import { Select } from '../../components/ui/Select';
 import { Checkbox } from '../../components/ui/Checkbox';
 import { StatusPill } from '../../components/ui/StatusPill';
 import { Badge } from '../../components/ui/Badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/Dialog';
+import { Dialog, DialogContent } from '../../components/ui/Dialog';
 import {
   ArrowLeft,
   Calendar,
-  CheckCircle,
   FileText,
   MessageSquare,
   DollarSign,
   History,
   AlertCircle,
-  XCircle,
-  QrCode,
   Printer,
 } from 'lucide-react';
 
@@ -223,7 +220,6 @@ export function RequestDetail() {
   const staffMembers = staffQuery.data?.users || [];
 
   const reassignMutation = useMutation({
-    queryKey: ['reassignRequest', id],
     mutationFn: (assignedTo: string) => requestApi.assign(id || '', assignedTo),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminRequestDetail', id] });
@@ -232,7 +228,7 @@ export function RequestDetail() {
     onError: (err: any) => {
       alert(err?.response?.data?.message || 'Failed to reassign request.');
     },
-  } as any);
+  });
 
   // Mutations
   const moveStageMutation = useMutation({
@@ -348,9 +344,7 @@ export function RequestDetail() {
   const balanceDue = Math.max(totalAmount - paidAmount, 0);
 
   // Render transitions
-  const currentStageObj = workflow?.stages?.find((s) => s.key === request.currentStage);
-  const allowedTransitions =
-    workflow?.transitions?.filter((t) => t.fromStage === request.currentStage) || [];
+  const currentStageObj = workflow?.stages?.find((s: any) => s.key === request.currentStage);
 
   const handleStageMove = (targetStage: string, requireRemark: boolean) => {
     if (requireRemark && !stageRemark.trim()) {
@@ -442,7 +436,7 @@ export function RequestDetail() {
           <StatusPill status={request.status} />
           <Badge
             variant={
-              request.priority === 'urgent' || request.priority === 'vip' ? 'error' : 'secondary'
+              request.priority === 'urgent' || request.priority === 'vip' ? 'danger' : 'secondary'
             }
           >
             {request.priority}
@@ -510,9 +504,9 @@ export function RequestDetail() {
               <div className="space-y-3 text-left">
                 <span className="text-[10px] font-bold text-text-tertiary uppercase block select-none">Select active milestone stage:</span>
                 <div className="space-y-2 border border-border p-4 rounded bg-surface-elevated/20 divide-y divide-border">
-                  {workflow?.stages?.map((s, idx) => {
+                  {workflow?.stages?.map((s: any, idx: number) => {
                     const isActive = s.key === request.currentStage;
-                    const activeStageIndex = workflow.stages.findIndex(stage => stage.key === request.currentStage);
+                    const activeStageIndex = workflow.stages.findIndex((stage: any) => stage.key === request.currentStage);
                     const isCompleted = idx < activeStageIndex;
 
                     return (
@@ -596,26 +590,26 @@ export function RequestDetail() {
                         <span className="text-3xl select-none">📄</span>
                         <div className="text-left flex-1 space-y-1">
                           <h4 className="font-semibold text-text-primary text-xs truncate select-all">
-                            {request.completionDocument.originalName}
+                            {request.completionDocument.originalName || 'Receiving Document'}
                           </h4>
                           <p className="text-[10px] text-text-tertiary font-mono">
-                            File Size: {(request.completionDocument.size / 1024).toFixed(1)} KB | Policy:{' '}
+                            File Size: {((request.completionDocument.size || 0) / 1024).toFixed(1)} KB | Policy:{' '}
                             <span className="font-bold text-accent uppercase">
-                              {request.completionDocument.downloadPolicy}
+                              {request.completionDocument.downloadPolicy || 'permanent'}
                             </span>
                           </p>
                           <p className="text-[10px] text-text-secondary">
-                            Downloads: <span className="font-bold">{request.completionDocument.downloadCount}</span> times
+                            Downloads: <span className="font-bold">{request.completionDocument.downloadCount || 0}</span> times
                           </p>
                         </div>
                       </div>
 
                       {/* Download Log / Audit History */}
-                      {request.completionDocument.downloads && request.completionDocument.downloads.length > 0 && (
+                      {request.completionDocument.downloads && (request.completionDocument.downloads as any[]).length > 0 && (
                         <div className="border-t border-border pt-3 space-y-2 select-none">
                           <span className="text-[9px] font-bold text-text-tertiary uppercase block">Download Audit Log</span>
                           <div className="max-h-24 overflow-y-auto space-y-1 bg-surface-elevated/30 p-2 rounded border border-border">
-                            {request.completionDocument.downloads.map((dl: any, idx: number) => (
+                            {(request.completionDocument.downloads as any[]).map((dl: any, idx: number) => (
                               <div key={idx} className="flex justify-between text-[9px] text-text-secondary font-mono">
                                 <span>👤 Downloaded by Customer</span>
                                 <span>{new Date(dl.downloadedAt).toLocaleString()}</span>
@@ -762,7 +756,7 @@ export function RequestDetail() {
                           {valStr ? (
                             <div className="flex items-center gap-1.5 select-none">
                               <Button
-                                size="xs"
+                                size="sm"
                                 variant="outline"
                                 onClick={() => handleCopy(field.fieldKey, valStr)}
                                 className="h-7 px-2"
@@ -773,12 +767,12 @@ export function RequestDetail() {
                               {isFile && (
                                 <>
                                   <a href={valStr} download target="_blank" rel="noopener noreferrer">
-                                    <Button size="xs" variant="outline" className="h-7 px-2">
+                                    <Button size="sm" variant="outline" className="h-7 px-2">
                                       Download
                                     </Button>
                                   </a>
                                   <Button
-                                    size="xs"
+                                    size="sm"
                                     variant="outline"
                                     onClick={() => handlePrint(valStr)}
                                     className="h-7 px-2"

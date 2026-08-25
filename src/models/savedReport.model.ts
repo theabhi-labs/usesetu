@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export enum ReportType {
@@ -38,5 +39,7 @@ const savedReportSchema = new Schema<ISavedReport>(
 );
 
 savedReportSchema.index({ createdBy: 1, reportType: 1 });
+
+savedReportSchema.plugin(tenantPlugin);
 
 export const SavedReport: Model<ISavedReport> = mongoose.model<ISavedReport>('SavedReport', savedReportSchema);

@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface ILockerDocument extends Document {
@@ -27,5 +28,7 @@ const lockerDocumentSchema = new Schema<ILockerDocument>(
 
 // Customer-level quick querying of locker documents
 lockerDocumentSchema.index({ customer: 1, createdAt: -1 });
+
+lockerDocumentSchema.plugin(tenantPlugin);
 
 export const LockerDocument: Model<ILockerDocument> = mongoose.model<ILockerDocument>('LockerDocument', lockerDocumentSchema);

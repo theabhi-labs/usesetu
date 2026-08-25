@@ -1,18 +1,14 @@
 import { useState } from 'react';
-import { useAuthStore } from '../../store/authStore';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { requestApi } from '../../services/request.api';
 import { paymentApi } from '../../services/payment.api';
-import type { Request } from '../../types/request.types';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Skeleton } from '../../components/ui/Skeleton';
-import { Input } from '../../components/ui/Input';
 import { Textarea } from '../../components/ui/Textarea';
-import { Checkbox } from '../../components/ui/Checkbox';
 import { StatusPill } from '../../components/ui/StatusPill';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/Dialog';
+import { Dialog, DialogContent } from '../../components/ui/Dialog';
 import {
   ArrowLeft,
   Calendar,
@@ -26,7 +22,6 @@ import {
 export function PortalRequestDetail() {
   const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
-  const accessToken = useAuthStore((state) => state.accessToken);
 
   const [activeTab, setActiveTab] = useState<'overview' | 'docs' | 'payments' | 'comments'>('overview');
   const [commentVal, setCommentVal] = useState('');
@@ -273,7 +268,7 @@ export function PortalRequestDetail() {
                     <div>
                       <span className="text-text-tertiary select-none">Last Updated:</span>{' '}
                       <span className="font-semibold text-text-primary font-mono select-all">
-                        {new Date(request.updatedAt).toLocaleString()}
+                        {new Date(request.updatedAt || request.createdAt).toLocaleString()}
                       </span>
                     </div>
                   </div>
@@ -340,8 +335,8 @@ export function PortalRequestDetail() {
                               </h4>
                               {isCompleted && historyRecord && (
                                 <span className="text-[9px] font-mono text-text-tertiary">
-                                  {new Date(historyRecord.createdAt).toLocaleDateString()}{' '}
-                                  {new Date(historyRecord.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  {new Date(historyRecord.createdAt || historyRecord.timestamp || Date.now()).toLocaleDateString()}{' '}
+                                  {new Date(historyRecord.createdAt || historyRecord.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </span>
                               )}
                               {isActive && (
@@ -351,10 +346,10 @@ export function PortalRequestDetail() {
                             
                             {/* Subtext description */}
                             {isActive ? (
-                              <p className="text-text-secondary text-xs">Currently in progress. Last updated: {new Date(request.updatedAt).toLocaleString()}</p>
+                              <p className="text-text-secondary text-xs">Currently in progress. Last updated: {new Date(request.updatedAt || request.createdAt).toLocaleString()}</p>
                             ) : isCompleted ? (
                               <p className="text-text-tertiary text-xs">
-                                Completed {historyRecord?.operatorName ? `by ${historyRecord.operatorName}` : ''}
+                                Completed {historyRecord?.operatorName || historyRecord?.actionBy?.name ? `by ${historyRecord?.operatorName || historyRecord?.actionBy?.name}` : ''}
                                 {historyRecord?.remark ? ` — "${historyRecord.remark}"` : ''}
                               </p>
                             ) : (
@@ -371,7 +366,7 @@ export function PortalRequestDetail() {
 
             {/* Completion / Receiving Document Card */}
             {request.completionDocument && (
-              <Card className="p-5 border border-success/20 bg-success/5 space-y-4">
+              <Card className="p-5 space-y-4 border border-success/30 bg-success/5">
                 <div className="flex justify-between items-center select-none">
                   <span className="text-[10px] font-bold text-success uppercase block">Completion Document / Receiving</span>
                   <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded-full ${
@@ -384,14 +379,14 @@ export function PortalRequestDetail() {
                   <span className="text-3xl select-none">📄</span>
                   <div className="text-left flex-1 space-y-1">
                     <h4 className="font-semibold text-text-primary text-sm truncate select-all">
-                      {request.completionDocument.originalName}
+                      {request.completionDocument.originalName || 'Receiving Document'}
                     </h4>
                     <p className="text-[10px] text-text-tertiary font-mono">
-                      File Size: {(request.completionDocument.size / 1024).toFixed(1)} KB | Uploaded: {new Date(request.completionDocument.uploadedAt).toLocaleDateString()}
+                      File Size: {((request.completionDocument.size || 0) / 1024).toFixed(1)} KB | Uploaded: {new Date(request.completionDocument.uploadedAt || Date.now()).toLocaleDateString()}
                     </p>
                     {request.completionDocument.downloadPolicy === 'once' && (
                       <p className="text-[10px] text-warning font-semibold">
-                        {request.completionDocument.downloadCount > 0 
+                        {(request.completionDocument.downloadCount || 0) > 0 
                           ? '⚠ Download expired (One-time download policy configured)' 
                           : 'ℹ Available: 1 download remaining'}
                       </p>
@@ -421,7 +416,7 @@ export function PortalRequestDetail() {
                   >
                     {isDocumentActionLoading ? 'Loading...' : 'View File'}
                   </button>
-                  {request.completionDocument.downloadPolicy === 'once' && request.completionDocument.downloadCount > 0 ? (
+                  {request.completionDocument.downloadPolicy === 'once' && (request.completionDocument.downloadCount || 0) > 0 ? (
                     <button
                       disabled
                       className="px-3 py-1.5 bg-border text-text-tertiary cursor-not-allowed rounded text-xs font-bold"

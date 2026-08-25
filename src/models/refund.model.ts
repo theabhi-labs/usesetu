@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export enum RefundStatus {
@@ -39,5 +40,7 @@ const refundSchema = new Schema<IRefund>(
 
 refundSchema.index({ request: 1, createdAt: -1 });
 refundSchema.index({ status: 1, createdAt: -1 });
+
+refundSchema.plugin(tenantPlugin);
 
 export const Refund: Model<IRefund> = mongoose.model<IRefund>('Refund', refundSchema);

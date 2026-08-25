@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 /**
@@ -83,7 +84,7 @@ export interface IWebsiteSetting extends Omit<Document, '_id'> {
 
 const websiteSettingSchema = new Schema<IWebsiteSetting>(
   {
-    _id: { type: String, default: 'singleton' },
+    _id: { type: String },
 
     websiteName: { type: String, default: 'CSC OS' },
     cscName: { type: String, default: 'Common Service Center' },
@@ -164,6 +165,8 @@ const websiteSettingSchema = new Schema<IWebsiteSetting>(
   },
   { timestamps: true, _id: false },
 );
+
+websiteSettingSchema.plugin(tenantPlugin);
 
 export const WebsiteSetting: Model<IWebsiteSetting> = mongoose.model<IWebsiteSetting>(
   'WebsiteSetting',

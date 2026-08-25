@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface INotificationPreference extends Document {
@@ -21,6 +22,8 @@ const notificationPreferenceSchema = new Schema<INotificationPreference>(
   },
   { timestamps: true },
 );
+
+notificationPreferenceSchema.plugin(tenantPlugin);
 
 export const NotificationPreference: Model<INotificationPreference> = mongoose.model<INotificationPreference>(
   'NotificationPreference',

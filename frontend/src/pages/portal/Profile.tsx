@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/authStore';
 import { notificationApi } from '../../services/notification.api';
+import { authApi } from '../../services/auth.api';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Checkbox } from '../../components/ui/Checkbox';
 import { Skeleton } from '../../components/ui/Skeleton';
-import { Settings, User, Mail, ShieldAlert } from 'lucide-react';
+import { Settings, User, ShieldAlert } from 'lucide-react';
 
 export function Profile() {
   const { user } = useAuthStore();
@@ -62,17 +63,10 @@ export function Profile() {
       return;
     }
 
-    // Call change password mutation
     setPassError('');
     setPassSuccess('');
     try {
-      // Endpoint `/api/v1/auth/change-password`
-      const res = await notificationApi.updatePreferences({ email: emailNotif, in_app: inAppNotif }); // placeholder check, let's call password change
-      // In Phase 1 we can call authApi or api.post('/auth/change-password')
-      const authResponse = await notificationApi.getAll(); // dummy trigger to assert token refresh queue validation
-      // Wait, let's execute real password changes:
-      // In the auth service, we have: `POST /auth/change-password`
-      await notificationApi.getPreferences(); // placeholder
+      await authApi.changePassword({ currentPassword: oldPassword, newPassword });
       setPassSuccess('Password updated successfully!');
       setOldPassword('');
       setNewPassword('');

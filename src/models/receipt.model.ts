@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IReceipt extends Document {
@@ -33,5 +34,7 @@ const receiptSchema = new Schema<IReceipt>(
 // payment already unique-indexed above (one receipt per payment).
 receiptSchema.index({ request: 1, createdAt: -1 });
 receiptSchema.index({ customer: 1, createdAt: -1 });
+
+receiptSchema.plugin(tenantPlugin);
 
 export const Receipt: Model<IReceipt> = mongoose.model<IReceipt>('Receipt', receiptSchema);

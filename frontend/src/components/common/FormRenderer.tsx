@@ -461,7 +461,7 @@ function FileUploadField({ fieldKey, uploadConfig, disabled, label }: { fieldKey
                 <span className="text-[10px] uppercase font-bold text-accent tracking-wider block">Found in Locker</span>
                 <span className="text-xs font-medium text-text-primary block truncate max-w-[200px]">{matchingDoc.originalName}</span>
               </div>
-              <Button type="button" size="xs" onClick={() => handleSelectFromLocker(matchingDoc.url)}>
+              <Button type="button" size="sm" onClick={() => handleSelectFromLocker(matchingDoc.url)}>
                 Use from Locker
               </Button>
             </div>
@@ -505,7 +505,7 @@ function FileUploadField({ fieldKey, uploadConfig, disabled, label }: { fieldKey
                     <span className="font-bold text-text-primary block truncate">{doc.originalName}</span>
                     <span className="text-[9px] text-text-tertiary block font-mono">{doc.type.replace('_', ' ').toUpperCase()}</span>
                   </div>
-                  <Button type="button" size="xs" onClick={() => handleSelectFromLocker(doc.url)}>
+                  <Button type="button" size="sm" onClick={() => handleSelectFromLocker(doc.url)}>
                     Select
                   </Button>
                 </div>

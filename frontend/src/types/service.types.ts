@@ -31,6 +31,7 @@ export interface Service {
   estimatedTimeUnit: 'minutes' | 'hours' | 'days';
   workingDays: string[];
   requiredDocuments: RequiredDocumentType[];
+  requiresCompletionDocument?: boolean;
   faqs: { question: string; answer: string }[];
   paymentSettings: {
     advancePayment: boolean;
@@ -58,9 +59,40 @@ export interface PublicServiceDTO {
   instructions?: string;
   serviceMode: ServiceMode;
   fees: { service: number; govt: number; csc: number; total: number };
-  estimatedTime: { value: number; unit: string };
-  requiredDocuments: string[];
+  estimatedTime?: any;
+  requiredDocuments: RequiredDocumentType[];
+  requiresCompletionDocument?: boolean;
+  faqs?: any[];
+}
+
+export interface ServiceFormData {
+  category: string;
+  name: string;
+  slug: string;
+  icon?: string;
+  description?: string;
+  instructions?: string;
+  serviceMode: ServiceMode;
+  serviceFee: number;
+  govtFee: number;
+  cscFee: number;
+  estimatedTimeValue: number;
+  estimatedTimeUnit: 'minutes' | 'hours' | 'days';
+  workingDays: string[];
+  requiredDocuments: RequiredDocumentType[];
+  requiresCompletionDocument?: boolean;
   faqs: { question: string; answer: string }[];
-  isFeatured: boolean;
+  paymentSettings: {
+    advancePayment: boolean;
+    advanceAmount: number;
+    allowPartialPayment: boolean;
+    allowFullPayment: boolean;
+    paymentBeforeProcessing: boolean;
+  };
+  customStatusWorkflow?: string[];
   seo: { title?: string; description?: string; keywords?: string[] };
+  sortOrder?: number;
+  status: 'active' | 'inactive';
+  isFeatured: boolean;
+  homepageVisibility: boolean;
 }

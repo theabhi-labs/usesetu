@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface INotificationTemplate extends Document {
@@ -29,6 +30,8 @@ const notificationTemplateSchema = new Schema<INotificationTemplate>(
   },
   { timestamps: true },
 );
+
+notificationTemplateSchema.plugin(tenantPlugin);
 
 export const NotificationTemplate: Model<INotificationTemplate> = mongoose.model<INotificationTemplate>(
   'NotificationTemplate',

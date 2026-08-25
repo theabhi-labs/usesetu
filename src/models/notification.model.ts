@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export enum NotificationChannel {
@@ -66,5 +67,7 @@ notificationSchema.index({ user: 1, createdAt: -1 });
 notificationSchema.index({ user: 1, status: 1 });
 // 3. Retry queue for failed email sends.
 notificationSchema.index({ channel: 1, status: 1, retryCount: 1 });
+
+notificationSchema.plugin(tenantPlugin);
 
 export const Notification: Model<INotification> = mongoose.model<INotification>('Notification', notificationSchema);

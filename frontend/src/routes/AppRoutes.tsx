@@ -48,6 +48,17 @@ import { MyPayments } from '../pages/portal/MyPayments';
 import { Locker } from '../pages/portal/Locker';
 import { Profile } from '../pages/portal/Profile';
 
+// Platform Pages
+import { PlatformLayout } from '../layouts/PlatformLayout';
+import { PlatformDashboard } from '../pages/platform/Dashboard';
+import { ApplicationsPage } from '../pages/platform/Applications';
+import { CreateApp } from '../pages/platform/CreateApp';
+import { ApplicationDetail } from '../pages/platform/ApplicationDetail';
+import { BillingPage } from '../pages/platform/Billing';
+import { NotificationsPage } from '../pages/platform/Notifications';
+import { AccountPage } from '../pages/platform/Account';
+import { SecurityPage } from '../pages/platform/Security';
+
 // Shared Gates
 import { ProtectedRoute } from './ProtectedRoute';
 import { RoleGate } from './RoleGate';
@@ -131,6 +142,25 @@ export function AppRoutes() {
         <Route path="payments" element={<MyPayments />} />
         <Route path="locker" element={<Locker />} />
         <Route path="profile" element={<Profile />} />
+      </Route>
+
+      {/* Platform Control Plane Console */}
+      <Route
+        path="/platform"
+        element={
+          <ProtectedRoute>
+            <PlatformLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<PlatformDashboard />} />
+        <Route path="applications" element={<ApplicationsPage />} />
+        <Route path="applications/:id" element={<ApplicationDetail />} />
+        <Route path="create-app" element={<CreateApp />} />
+        <Route path="billing" element={<BillingPage />} />
+        <Route path="notifications" element={<NotificationsPage />} />
+        <Route path="account" element={<AccountPage />} />
+        <Route path="account/security" element={<SecurityPage />} />
       </Route>
 
       <Route path="/verify-customer/:token" element={<CustomerVerification />} />

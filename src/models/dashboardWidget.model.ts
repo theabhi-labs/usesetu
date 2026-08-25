@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 interface IWidgetLayout {
@@ -48,6 +49,8 @@ const dashboardWidgetSchema = new Schema<IDashboardWidget>(
 );
 
 // One layout per user — user already unique-indexed above.
+dashboardWidgetSchema.plugin(tenantPlugin);
+
 export const DashboardWidget: Model<IDashboardWidget> = mongoose.model<IDashboardWidget>(
   'DashboardWidget',
   dashboardWidgetSchema,

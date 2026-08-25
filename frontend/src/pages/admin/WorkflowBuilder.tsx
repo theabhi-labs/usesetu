@@ -4,14 +4,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { workflowApi } from '../../services/workflow.api';
 import { serviceApi } from '../../services/service.api';
 import type { Workflow, WorkflowStage, WorkflowTransition } from '../../types/workflow.types';
-import type { Service } from '../../types/service.types';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { Checkbox } from '../../components/ui/Checkbox';
 import { Skeleton } from '../../components/ui/Skeleton';
-import { ArrowLeft, Save, Plus, Trash2, ArrowUp, ArrowDown, Settings } from 'lucide-react';
+import { ArrowLeft, Save, Plus, ArrowUp, ArrowDown, Settings } from 'lucide-react';
 
 export function WorkflowBuilder() {
   const { id } = useParams<{ id: string }>();
@@ -287,7 +286,7 @@ export function WorkflowBuilder() {
                   value={formState.service}
                   onChange={(e) => setFormState({ ...formState, service: e.target.value })}
                 >
-                  {services.map((s) => (
+                  {(services as any[]).map((s: any) => (
                     <option key={s._id} value={s._id}>
                       {s.name}
                     </option>

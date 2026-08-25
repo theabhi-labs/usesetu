@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export enum PageType {
@@ -40,5 +41,7 @@ const pageSchema = new Schema<IPage>(
 );
 
 pageSchema.index({ status: 1 });
+
+pageSchema.plugin(tenantPlugin);
 
 export const Page: Model<IPage> = mongoose.model<IPage>('Page', pageSchema);

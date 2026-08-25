@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 interface ICounter {
@@ -77,4 +78,6 @@ const queueSchema = new Schema<IQueue>(
 );
 
 // One queue config per service — service already unique-indexed above.
+queueSchema.plugin(tenantPlugin);
+
 export const Queue: Model<IQueue> = mongoose.model<IQueue>('Queue', queueSchema);

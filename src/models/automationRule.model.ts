@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 // Extensible, not database-driven by design — new event types are added
@@ -99,6 +100,8 @@ const automationRuleSchema = new Schema<IAutomationRule>(
 
 // The engine's hot query: "every active rule for this event, in priority order".
 automationRuleSchema.index({ eventType: 1, isActive: 1, priority: 1 });
+
+automationRuleSchema.plugin(tenantPlugin);
 
 export const AutomationRule: Model<IAutomationRule> = mongoose.model<IAutomationRule>(
   'AutomationRule',

@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 import { Role } from '../types/auth.types';
 
@@ -50,6 +51,8 @@ const workflowHistorySchema = new Schema<IWorkflowHistory>(
 workflowHistorySchema.index({ request: 1, createdAt: 1 });
 // 2. Workflow analytics — "how many requests are currently/have been at stage X".
 workflowHistorySchema.index({ workflow: 1, toStage: 1, createdAt: -1 });
+
+workflowHistorySchema.plugin(tenantPlugin);
 
 export const WorkflowHistory: Model<IWorkflowHistory> = mongoose.model<IWorkflowHistory>(
   'WorkflowHistory',

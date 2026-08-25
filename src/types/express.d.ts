@@ -7,7 +7,10 @@ declare global {
         userId: string;
         role: Role;
         tokenVersion: number;
+        tenantId?: string;
       };
+      tenantId?: string;
+      tenant?: any;
     }
   }
 }

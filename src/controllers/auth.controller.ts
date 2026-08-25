@@ -117,8 +117,18 @@ export const resendOtp = asyncHandler(async (req: Request, res: Response) => {
 export const login = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  const user = await User.findOne({ email }).select('+password');
+  const user = await User.findOne({ email })
+    .select('+password')
+    .setOptions({ bypassTenantQuery: true });
   if (!user) throw ApiError.unauthorized('Invalid email or password');
+
+  // Verify non-super_admin belongs to the resolved tenant
+  if (user.role !== Role.SUPER_ADMIN) {
+    const activeTenantId = req.tenantId;
+    if (!user.tenantId || String(user.tenantId) !== String(activeTenantId)) {
+       throw ApiError.unauthorized('Invalid email or password');
+    }
+  }
 
   if (user.isLocked()) {
     throw ApiError.forbidden(

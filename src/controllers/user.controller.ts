@@ -82,6 +82,9 @@ export const getUsers = asyncHandler(async (req: Request, res: Response) => {
   );
 });
 
+import { Application } from '../models/application.model';
+import { EntitlementService } from '../services/entitlement.service';
+
 // ---------------------------------------------------------------------------
 // POST /api/v1/users  (Admin/Super Admin — create staff/admins)
 // ---------------------------------------------------------------------------
@@ -95,16 +98,34 @@ export const createUser = asyncHandler(async (req: Request, res: Response) => {
   const mobileExists = await User.exists({ mobile: mobile.trim() });
   if (mobileExists) throw ApiError.conflict('Mobile number is already registered');
 
-  // Create staff user (with verification flags true by default since admin is provisioning)
-  const user = await User.create({
-    name,
-    email: email.toLowerCase().trim(),
-    mobile: mobile.trim(),
-    password,
-    role,
-    isActive: isActive ?? true,
-    isEmailVerified: true,
-  });
+  // Enforce active user seat quota for staff/admins
+  const isCountableSeat = [Role.ADMIN, Role.STAFF].includes(role) && (isActive ?? true);
+  let app: any = null;
+  if (isCountableSeat && req.tenantId) {
+    app = await Application.findOne({ tenantId: req.tenantId }).setOptions({ bypassTenantQuery: true });
+    if (app) {
+      await EntitlementService.reserveUserSeat(app._id);
+    }
+  }
+
+  let user: any = null;
+  try {
+    // Create staff user (with verification flags true by default since admin is provisioning)
+    user = await User.create({
+      name,
+      email: email.toLowerCase().trim(),
+      mobile: mobile.trim(),
+      password,
+      role,
+      isActive: isActive ?? true,
+      isEmailVerified: true,
+    });
+  } catch (err) {
+    if (isCountableSeat && app) {
+      await EntitlementService.releaseUserSeat(app._id);
+    }
+    throw err;
+  }
 
   const responseUser = user.toObject();
   delete (responseUser as any).password;
@@ -178,7 +199,15 @@ export const deleteUser = asyncHandler(async (req: Request, res: Response) => {
     throw ApiError.badRequest('You cannot delete or deactivate your own account');
   }
 
+  const wasCountable = [Role.ADMIN, Role.STAFF].includes(user.role) && user.isActive;
   await User.findByIdAndDelete(user._id);
+
+  if (wasCountable && req.tenantId) {
+    const app = await Application.findOne({ tenantId: req.tenantId }).setOptions({ bypassTenantQuery: true });
+    if (app) {
+      await EntitlementService.releaseUserSeat(app._id);
+    }
+  }
 
   res.status(200).json(new ApiResponse(200, null, 'User deleted successfully'));
 });

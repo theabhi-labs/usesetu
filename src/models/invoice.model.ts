@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 import { PaymentSummaryStatus } from './request.model';
 
@@ -50,5 +51,7 @@ const invoiceSchema = new Schema<IInvoice>(
 
 // request already unique-indexed above (one invoice per request).
 invoiceSchema.index({ customer: 1, createdAt: -1 });
+
+invoiceSchema.plugin(tenantPlugin);
 
 export const Invoice: Model<IInvoice> = mongoose.model<IInvoice>('Invoice', invoiceSchema);

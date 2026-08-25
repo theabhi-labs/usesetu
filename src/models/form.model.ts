@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 // ── Field Types ──────────────────────────────────────────────────────
@@ -299,5 +300,7 @@ formSchema.pre(/^find/, function (this: mongoose.Query<unknown, IForm>, next) {
   }
   next();
 });
+
+formSchema.plugin(tenantPlugin);
 
 export const Form: Model<IForm> = mongoose.model<IForm>('Form', formSchema);

@@ -134,7 +134,7 @@ export function Payments() {
                       <TD className="text-right font-mono font-bold text-text-primary">₹{pay.amount}</TD>
                       <TD className="capitalize font-mono text-[10px] text-text-secondary">{pay.paymentMethod}</TD>
                       <TD className="text-center">
-                        <Badge variant={pay.status === 'success' ? 'success' : pay.status === 'refunded' ? 'secondary' : 'error'}>
+                        <Badge variant={pay.status === 'success' ? 'success' : pay.status === 'refunded' ? 'secondary' : 'danger'}>
                           {pay.status}
                         </Badge>
                       </TD>
@@ -184,7 +184,7 @@ export function Payments() {
               <div className="h-56 flex items-center justify-center text-xs text-text-tertiary select-none">No active method summaries.</div>
             ) : (
               <div className="h-56">
-                <ResponsiveContainer width="full" height="100%">
+                <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={stats.methodBreakdown}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#262626" />
                     <XAxis dataKey="method" stroke="#6b6b6b" fontSize={9} tickLine={false} />

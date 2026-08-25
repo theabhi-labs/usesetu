@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IFaq extends Document {
@@ -30,5 +31,7 @@ const faqSchema = new Schema<IFaq>(
 faqSchema.index({ category: 1, isActive: 1, sortOrder: 1 });
 faqSchema.index({ service: 1, isActive: 1 });
 faqSchema.index({ question: 'text', answer: 'text' });
+
+faqSchema.plugin(tenantPlugin);
 
 export const Faq: Model<IFaq> = mongoose.model<IFaq>('Faq', faqSchema);

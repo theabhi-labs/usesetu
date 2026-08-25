@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export enum CommentVisibility {
@@ -27,6 +28,8 @@ const requestCommentSchema = new Schema<IRequestComment>(
 );
 
 requestCommentSchema.index({ request: 1, createdAt: 1 });
+
+requestCommentSchema.plugin(tenantPlugin);
 
 export const RequestComment: Model<IRequestComment> = mongoose.model<IRequestComment>(
   'RequestComment',

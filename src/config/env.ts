@@ -47,6 +47,12 @@ export const env = cleanEnv(process.env, {
 
   // Request Management
   APPLICATION_NUMBER_PREFIX: str({ default: 'CSC' }),
+
+  // Platform Domains
+  PLATFORM_BASE_DOMAIN: str({ default: 'usesetu.com' }),
+  PLATFORM_PROTOCOL: str({ choices: ['http', 'https'], default: 'https' }),
+  CUSTOM_DOMAIN_CNAME_TARGET: str({ default: 'domains.usesetu.com' }),
+  CUSTOM_DOMAIN_VERIFICATION_PREFIX: str({ default: '_usesetu-verification' }),
 });
 
 export const isProd = env.NODE_ENV === 'production';

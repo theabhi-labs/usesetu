@@ -238,7 +238,7 @@ export function CustomerProfile() {
                       <TD><StatusPill status={r.status} /></TD>
                       <TD className="text-right select-none">
                         <Link to={`/admin/requests/${r._id}`}>
-                          <Button size="xs" variant="secondary">
+                          <Button size="sm" variant="secondary">
                             Process
                           </Button>
                         </Link>

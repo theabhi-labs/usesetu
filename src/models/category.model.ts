@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface ICategory extends Document {
@@ -73,5 +74,7 @@ categorySchema.pre('save', async function (next) {
   }
   next();
 });
+
+categorySchema.plugin(tenantPlugin);
 
 export const Category: Model<ICategory> = mongoose.model<ICategory>('Category', categorySchema);

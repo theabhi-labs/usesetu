@@ -24,7 +24,7 @@ export interface Request {
   service: string;
   customer: string;
   formSubmission: string;
-  workflow: string;
+  workflow: any;
   customerName: string;
   customerMobile: string;
   customerEmail: string;
@@ -32,26 +32,29 @@ export interface Request {
   status: RequestStatus;
   completionPercentage: number;
   priority: RequestPriority;
-  assignedTo?: string | { _id: string; name: string; email?: string };
-  acceptedBy?: string | { _id: string; name: string; email?: string };
+  assignedTo?: any;
+  acceptedBy?: any;
   acceptedAt?: string;
   documents: RequestDocument[];
   paymentSummary: { totalAmount: number; paidAmount: number; status: PaymentSummaryStatus };
   tags: string[];
   appliedOn: string;
   completedOn?: string;
+  completionDocument?: any;
+  timeline?: any[];
   createdAt: string;
+  updatedAt?: string;
 }
 
 // PATCH /requests/:id/stage body
-interface MoveStageBody {
+export interface MoveStageBody {
   targetStage: string;
   remark?: string;
   context?: { paymentCompleted?: boolean; documentsVerified?: boolean; tokenGenerated?: boolean; appointmentBooked?: boolean };
 }
 
 // POST /requests/bulk body
-interface BulkActionBody {
+export interface BulkActionBody {
   requestIds: string[];
   action: 'assign' | 'approve' | 'reject' | 'cancel' | 'tag';
   targetStage?: string; // for approve/reject

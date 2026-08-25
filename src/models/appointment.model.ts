@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export enum AppointmentStatus {
@@ -64,5 +65,7 @@ appointmentSchema.index({ service: 1, appointmentDate: 1, slotStart: 1, status: 
 appointmentSchema.index({ customer: 1, appointmentDate: -1 });
 // 3. Admin day-view calendar.
 appointmentSchema.index({ appointmentDate: 1, status: 1 });
+
+appointmentSchema.plugin(tenantPlugin);
 
 export const Appointment: Model<IAppointment> = mongoose.model<IAppointment>('Appointment', appointmentSchema);

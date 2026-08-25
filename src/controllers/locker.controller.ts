@@ -19,11 +19,22 @@ export const getLockerDocuments = asyncHandler(async (req: Request, res: Respons
   res.status(200).json(new ApiResponse(200, documents, 'Locker documents retrieved successfully'));
 });
 
+import { Application } from '../models/application.model';
+import { EntitlementService } from '../services/entitlement.service';
+
 // ---------------------------------------------------------------------------
 // POST /api/v1/locker  (Customer own, Admin/Staff with body.customer)
 // ---------------------------------------------------------------------------
 export const uploadLockerDocument = asyncHandler(async (req: Request, res: Response) => {
   if (!req.file) throw ApiError.badRequest('No file provided');
+
+  let app: any = null;
+  if (req.tenantId) {
+    app = await Application.findOne({ tenantId: req.tenantId }).setOptions({ bypassTenantQuery: true });
+    if (app) {
+      await EntitlementService.assertWithinLimit(app._id, 'storage_bytes', req.file.size);
+    }
+  }
 
   let customerId = req.user!.userId;
   if (req.user!.role !== Role.CUSTOMER && req.body.customer) {
@@ -48,6 +59,10 @@ export const uploadLockerDocument = asyncHandler(async (req: Request, res: Respo
     mimeType: req.file.mimetype,
   });
 
+  if (app) {
+    await EntitlementService.recordUsage(app._id, 'storage_bytes', req.file.size);
+  }
+
   res.status(201).json(new ApiResponse(201, doc, 'Document uploaded to locker successfully'));
 });
 
@@ -68,7 +83,15 @@ export const deleteLockerDocument = asyncHandler(async (req: Request, res: Respo
     // Suppress ImageKit delete errors to keep DB clean
   }
 
+  const docSize = doc.size;
   await LockerDocument.findByIdAndDelete(doc._id);
+
+  if (req.tenantId && docSize) {
+    const app = await Application.findOne({ tenantId: req.tenantId }).setOptions({ bypassTenantQuery: true });
+    if (app) {
+      await EntitlementService.releaseUsage(app._id, 'storage_bytes', docSize);
+    }
+  }
 
   res.status(200).json(new ApiResponse(200, null, 'Locker document deleted successfully'));
 });

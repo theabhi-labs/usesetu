@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export enum RequestStatus {
@@ -214,5 +215,7 @@ requestSchema.index({ status: 1, priority: 1, createdAt: -1 });
 requestSchema.index({ customerMobile: 1 });
 // 6. Free-text search across application number + customer name.
 requestSchema.index({ applicationNumber: 'text', customerName: 'text' });
+
+requestSchema.plugin(tenantPlugin);
 
 export const Request: Model<IRequest> = mongoose.model<IRequest>('Request', requestSchema);

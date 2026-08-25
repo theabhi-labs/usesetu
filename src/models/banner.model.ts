@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IBanner extends Document {
@@ -40,5 +41,7 @@ const bannerSchema = new Schema<IBanner>(
 
 // Powers the public homepage query: active banners currently within schedule, in order.
 bannerSchema.index({ isActive: 1, sortOrder: 1 });
+
+bannerSchema.plugin(tenantPlugin);
 
 export const Banner: Model<IBanner> = mongoose.model<IBanner>('Banner', bannerSchema);

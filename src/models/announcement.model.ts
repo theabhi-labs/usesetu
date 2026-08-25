@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export enum AnnouncementType {
@@ -40,5 +41,7 @@ const announcementSchema = new Schema<IAnnouncement>(
 
 announcementSchema.index({ isActive: 1, startDate: 1, endDate: 1 });
 announcementSchema.index({ isPinned: -1, priority: -1 });
+
+announcementSchema.plugin(tenantPlugin);
 
 export const Announcement: Model<IAnnouncement> = mongoose.model<IAnnouncement>('Announcement', announcementSchema);

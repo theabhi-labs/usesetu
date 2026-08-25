@@ -31,3 +31,5 @@ declare module 'sib-api-v3-sdk' {
 
   export default SibApiV3Sdk;
 }
+
+declare module 'supertest';

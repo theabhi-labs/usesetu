@@ -26,9 +26,15 @@ export const Counter: Model<ICounter> = mongoose.model<ICounter>('Counter', coun
  * Atomically increments and returns the next value for `key`.
  * `upsert: true` means the very first call for a new key creates it starting at 1.
  */
+import { tenantLocalStorage } from '../services/tenantContext.service';
+
 export const getNextSequence = async (key: string): Promise<number> => {
+  const context = tenantLocalStorage.getStore();
+  const tenantPrefix = context?.tenantId ? `${context.tenantId}:` : '';
+  const finalKey = `${tenantPrefix}${key}`;
+
   const counter = await Counter.findOneAndUpdate(
-    { _id: key },
+    { _id: finalKey },
     { $inc: { seq: 1 } },
     { new: true, upsert: true },
   );

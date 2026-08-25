@@ -5,7 +5,7 @@ import { Table, THead, TBody, TR, TH, TD } from '../../components/ui/Table';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Skeleton } from '../../components/ui/Skeleton';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/Dialog';
+import { Dialog, DialogContent } from '../../components/ui/Dialog';
 import { DollarSign, Printer } from 'lucide-react';
 
 export function MyPayments() {

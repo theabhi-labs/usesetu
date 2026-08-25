@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 /**
@@ -44,6 +45,8 @@ const analyticsSnapshotSchema = new Schema<IAnalyticsSnapshot>(
 // date already unique-indexed above — that single index also serves range
 // queries ({ date: { $gte, $lte } }) since string dates in 'YYYY-MM-DD'
 // format sort lexicographically the same as chronologically.
+analyticsSnapshotSchema.plugin(tenantPlugin);
+
 export const AnalyticsSnapshot: Model<IAnalyticsSnapshot> = mongoose.model<IAnalyticsSnapshot>(
   'AnalyticsSnapshot',
   analyticsSnapshotSchema,

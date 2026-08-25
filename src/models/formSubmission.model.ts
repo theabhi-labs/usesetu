@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export enum SubmissionStatus {
@@ -54,6 +55,8 @@ formSubmissionSchema.index({ service: 1, createdAt: -1 });
 formSubmissionSchema.index({ customer: 1, createdAt: -1 });
 // 3. All submissions across every version of a given form definition.
 formSubmissionSchema.index({ formGroupId: 1, createdAt: -1 });
+
+formSubmissionSchema.plugin(tenantPlugin);
 
 export const FormSubmission: Model<IFormSubmission> = mongoose.model<IFormSubmission>(
   'FormSubmission',

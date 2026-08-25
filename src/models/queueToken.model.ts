@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export enum TokenStatus {
@@ -90,5 +91,7 @@ queueTokenSchema.index({ queue: 1, tokenDate: 1, tokenNumber: 1 }, { unique: tru
 queueTokenSchema.index({ queue: 1, tokenDate: 1, status: 1, priorityWeight: 1, createdAt: 1 });
 // 3. Customer's own token history / "my current token" lookup.
 queueTokenSchema.index({ customer: 1, createdAt: -1 });
+
+queueTokenSchema.plugin(tenantPlugin);
 
 export const QueueToken: Model<IQueueToken> = mongoose.model<IQueueToken>('QueueToken', queueTokenSchema);

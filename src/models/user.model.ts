@@ -2,6 +2,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { Role } from '../types/auth.types';
+import { tenantPlugin } from '../utils/tenantPlugin';
 
 export interface IUser extends Document {
   name: string;
@@ -9,6 +10,7 @@ export interface IUser extends Document {
   mobile: string;
   password: string;
   role: Role;
+  tenantId?: mongoose.Types.ObjectId;
 
   isEmailVerified: boolean;
   isActive: boolean;
@@ -51,7 +53,6 @@ const userSchema = new Schema<IUser>(
     email: {
       type: String,
       required: true,
-      unique: true,
       lowercase: true,
       trim: true,
       match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email address'],
@@ -59,12 +60,12 @@ const userSchema = new Schema<IUser>(
     mobile: {
       type: String,
       required: true,
-      unique: true,
       trim: true,
       match: [/^[6-9]\d{9}$/, 'Invalid Indian mobile number'],
     },
     password: { type: String, required: true, minlength: 8, select: false },
     role: { type: String, enum: Object.values(Role), default: Role.CUSTOMER, index: true },
+    tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', index: true },
 
     isEmailVerified: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
@@ -93,6 +94,10 @@ const userSchema = new Schema<IUser>(
 );
 
 userSchema.index({ role: 1, isActive: 1 });
+userSchema.index({ email: 1, tenantId: 1 }, { unique: true });
+userSchema.index({ mobile: 1, tenantId: 1 }, { unique: true });
+
+userSchema.plugin(tenantPlugin);
 
 userSchema.pre('save', async function (next) {
   if (!this.cardVerificationToken) {

@@ -34,8 +34,15 @@ if (isDev) {
 // they're infrastructure endpoints, not part of the versioned API surface.
 app.use('/health', healthRoutes);
 
+import { tenantResolver } from './middlewares/tenant.middleware';
+import { getPublicApplicationSitemap, getPublicApplicationRobots } from './controllers/publicApplication.controller';
+
+// Root SEO files for tenant websites
+app.get('/sitemap.xml', getPublicApplicationSitemap);
+app.get('/robots.txt', getPublicApplicationRobots);
+
 // API v1
-app.use('/api/v1', v1Routes);
+app.use('/api/v1', tenantResolver, v1Routes);
 
 // 404 + centralized error handler (must be last)
 app.use(notFound);

@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IAuditLog extends Document {
@@ -26,5 +27,7 @@ const auditLogSchema = new Schema<IAuditLog>(
 
 auditLogSchema.index({ user: 1, createdAt: -1 });
 auditLogSchema.index({ module: 1, action: 1 });
+
+auditLogSchema.plugin(tenantPlugin);
 
 export const AuditLog: Model<IAuditLog> = mongoose.model<IAuditLog>('AuditLog', auditLogSchema);

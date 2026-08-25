@@ -325,7 +325,7 @@ export function CustomerCard({ customer }: CustomerCardProps) {
                   <h2 className="text-xs font-bold text-slate-800 uppercase tracking-tight">
                     {settings.cscName || settings.websiteName}
                   </h2>
-                  <p class="text-[9px] font-bold text-indigo-600 uppercase tracking-wider">Customer Identification Card</p>
+                  <p className="text-[9px] font-bold text-indigo-600 uppercase tracking-wider">Customer Identification Card</p>
                 </div>
               </div>
 
@@ -399,7 +399,7 @@ export function CustomerCard({ customer }: CustomerCardProps) {
 
             <div className="flex border border-border rounded-md bg-surface-elevated p-2 items-center justify-between font-mono">
               <span className="truncate text-text-primary select-all max-w-[80%]">{verificationUrl}</span>
-              <Button size="xs" variant="secondary" onClick={handleCopyLink} className="h-7">
+              <Button size="sm" variant="secondary" onClick={handleCopyLink} className="h-7">
                 {copiedLink ? <Check size={12} className="text-success mr-1" /> : <Copy size={12} className="mr-1" />}
                 {copiedLink ? 'Copied' : 'Copy'}
               </Button>

@@ -13,7 +13,7 @@ import { Checkbox } from '../../components/ui/Checkbox';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { Table, THead, TBody, TR, TH, TD } from '../../components/ui/Table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../../components/ui/Dialog';
-import { Plus, Edit2, Trash2, ArrowUp, ArrowDown, Search } from 'lucide-react';
+import { Plus, Edit2, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 
 export function Services() {
   const queryClient = useQueryClient();

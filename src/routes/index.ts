@@ -13,6 +13,8 @@ import cmsRoutes from './cms.routes';
 import dashboardRoutes from './dashboard.routes';
 import userRoutes from './user.routes';
 import lockerRoutes from './locker.routes';
+import platformRoutes from './platform.routes';
+import publicApplicationRoutes from './publicApplication.routes';
 
 const router = Router();
 
@@ -30,6 +32,8 @@ router.use('/cms', cmsRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/users', userRoutes);
 router.use('/locker', lockerRoutes);
+router.use('/platform', platformRoutes);
+router.use('/public/application', publicApplicationRoutes);
 
 // Future modules mount here as they're built (each in its own prompt/module):
 // router.use('/customers', customerRoutes);

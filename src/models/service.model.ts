@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export enum ServiceMode {
@@ -186,5 +187,7 @@ serviceSchema.pre(/^find/, function (this: mongoose.Query<unknown, IService>, ne
   }
   next();
 });
+
+serviceSchema.plugin(tenantPlugin);
 
 export const Service: Model<IService> = mongoose.model<IService>('Service', serviceSchema);

@@ -272,7 +272,7 @@ export function AdminDashboard() {
               </div>
             ) : (
               <div className="h-64">
-                <ResponsiveContainer width="full" height="100%">
+                <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={revenueTrend}>
                     <defs>
                       <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
@@ -307,7 +307,7 @@ export function AdminDashboard() {
                 <div className="h-56 flex items-center justify-center text-xs text-text-tertiary select-none">No active request logs.</div>
               ) : (
                 <div className="h-56">
-                  <ResponsiveContainer width="full" height="100%">
+                  <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
                         data={requestAnalytics.statusBreakdown || []}
@@ -341,7 +341,7 @@ export function AdminDashboard() {
                 <div className="h-56 flex items-center justify-center text-xs text-text-tertiary select-none">No service metrics yet.</div>
               ) : (
                 <div className="h-56">
-                  <ResponsiveContainer width="full" height="100%">
+                  <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={requestAnalytics.topServices || []}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#262626" />
                       <XAxis dataKey="name" stroke="#6b6b6b" fontSize={9} tickLine={false} />
@@ -663,10 +663,10 @@ function StaffDashboardView({ user }: { user: any }) {
                 Showing Page {page} of {pagination.pages} ({pagination.total} assigned)
               </span>
               <div className="flex gap-2">
-                <Button size="xs" variant="outline" disabled={page === 1} onClick={() => setPage(page - 1)}>
+                <Button size="sm" variant="outline" disabled={page === 1} onClick={() => setPage(page - 1)}>
                   Previous
                 </Button>
-                <Button size="xs" variant="outline" disabled={page === pagination.pages} onClick={() => setPage(page + 1)}>
+                <Button size="sm" variant="outline" disabled={page === pagination.pages} onClick={() => setPage(page + 1)}>
                   Next
                 </Button>
               </div>

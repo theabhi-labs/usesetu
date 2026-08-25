@@ -5,8 +5,20 @@ import { ApiResponse } from '../utils/ApiResponse';
 import { MediaAsset } from '../models/mediaAsset.model';
 import { uploadToImageKit, deleteFromImageKit } from '../services/imagekit.service';
 
+import { Application } from '../models/application.model';
+import { EntitlementService } from '../services/entitlement.service';
+
 export const uploadMedia = asyncHandler(async (req: Request, res: Response) => {
   if (!req.file) throw ApiError.badRequest('No file provided');
+
+  let app: any = null;
+  if (req.tenantId) {
+    app = await Application.findOne({ tenantId: req.tenantId }).setOptions({ bypassTenantQuery: true });
+    if (app) {
+      // Enforce storage byte quota before uploading
+      await EntitlementService.assertWithinLimit(app._id, 'storage_bytes', req.file.size);
+    }
+  }
 
   const folder = (req.body.folder as string) || 'general';
   const uploaded = await uploadToImageKit(req.file.buffer, req.file.originalname, `media/${folder}`);
@@ -21,6 +33,11 @@ export const uploadMedia = asyncHandler(async (req: Request, res: Response) => {
     tags: req.body.tags ? String(req.body.tags).split(',').map((t) => t.trim()) : [],
     uploadedBy: req.user!.userId,
   });
+
+  if (app) {
+    // Record storage usage atomically on successful upload
+    await EntitlementService.recordUsage(app._id, 'storage_bytes', req.file.size);
+  }
 
   res.status(201).json(new ApiResponse(201, asset, 'File uploaded'));
 });
@@ -54,7 +71,15 @@ export const deleteMedia = asyncHandler(async (req: Request, res: Response) => {
   if (!asset) throw ApiError.notFound('Media asset not found');
 
   await deleteFromImageKit(asset.fileId);
+  const assetSize = asset.size;
   await asset.deleteOne();
+
+  if (req.tenantId && assetSize) {
+    const app = await Application.findOne({ tenantId: req.tenantId }).setOptions({ bypassTenantQuery: true });
+    if (app) {
+      await EntitlementService.releaseUsage(app._id, 'storage_bytes', assetSize);
+    }
+  }
 
   res.status(200).json(new ApiResponse(200, {}, 'Media asset deleted'));
 });

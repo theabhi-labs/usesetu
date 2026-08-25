@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export enum ReminderStatus {
@@ -34,5 +35,7 @@ const reminderSchema = new Schema<IReminder>(
 
 // The scheduler's hot query: "every pending reminder due now or earlier".
 reminderSchema.index({ status: 1, scheduledFor: 1 });
+
+reminderSchema.plugin(tenantPlugin);
 
 export const Reminder: Model<IReminder> = mongoose.model<IReminder>('Reminder', reminderSchema);

@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export enum PaymentType {
@@ -82,5 +83,7 @@ paymentSchema.index({ status: 1, createdAt: -1 });
 //    payments have no transactionId, and a non-sparse unique index would
 //    reject every second null.
 paymentSchema.index({ transactionId: 1 }, { sparse: true });
+
+paymentSchema.plugin(tenantPlugin);
 
 export const Payment: Model<IPayment> = mongoose.model<IPayment>('Payment', paymentSchema);

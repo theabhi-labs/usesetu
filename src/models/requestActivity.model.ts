@@ -1,3 +1,4 @@
+import { tenantPlugin } from '../utils/tenantPlugin';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IRequestActivity extends Document {
@@ -23,6 +24,8 @@ const requestActivitySchema = new Schema<IRequestActivity>(
 );
 
 requestActivitySchema.index({ request: 1, createdAt: -1 });
+
+requestActivitySchema.plugin(tenantPlugin);
 
 export const RequestActivity: Model<IRequestActivity> = mongoose.model<IRequestActivity>(
   'RequestActivity',
