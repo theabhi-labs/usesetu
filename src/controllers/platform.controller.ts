@@ -12,9 +12,11 @@ import { User } from '../models/user.model';
 import { WebsiteSetting } from '../models/websiteSetting.model';
 import { ApplicationDomain, DomainType, DomainStatus, SslStatus, VerificationMethod } from '../models/applicationDomain.model';
 import { Plan, PlanStatus } from '../models/plan.model';
-import { SubscriptionStatus } from '../models/subscription.model';
+import { SubscriptionStatus, BillingCycle } from '../models/subscription.model';
 import { SubscriptionAuditLog } from '../models/subscriptionAuditLog.model';
 import { PlatformNotification, PlatformNotificationCategory, PlatformNotificationType } from '../models/platformNotification.model';
+import { PaymentTransaction } from '../models/paymentTransaction.model';
+import { BillingInvoice } from '../models/billingInvoice.model';
 import { ApplicationProvisioningService } from '../services/applicationProvisioning.service';
 import { DomainResolverService } from '../services/domainResolver.service';
 import { DomainNormalizationService } from '../services/domainNormalization.service';
@@ -22,6 +24,7 @@ import { DnsVerificationService } from '../services/dnsVerification.service';
 import { DomainProvisioningService } from '../services/domainProvisioning.service';
 import { SubscriptionService } from '../services/subscription.service';
 import { EntitlementService } from '../services/entitlement.service';
+import { PaymentService } from '../services/payment/payment.service';
 import { env } from '../config/env';
 
 // ---------------------------------------------------------------------------
@@ -840,6 +843,227 @@ export const cancelApplicationSubscription = asyncHandler(async (req: Request, r
   });
 
   res.status(200).json(new ApiResponse(200, cancelledSubscription, 'Subscription cancelled successfully'));
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/v1/platform/applications/:id/billing/checkout
+// ---------------------------------------------------------------------------
+export const createBillingCheckout = asyncHandler(async (req: Request, res: Response) => {
+  const { app } = await verifyAppOwnership(req.user!.userId, req.params.id);
+  const { planId, billingCycle } = req.body;
+
+  if (!planId) {
+    throw ApiError.badRequest('planId is required');
+  }
+
+  const user = await User.findById(req.user!.userId).setOptions({ bypassTenantQuery: true });
+
+  const checkoutData = await PaymentService.createCheckout({
+    applicationId: app._id,
+    planId,
+    billingCycle: (billingCycle as BillingCycle) || BillingCycle.MONTHLY,
+    actorId: req.user!.userId,
+    customerEmail: user?.email,
+    customerName: user?.name || app.name,
+  });
+
+  res.status(200).json(new ApiResponse(200, checkoutData, 'Checkout order created successfully'));
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/v1/platform/applications/:id/billing/verify-payment
+// ---------------------------------------------------------------------------
+export const verifyBillingPayment = asyncHandler(async (req: Request, res: Response) => {
+  const { app } = await verifyAppOwnership(req.user!.userId, req.params.id);
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+  if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+    throw ApiError.badRequest('razorpay_order_id, razorpay_payment_id, and razorpay_signature are required');
+  }
+
+  const result = await PaymentService.verifyPayment({
+    applicationId: app._id,
+    razorpayOrderId: razorpay_order_id,
+    razorpayPaymentId: razorpay_payment_id,
+    razorpaySignature: razorpay_signature,
+    actorId: req.user!.userId,
+  });
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        success: true,
+        transaction: result.transaction,
+        subscription: result.subscription,
+      },
+      'Payment verified and subscription updated successfully',
+    ),
+  );
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/v1/platform/applications/:id/billing
+// ---------------------------------------------------------------------------
+export const getApplicationBillingSummary = asyncHandler(async (req: Request, res: Response) => {
+  const { app } = await verifyAppOwnership(req.user!.userId, req.params.id);
+
+  const subscription = await SubscriptionService.getCurrentSubscription(app._id);
+  const effectiveEntitlements = await SubscriptionService.resolveEffectiveEntitlements(app._id);
+  const recentTransactions = await PaymentTransaction.find({ applicationId: app._id })
+    .sort({ createdAt: -1 })
+    .limit(5)
+    .lean();
+
+  const plans = await Plan.find({ status: PlanStatus.ACTIVE }).sort({ 'pricing.monthly': 1 }).lean();
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        applicationId: app._id,
+        applicationName: app.name,
+        currentSubscription: subscription,
+        effectiveEntitlements,
+        recentTransactions,
+        availablePlans: plans,
+      },
+      'Application billing summary retrieved successfully',
+    ),
+  );
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/v1/platform/applications/:id/billing/history
+// ---------------------------------------------------------------------------
+export const getBillingHistory = asyncHandler(async (req: Request, res: Response) => {
+  const { app } = await verifyAppOwnership(req.user!.userId, req.params.id);
+
+  const page = parseInt(req.query.page as string, 10) || 1;
+  const limit = parseInt(req.query.limit as string, 10) || 10;
+  const skip = (page - 1) * limit;
+
+  const [transactions, total, invoices] = await Promise.all([
+    PaymentTransaction.find({ applicationId: app._id })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('planId', 'name slug')
+      .lean(),
+    PaymentTransaction.countDocuments({ applicationId: app._id }),
+    BillingInvoice.find({ applicationId: app._id }).lean(),
+  ]);
+
+  const invoiceMap = new Map(invoices.map((inv) => [String(inv.paymentTransactionId), inv]));
+
+  const formattedTransactions = transactions.map((t: any) => ({
+    id: t._id,
+    orderId: t.providerOrderId,
+    paymentId: t.providerPaymentId,
+    amount: t.amount,
+    amountMajor: t.amount / 100,
+    currency: t.currency,
+    status: t.status,
+    method: t.method,
+    description: t.description,
+    billingCycle: t.billingCycle,
+    plan: t.planId?.name || 'Plan',
+    planSlug: t.planId?.slug || 'plan',
+    paidAt: t.paidAt,
+    failedAt: t.failedAt,
+    refundedAt: t.refundedAt,
+    failureReason: t.failureReason,
+    invoiceNumber: invoiceMap.get(String(t._id))?.invoiceNumber,
+    createdAt: t.createdAt,
+  }));
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        transactions: formattedTransactions,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+        },
+      },
+      'Billing history retrieved successfully',
+    ),
+  );
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/v1/platform/applications/:id/billing/payments/:paymentId
+// ---------------------------------------------------------------------------
+export const getPaymentDetail = asyncHandler(async (req: Request, res: Response) => {
+  const { app } = await verifyAppOwnership(req.user!.userId, req.params.id);
+  const { paymentId } = req.params;
+
+  const transaction = await PaymentTransaction.findOne({
+    applicationId: app._id,
+    $or: [{ providerPaymentId: paymentId }, { _id: mongoose.isValidObjectId(paymentId) ? paymentId : undefined }],
+  })
+    .populate('planId')
+    .lean();
+
+  if (!transaction) {
+    throw ApiError.notFound('Payment transaction not found');
+  }
+
+  const invoice = await BillingInvoice.findOne({ paymentTransactionId: transaction._id }).lean();
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        transaction,
+        invoice,
+      },
+      'Payment details retrieved successfully',
+    ),
+  );
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/v1/platform/applications/:id/billing/payments/:paymentId/refund
+// ---------------------------------------------------------------------------
+export const refundBillingPayment = asyncHandler(async (req: Request, res: Response) => {
+  const { app } = await verifyAppOwnership(req.user!.userId, req.params.id);
+  const { paymentId } = req.params;
+  const { amount, reason } = req.body;
+
+  const updatedTransaction = await PaymentService.refundPayment({
+    applicationId: app._id,
+    paymentId,
+    amount: typeof amount === 'number' ? amount : undefined,
+    reason,
+    actorId: req.user!.userId,
+  });
+
+  res.status(200).json(new ApiResponse(200, updatedTransaction, 'Refund initiated successfully'));
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/v1/platform/applications/:id/billing/retry
+// ---------------------------------------------------------------------------
+export const retryBillingPayment = asyncHandler(async (req: Request, res: Response) => {
+  const { app } = await verifyAppOwnership(req.user!.userId, req.params.id);
+  const { planId, billingCycle } = req.body;
+
+  const user = await User.findById(req.user!.userId).setOptions({ bypassTenantQuery: true });
+
+  const checkoutData = await PaymentService.createCheckout({
+    applicationId: app._id,
+    planId,
+    billingCycle: (billingCycle as BillingCycle) || BillingCycle.MONTHLY,
+    actorId: req.user!.userId,
+    customerEmail: user?.email,
+    customerName: user?.name || app.name,
+  });
+
+  res.status(200).json(new ApiResponse(200, checkoutData, 'Payment retry checkout created successfully'));
 });
 
 // ---------------------------------------------------------------------------

@@ -11,6 +11,7 @@ declare global {
       };
       tenantId?: string;
       tenant?: any;
+      rawBody?: Buffer | string;
     }
   }
 }

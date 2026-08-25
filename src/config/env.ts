@@ -53,6 +53,15 @@ export const env = cleanEnv(process.env, {
   PLATFORM_PROTOCOL: str({ choices: ['http', 'https'], default: 'https' }),
   CUSTOM_DOMAIN_CNAME_TARGET: str({ default: 'domains.usesetu.com' }),
   CUSTOM_DOMAIN_VERIFICATION_PREFIX: str({ default: '_usesetu-verification' }),
+
+  // Razorpay Payment Gateway (Stage 7)
+  RAZORPAY_KEY_ID: str({ default: 'rzp_test_placeholder_key' }),
+  RAZORPAY_KEY_SECRET: str({ default: 'rzp_test_placeholder_secret' }),
+  RAZORPAY_WEBHOOK_SECRET: str({ default: 'rzp_test_placeholder_webhook_secret' }),
+  RAZORPAY_ACCOUNT_NAME: str({ default: 'UseSetu Cloud' }),
+  RAZORPAY_CURRENCY: str({ default: 'INR' }),
+  RAZORPAY_MODE: str({ choices: ['test', 'live'], default: 'test' }),
+  RAZORPAY_BILLING_MODE: str({ choices: ['order', 'subscription'], default: 'order' }),
 });
 
 export const isProd = env.NODE_ENV === 'production';

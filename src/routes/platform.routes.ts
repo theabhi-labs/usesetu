@@ -19,6 +19,13 @@ import {
   getApplicationUsage,
   getPlatformDashboard,
   getPlatformBilling,
+  getApplicationBillingSummary,
+  createBillingCheckout,
+  verifyBillingPayment,
+  getBillingHistory,
+  getPaymentDetail,
+  refundBillingPayment,
+  retryBillingPayment,
   getApplicationSettings,
   updateApplicationSettings,
   suspendApplication,
@@ -78,10 +85,19 @@ router.post('/applications/:id/domains/:domainId/set-primary', setPrimaryDomain)
 router.delete('/applications/:id/domains/:domainId', deleteApplicationDomain);
 router.get('/applications/:id/domains/:domainId/status', getApplicationDomainStatus);
 
-// Subscription & Usage endpoints
+// Subscription, Usage & Billing endpoints
 router.get('/applications/:id/subscription', getApplicationSubscription);
 router.post('/applications/:id/subscription/change-plan', changeApplicationPlan);
 router.post('/applications/:id/subscription/cancel', cancelApplicationSubscription);
 router.get('/applications/:id/usage', getApplicationUsage);
+
+// Payment & Checkout endpoints (Stage 7)
+router.get('/applications/:id/billing', getApplicationBillingSummary);
+router.post('/applications/:id/billing/checkout', createBillingCheckout);
+router.post('/applications/:id/billing/verify-payment', verifyBillingPayment);
+router.get('/applications/:id/billing/history', getBillingHistory);
+router.get('/applications/:id/billing/payments/:paymentId', getPaymentDetail);
+router.post('/applications/:id/billing/payments/:paymentId/refund', refundBillingPayment);
+router.post('/applications/:id/billing/retry', retryBillingPayment);
 
 export default router;

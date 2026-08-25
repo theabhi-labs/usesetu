@@ -15,6 +15,7 @@ import userRoutes from './user.routes';
 import lockerRoutes from './locker.routes';
 import platformRoutes from './platform.routes';
 import publicApplicationRoutes from './publicApplication.routes';
+import webhookRoutes from './webhook.routes';
 
 const router = Router();
 
@@ -34,6 +35,7 @@ router.use('/users', userRoutes);
 router.use('/locker', lockerRoutes);
 router.use('/platform', platformRoutes);
 router.use('/public/application', publicApplicationRoutes);
+router.use('/webhooks', webhookRoutes);
 
 // Future modules mount here as they're built (each in its own prompt/module):
 // router.use('/customers', customerRoutes);

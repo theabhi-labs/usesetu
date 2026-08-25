@@ -485,4 +485,134 @@ export const platformApi = {
     const res = await api.get<{ success: boolean; data: any }>('/public/application/context', { params });
     return res.data.data;
   },
+
+  // ── Stage 7: Payment & Checkout APIs ─────────────────────────────────────
+  createBillingCheckout: async (
+    applicationId: string,
+    payload: { planId: string; billingCycle: 'monthly' | 'yearly' },
+  ): Promise<CheckoutResponse> => {
+    const res = await api.post<{ success: boolean; data: CheckoutResponse }>(
+      `/platform/applications/${applicationId}/billing/checkout`,
+      payload,
+    );
+    return res.data.data;
+  },
+
+  verifyBillingPayment: async (
+    applicationId: string,
+    payload: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string },
+  ): Promise<VerifyPaymentResponse> => {
+    const res = await api.post<{ success: boolean; data: VerifyPaymentResponse }>(
+      `/platform/applications/${applicationId}/billing/verify-payment`,
+      payload,
+    );
+    return res.data.data;
+  },
+
+  getApplicationBillingSummary: async (applicationId: string): Promise<ApplicationBillingSummary> => {
+    const res = await api.get<{ success: boolean; data: ApplicationBillingSummary }>(
+      `/platform/applications/${applicationId}/billing`,
+    );
+    return res.data.data;
+  },
+
+  getBillingHistory: async (
+    applicationId: string,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<BillingHistoryResponse> => {
+    const res = await api.get<{ success: boolean; data: BillingHistoryResponse }>(
+      `/platform/applications/${applicationId}/billing/history`,
+      { params: { page, limit } },
+    );
+    return res.data.data;
+  },
+
+  getPaymentDetail: async (applicationId: string, paymentId: string) => {
+    const res = await api.get<{ success: boolean; data: any }>(
+      `/platform/applications/${applicationId}/billing/payments/${paymentId}`,
+    );
+    return res.data.data;
+  },
+
+  refundBillingPayment: async (
+    applicationId: string,
+    paymentId: string,
+    payload: { amount?: number; reason?: string },
+  ) => {
+    const res = await api.post<{ success: boolean; data: any }>(
+      `/platform/applications/${applicationId}/billing/payments/${paymentId}/refund`,
+      payload,
+    );
+    return res.data.data;
+  },
+
+  retryBillingPayment: async (
+    applicationId: string,
+    payload: { planId: string; billingCycle: 'monthly' | 'yearly' },
+  ): Promise<CheckoutResponse> => {
+    const res = await api.post<{ success: boolean; data: CheckoutResponse }>(
+      `/platform/applications/${applicationId}/billing/retry`,
+      payload,
+    );
+    return res.data.data;
+  },
 };
+
+export interface CheckoutResponse {
+  orderId: string;
+  amount: number; // in paise
+  currency: string;
+  razorpayKeyId: string;
+  applicationId: string;
+  planId: string;
+  billingCycle: 'monthly' | 'yearly';
+  planName: string;
+  transactionId: string;
+}
+
+export interface VerifyPaymentResponse {
+  success: boolean;
+  transaction: any;
+  subscription: any;
+}
+
+export interface BillingHistoryItem {
+  id: string;
+  orderId?: string;
+  paymentId?: string;
+  amount: number;
+  amountMajor: number;
+  currency: string;
+  status: 'created' | 'authorized' | 'captured' | 'failed' | 'refunded' | 'partially_refunded' | 'cancelled';
+  method?: string;
+  description?: string;
+  billingCycle: 'monthly' | 'yearly';
+  plan: string;
+  planSlug: string;
+  paidAt?: string;
+  failedAt?: string;
+  refundedAt?: string;
+  failureReason?: string;
+  invoiceNumber?: string;
+  createdAt: string;
+}
+
+export interface BillingHistoryResponse {
+  transactions: BillingHistoryItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
+export interface ApplicationBillingSummary {
+  applicationId: string;
+  applicationName: string;
+  currentSubscription: any;
+  effectiveEntitlements: any;
+  recentTransactions: any[];
+  availablePlans: PlanItem[];
+}

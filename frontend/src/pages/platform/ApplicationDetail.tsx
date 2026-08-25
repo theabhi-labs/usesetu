@@ -33,6 +33,8 @@ import { PlanComparison } from '../../components/platform/PlanComparison';
 import { PlanChangeModal } from '../../components/platform/PlanChangeModal';
 import { CancelSubscriptionModal } from '../../components/platform/CancelSubscriptionModal';
 import { ApplicationDangerZone } from '../../components/platform/ApplicationDangerZone';
+import { PaymentCheckoutModal } from '../../components/platform/PaymentCheckoutModal';
+import { BillingHistoryTable } from '../../components/platform/BillingHistoryTable';
 
 export const ApplicationDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -68,6 +70,8 @@ export const ApplicationDetail: React.FC = () => {
   // Billing modal states
   const [selectedPlanForChange, setSelectedPlanForChange] = useState<PlanItem | null>(null);
   const [selectedBillingCycle, setSelectedBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [checkoutPlan, setCheckoutPlan] = useState<PlanItem | null>(null);
+  const [checkoutCycle, setCheckoutCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [showCancelModal, setShowCancelModal] = useState<boolean>(false);
 
   // Settings form state
@@ -643,7 +647,7 @@ export const ApplicationDetail: React.FC = () => {
             <div>
               <h3 className="text-lg font-black text-white">Upgrade or Switch Plan</h3>
               <p className="text-xs text-slate-400">
-                Select a plan that matches your business volume. Limits update immediately.
+                Select a plan that matches your business volume. Limits and entitlements update immediately upon checkout.
               </p>
             </div>
 
@@ -651,26 +655,15 @@ export const ApplicationDetail: React.FC = () => {
               plans={plansData || []}
               currentPlanSlug={currentPlanSlug}
               onSelectPlan={(plan, cycle) => {
-                setSelectedPlanForChange(plan);
-                setSelectedBillingCycle(cycle);
+                setCheckoutPlan(plan);
+                setCheckoutCycle(cycle);
               }}
               isLoading={changePlanMutation.isPending}
             />
           </div>
 
           {/* Billing Transactions / History */}
-          <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-4">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-200">
-              Billing Transactions & Invoices
-            </h3>
-            <div className="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-8 text-center space-y-2">
-              <CreditCard className="w-8 h-8 text-slate-600 mx-auto mb-1" />
-              <p className="text-xs font-bold text-slate-300">No billing transactions yet</p>
-              <p className="text-[11px] text-slate-500">
-                Real payment gateway integration will be active in Stage 7.
-              </p>
-            </div>
-          </div>
+          <BillingHistoryTable applicationId={id!} />
         </div>
       )}
 
@@ -1046,6 +1039,23 @@ export const ApplicationDetail: React.FC = () => {
         }}
         isLoading={cancelSubMutation.isPending}
       />
+
+      {/* Razorpay Payment Checkout Modal (Stage 7) */}
+      {checkoutPlan && (
+        <PaymentCheckoutModal
+          isOpen={!!checkoutPlan}
+          onClose={() => setCheckoutPlan(null)}
+          applicationId={id!}
+          applicationName={application.name}
+          plan={checkoutPlan}
+          initialCycle={checkoutCycle}
+          onPaymentSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['platform-application', id] });
+            queryClient.invalidateQueries({ queryKey: ['platform-applications'] });
+            queryClient.invalidateQueries({ queryKey: ['billing-history', id] });
+          }}
+        />
+      )}
     </div>
   );
 };

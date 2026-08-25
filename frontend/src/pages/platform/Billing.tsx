@@ -147,17 +147,17 @@ export const BillingPage: React.FC = () => {
         <PlanComparison plans={plansData || []} />
       </div>
 
-      {/* Billing History Empty State */}
+      {/* Billing History Overview */}
       <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-4">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-200">
-          Invoices & Transactions
-        </h3>
-        <div className="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-8 text-center space-y-2">
-          <CreditCard className="w-8 h-8 text-slate-600 mx-auto mb-1" />
-          <p className="text-xs font-bold text-slate-300">No billing transactions yet</p>
-          <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
-            Direct card & UPI payment gateway integrations (Razorpay / Stripe) will be activated in Stage 7.
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-200">
+              Payment & Invoice Management
+            </h3>
+            <p className="text-xs text-slate-400">
+              To inspect transaction logs, download GST invoices, or request refunds, open any application above and navigate to its Billing tab.
+            </p>
+          </div>
         </div>
       </div>
     </div>
