@@ -14,6 +14,7 @@ import {
 import { platformApi } from '../../services/platform.api';
 import type { ApplicationSummary } from '../../services/platform.api';
 import { ApplicationCard } from '../../components/platform/ApplicationCard';
+import { getTenantPublicUrl } from '../../lib/tenant';
 
 export const ApplicationsPage: React.FC = () => {
   const [search, setSearch] = useState('');
@@ -206,7 +207,7 @@ export const ApplicationsPage: React.FC = () => {
                           Manage
                         </Link>
                         <a
-                          href={`https://${app.defaultDomain}`}
+                          href={getTenantPublicUrl(app.slug, app.defaultDomain)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-1.5 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-lg transition-colors"

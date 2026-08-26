@@ -2,12 +2,13 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { getErrorMessage, getFieldErrors } from '../../lib/api';
 import { cn } from '../../lib/cn';
+import { getTenantContext } from '../../lib/tenant';
 
 const registerSchema = z.object({
   name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100),
@@ -26,8 +27,12 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export function Register() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { register: registerUser } = useAuth();
   const [generalError, setGeneralError] = React.useState<string | null>(null);
+
+  const redirectUrl = searchParams.get('redirect');
+  const tenantContext = React.useMemo(() => getTenantContext(), [searchParams]);
 
   const {
     register,
@@ -65,7 +70,10 @@ export function Register() {
     setGeneralError(null);
     try {
       await registerUser.mutateAsync(data);
-      navigate(`/verify-otp?email=${encodeURIComponent(data.email)}`);
+      const target = `/verify-otp?email=${encodeURIComponent(data.email)}${
+        redirectUrl ? `&redirect=${encodeURIComponent(redirectUrl)}` : tenantContext.isRootPlatform ? '&redirect=%2Fplatform' : ''
+      }`;
+      navigate(target);
     } catch (error: any) {
       const fieldErrors = getFieldErrors(error);
       if (fieldErrors.length > 0) {
@@ -78,13 +86,21 @@ export function Register() {
     }
   };
 
+  const loginTarget = redirectUrl
+    ? `/login?redirect=${encodeURIComponent(redirectUrl)}`
+    : tenantContext.isRootPlatform
+    ? '/login?redirect=%2Fplatform'
+    : '/login';
+
   return (
     <div className="space-y-6 text-left">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-text-primary">Create a Customer Account</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-text-primary">
+          {tenantContext.isRootPlatform ? 'Create a Platform Account' : 'Create an Account'}
+        </h1>
         <p className="text-sm text-text-secondary mt-1">
           Already have an account?{' '}
-          <Link to="/login" className="text-accent hover:text-accent-hover font-medium">
+          <Link to={loginTarget} className="text-accent hover:text-accent-hover font-medium">
             Sign in
           </Link>
         </p>

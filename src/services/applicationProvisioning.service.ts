@@ -7,6 +7,8 @@ import { WebsiteSetting } from '../models/websiteSetting.model';
 import { Subscription } from '../models/subscription.model';
 import { UsageRecord } from '../models/usageRecord.model';
 import { SubscriptionAuditLog } from '../models/subscriptionAuditLog.model';
+import { User } from '../models/user.model';
+import { Role } from '../types/auth.types';
 import { isReservedSlug } from '../utils/reservedSlugs';
 import { DomainResolverService } from './domainResolver.service';
 import { getTemplateInitializer } from './templateInitializers';
@@ -179,6 +181,18 @@ export class ApplicationProvisioningService {
 
       createdApp.status = ApplicationStatus.ACTIVE;
       await createdApp.save();
+
+      // 10. Update Owner User role to ADMIN and attach tenantId
+      const ownerUser = await User.findById(ownerId);
+      if (ownerUser) {
+        if (ownerUser.role === Role.CUSTOMER) {
+          ownerUser.role = Role.ADMIN;
+        }
+        if (!ownerUser.tenantId) {
+          ownerUser.tenantId = createdTenant._id;
+        }
+        await ownerUser.save();
+      }
 
       const durationMs = Date.now() - startTime;
       logger.info('Application provisioned successfully', {

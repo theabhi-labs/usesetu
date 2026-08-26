@@ -9,6 +9,8 @@ import { Button } from '../../components/ui/Button';
 import { getErrorMessage, getFieldErrors } from '../../lib/api';
 import { cn } from '../../lib/cn';
 
+import { getTenantContext } from '../../lib/tenant';
+
 const resetPasswordSchema = z.object({
   password: z
     .string()
@@ -26,7 +28,15 @@ export function ResetPassword() {
   const navigate = useNavigate();
   const { resetPassword } = useAuth();
   const token = searchParams.get('token') || '';
+  const redirectUrl = searchParams.get('redirect');
+  const tenantContext = React.useMemo(() => getTenantContext(), [searchParams]);
   const [generalError, setGeneralError] = React.useState<string | null>(null);
+
+  const loginTarget = redirectUrl
+    ? `/login?redirect=${encodeURIComponent(redirectUrl)}`
+    : tenantContext.isRootPlatform
+    ? '/login?redirect=%2Fplatform'
+    : '/login';
 
   React.useEffect(() => {
     if (!token) {
@@ -61,7 +71,7 @@ export function ResetPassword() {
     setGeneralError(null);
     try {
       await resetPassword.mutateAsync({ token, password: data.password });
-      navigate('/login');
+      navigate(loginTarget);
     } catch (err: any) {
       const fieldErrors = getFieldErrors(err);
       if (fieldErrors.length > 0) {
@@ -138,7 +148,7 @@ export function ResetPassword() {
       )}
 
       <div className="text-center pt-2">
-        <Link to="/login" className="text-sm text-accent hover:text-accent-hover font-medium select-none">
+        <Link to={loginTarget} className="text-sm text-accent hover:text-accent-hover font-medium select-none">
           Back to login
         </Link>
       </div>

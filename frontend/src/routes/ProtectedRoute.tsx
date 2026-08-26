@@ -3,6 +3,8 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { Skeleton } from '../components/ui/Skeleton';
 
+import { getTenantContext } from '../lib/tenant';
+
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
@@ -25,7 +27,13 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    const tenantContext = getTenantContext();
+    let target = location.pathname + location.search;
+    if (tenantContext.isRootPlatform && (location.pathname === '/admin' || location.pathname.startsWith('/admin/'))) {
+      target = '/platform';
+    }
+    const redirectTarget = encodeURIComponent(target);
+    return <Navigate to={`/login?redirect=${redirectTarget}`} state={{ from: location }} replace />;
   }
 
   return <>{children}</>;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Layers,
   ArrowRight,
@@ -17,12 +17,19 @@ import {
   Users,
   FolderLock,
   ExternalLink,
+  Laptop,
 } from 'lucide-react';
 import { platformApi } from '../../services/platform.api';
 import type { TemplateData, SlugAvailabilityResponse } from '../../services/platform.api';
+import { authApi } from '../../services/auth.api';
+import { useAuthStore } from '../../store/authStore';
+import { getTenantPublicUrl, getTenantAdminUrl } from '../../lib/tenant';
 
 export const CreateApp: React.FC = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const preselectedTemplateSlug = searchParams.get('template');
 
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateData | null>(null);
@@ -44,12 +51,20 @@ export const CreateApp: React.FC = () => {
     queryFn: platformApi.getTemplates,
   });
 
-  // Automatically select first template if available
+  // Automatically select template from query param or first template if available
   useEffect(() => {
     if (templates && templates.length > 0 && !selectedTemplate) {
+      if (preselectedTemplateSlug) {
+        const found = templates.find((t) => t.slug === preselectedTemplateSlug);
+        if (found) {
+          setSelectedTemplate(found);
+          setCurrentStep(2);
+          return;
+        }
+      }
       setSelectedTemplate(templates[0]);
     }
-  }, [templates, selectedTemplate]);
+  }, [templates, preselectedTemplateSlug, selectedTemplate]);
 
   // Slug generation from app name
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,10 +121,17 @@ export const CreateApp: React.FC = () => {
     onMutate: () => {
       setProvisioningStatus('creating');
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setProvisionedApp(data);
       setProvisioningStatus('ready');
       queryClient.invalidateQueries({ queryKey: ['platform-applications'] });
+      try {
+        const meRes = await authApi.getMe();
+        const currentToken = useAuthStore.getState().accessToken;
+        useAuthStore.getState().setSession(meRes.user, currentToken);
+      } catch (e) {
+        // Safe to ignore
+      }
     },
     onError: () => {
       setProvisioningStatus('failed');
@@ -522,9 +544,13 @@ export const CreateApp: React.FC = () => {
 
               <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-between text-left">
                 <div className="space-y-0.5 truncate mr-3">
-                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Web Address</span>
+                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                    {window.location.hostname.includes('localhost') || window.location.hostname === '127.0.0.1'
+                      ? 'Local Development Access URL'
+                      : 'Web Address'}
+                  </span>
                   <div className="font-mono text-sm text-orange-400 truncate">
-                    https://{provisionedApp?.domain?.hostname || `${slug}.usesetu.com`}
+                    {getTenantPublicUrl(slug, provisionedApp?.domain?.hostname)}
                   </div>
                 </div>
                 <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
@@ -532,22 +558,29 @@ export const CreateApp: React.FC = () => {
                 </span>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
                 <a
-                  href={`https://${provisionedApp?.domain?.hostname || `${slug}.usesetu.com`}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm px-6 py-3 rounded-xl shadow-lg shadow-orange-500/20"
+                  href={getTenantAdminUrl(slug, provisionedApp?.domain?.hostname)}
+                  className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm px-6 py-3 rounded-xl shadow-lg shadow-orange-500/25 cursor-pointer transition-all"
                 >
-                  <span>Open Application</span>
+                  <Laptop className="w-4 h-4" />
+                  <span>Go to Tenant Admin Panel</span>
+                  <ArrowRight className="w-4 h-4" />
+                </a>
+
+                <a
+                  href={getTenantPublicUrl(slug, provisionedApp?.domain?.hostname)}
+                  className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm px-5 py-3 rounded-xl border border-slate-700 cursor-pointer"
+                >
+                  <span>View Citizen Portal</span>
                   <ExternalLink className="w-4 h-4" />
                 </a>
 
                 <Link
                   to="/platform"
-                  className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm px-6 py-3 rounded-xl border border-slate-700"
+                  className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 text-slate-400 hover:text-slate-200 text-xs font-semibold px-4 py-3"
                 >
-                  <span>Go to Platform Dashboard</span>
+                  <span>Platform Dashboard</span>
                 </Link>
               </div>
             </div>

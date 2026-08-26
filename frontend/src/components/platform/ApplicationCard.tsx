@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import type { ApplicationSummary } from '../../services/platform.api';
 import { formatBytes } from './UsageGauge';
+import { getTenantPublicUrl } from '../../lib/tenant';
 
 interface ApplicationCardProps {
   app: ApplicationSummary;
@@ -136,7 +137,7 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({ app }) => {
 
         {app.status === 'active' && (
           <a
-            href={`https://${primaryDomain}`}
+            href={getTenantPublicUrl(app.slug, primaryDomain)}
             target="_blank"
             rel="noopener noreferrer"
             className="p-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-xl transition-colors shrink-0"

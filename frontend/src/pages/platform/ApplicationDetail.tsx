@@ -18,7 +18,9 @@ import {
   Activity,
   HardDrive,
   Sliders,
+  Laptop,
 } from 'lucide-react';
+import { getTenantPublicUrl, getTenantAdminUrl } from '../../lib/tenant';
 import { platformApi } from '../../services/platform.api';
 import type {
   ApplicationDetailData,
@@ -387,7 +389,18 @@ export const ApplicationDetail: React.FC = () => {
 
           <div className="flex items-center space-x-3">
             <a
-              href={`https://${primaryDomain}`}
+              href={getTenantAdminUrl(application.slug, primaryDomain)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center space-x-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-bold px-4 py-3 rounded-2xl border border-slate-700/80 transition-all shrink-0"
+              title="Open Tenant Admin Desk"
+            >
+              <Laptop className="w-4 h-4 text-orange-400" />
+              <span>Admin Panel</span>
+            </a>
+
+            <a
+              href={getTenantPublicUrl(application.slug, primaryDomain)}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center space-x-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-bold px-5 py-3 rounded-2xl shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 transition-all shrink-0"

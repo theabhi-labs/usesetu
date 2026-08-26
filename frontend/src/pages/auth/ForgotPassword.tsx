@@ -2,11 +2,12 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { getErrorMessage } from '../../lib/api';
+import { getTenantContext } from '../../lib/tenant';
 
 const forgotPasswordSchema = z.object({
   email: z.string().trim().email('Invalid email address'),
@@ -15,9 +16,19 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
 
 export function ForgotPassword() {
+  const [searchParams] = useSearchParams();
   const { forgotPassword } = useAuth();
   const [success, setSuccess] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
+
+  const redirectUrl = searchParams.get('redirect');
+  const tenantContext = React.useMemo(() => getTenantContext(), [searchParams]);
+
+  const loginTarget = redirectUrl
+    ? `/login?redirect=${encodeURIComponent(redirectUrl)}`
+    : tenantContext.isRootPlatform
+    ? '/login?redirect=%2Fplatform'
+    : '/login';
 
   const {
     register,
@@ -46,7 +57,7 @@ export function ForgotPassword() {
             If an account exists with that email, we have sent instructions to reset your password.
           </p>
         </div>
-        <Link to="/login" className="block w-full">
+        <Link to={loginTarget} className="block w-full">
           <Button variant="secondary" fullWidth>
             Back to sign in
           </Button>
@@ -85,7 +96,7 @@ export function ForgotPassword() {
       </form>
 
       <div className="text-center pt-2">
-        <Link to="/login" className="text-sm text-accent hover:text-accent-hover font-medium select-none">
+        <Link to={loginTarget} className="text-sm text-accent hover:text-accent-hover font-medium select-none">
           Back to login
         </Link>
       </div>

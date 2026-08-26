@@ -29,6 +29,21 @@ export class DomainResolverService {
   }
 
   /**
+   * Determines if the given hostname is the root SaaS platform domain.
+   */
+  static isPlatformHostname(rawHost: string): boolean {
+    const hostname = this.normalizeHostname(rawHost);
+    const baseDomain = (env.PLATFORM_BASE_DOMAIN || 'usesetu.com').toLowerCase();
+    return (
+      hostname === baseDomain ||
+      hostname === `www.${baseDomain}` ||
+      hostname === `app.${baseDomain}` ||
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1'
+    );
+  }
+
+  /**
    * Resolves an incoming hostname to its associated ApplicationDomain, Application, and Tenant.
    * Only ACTIVE domains serve live tenant traffic.
    */

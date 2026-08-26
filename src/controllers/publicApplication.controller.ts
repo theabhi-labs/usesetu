@@ -10,6 +10,7 @@ import { tenantLocalStorage } from '../services/tenantContext.service';
 
 import { ApplicationUrlService } from '../services/applicationUrl.service';
 import { DomainType } from '../models/applicationDomain.model';
+import { env } from '../config/env';
 
 export const getPublicApplicationContext = asyncHandler(async (req: Request, res: Response) => {
   const rawHost = (req.headers['x-forwarded-host'] || req.headers.host || req.hostname) as string;
@@ -34,6 +35,23 @@ export const getPublicApplicationContext = asyncHandler(async (req: Request, res
       tenantId = String(application.tenantId);
       hostname = DomainResolverService.generateDefaultHostname(application.slug);
     }
+  } else if (DomainResolverService.isPlatformHostname(rawHost)) {
+    // Root Platform Context (usesetu.com / localhost without tenant query)
+    res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          type: 'PLATFORM',
+          isPlatform: true,
+          platform: {
+            name: 'UseSetu',
+            baseDomain: env.PLATFORM_BASE_DOMAIN || 'usesetu.com',
+          },
+        },
+        'UseSetu SaaS Platform context',
+      ),
+    );
+    return;
   }
 
   if (!application || !tenantId) {
@@ -127,6 +145,9 @@ export const getPublicApplicationContext = asyncHandler(async (req: Request, res
   });
 
   const publicData = {
+    type: 'TENANT',
+    isPlatform: false,
+    tenantId,
     application: {
       id: application._id,
       name: application.name,

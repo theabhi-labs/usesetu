@@ -21,8 +21,9 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
-  Cpu
+  Cpu,
 } from 'lucide-react';
+import { getTenantContext } from '../lib/tenant';
 
 export function AdminLayout() {
   const { user } = useAuthStore();
@@ -33,6 +34,15 @@ export function AdminLayout() {
   const [userMenuOpen, setUserMenuOpen] = React.useState(false);
   const [bellOpen, setBellOpen] = React.useState(false);
   const queryClient = useQueryClient();
+
+  const tenantContext = React.useMemo(() => getTenantContext(location.search), [location.search]);
+
+  // Phase 9: Admin Guard - /admin on Root Platform redirects to /platform control plane
+  React.useEffect(() => {
+    if (tenantContext.isRootPlatform) {
+      navigate('/platform', { replace: true });
+    }
+  }, [tenantContext.isRootPlatform, navigate]);
 
   const handleLogout = async () => {
     await logout.mutateAsync();
@@ -141,7 +151,7 @@ export function AdminLayout() {
             return (
               <Link
                 key={item.label}
-                to={item.path}
+                to={location.search ? `${item.path}${location.search}` : item.path}
                 className={cn(
                   'flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors',
                   isActive

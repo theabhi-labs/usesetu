@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '../../components/ui/Button';
 import { getErrorMessage } from '../../lib/api';
+import { getTenantContext } from '../../lib/tenant';
 
 export function VerifyOtp() {
   const [searchParams] = useSearchParams();
@@ -72,10 +73,24 @@ export function VerifyOtp() {
 
     try {
       const response = await verifyOtp.mutateAsync({ email, otp: otpCode });
-      if (response.user.role === 'customer') {
-        navigate('/portal');
+      const params = new URLSearchParams(window.location.search);
+      const redirectUrl = params.get('redirect');
+      const tenantContext = getTenantContext();
+
+      if (redirectUrl) {
+        if (tenantContext.isRootPlatform && (redirectUrl === '/admin' || redirectUrl.startsWith('/admin?'))) {
+          navigate('/platform');
+        } else {
+          navigate(redirectUrl);
+        }
+      } else if (tenantContext.isRootPlatform) {
+        navigate('/platform');
       } else {
-        navigate('/admin');
+        if (response.user.role === 'customer') {
+          navigate(tenantContext.tenantSlug ? `/portal?tenant=${tenantContext.tenantSlug}` : '/portal');
+        } else {
+          navigate(tenantContext.tenantSlug ? `/admin?tenant=${tenantContext.tenantSlug}` : '/admin');
+        }
       }
     } catch (err: any) {
       setGeneralError(getErrorMessage(err));
