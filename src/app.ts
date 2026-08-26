@@ -4,12 +4,22 @@ import morgan from 'morgan';
 import { applySecurityMiddlewares } from './middlewares/security.middleware';
 import { errorHandler } from './middlewares/errorHandler.middleware';
 import { notFound } from './middlewares/notFound.middleware';
+import { requestContextMiddleware } from './middlewares/requestContext.middleware';
+import { metricsMiddleware } from './middlewares/metrics.middleware';
 import { logger } from './config/logger';
 import { isDev } from './config/env';
 import v1Routes from './routes';
 import healthRoutes from './routes/health.routes';
+import { tenantResolver } from './middlewares/tenant.middleware';
+import { getPublicApplicationSitemap, getPublicApplicationRobots } from './controllers/publicApplication.controller';
 
 const app: Application = express();
+
+// Request correlation & context tracking (Must be first)
+app.use(requestContextMiddleware);
+
+// API performance metrics tracking (Lightweight in-memory counter)
+app.use(metricsMiddleware);
 
 // Security (helmet, cors, rate-limit, mongo-sanitize, xss, hpp)
 applySecurityMiddlewares(app);
@@ -37,12 +47,9 @@ if (isDev) {
   );
 }
 
-// Health checks (liveness/readiness/version) — kept outside /api/v1 since
+// Health checks (liveness/readiness/deep) — kept outside /api/v1 since
 // they're infrastructure endpoints, not part of the versioned API surface.
 app.use('/health', healthRoutes);
-
-import { tenantResolver } from './middlewares/tenant.middleware';
-import { getPublicApplicationSitemap, getPublicApplicationRobots } from './controllers/publicApplication.controller';
 
 // Root SEO files for tenant websites
 app.get('/sitemap.xml', getPublicApplicationSitemap);

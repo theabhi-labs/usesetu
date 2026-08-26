@@ -39,6 +39,11 @@ import { StaffManagement } from '../pages/admin/StaffManagement';
 import { StaffForm } from '../pages/admin/StaffForm';
 import { Customers } from '../pages/admin/Customers';
 import { CustomerProfile } from '../pages/admin/CustomerProfile';
+import { OperationsDashboard } from '../pages/admin/operations/OperationsDashboard';
+import { Incidents } from '../pages/admin/operations/Incidents';
+import { Errors } from '../pages/admin/operations/Errors';
+import { Jobs } from '../pages/admin/operations/Jobs';
+import { BillingHealth } from '../pages/admin/operations/BillingHealth';
 
 // Portal Pages
 import { PortalDashboard } from '../pages/portal/Dashboard';
@@ -123,6 +128,12 @@ export function AppRoutes() {
         <Route path="payments" element={<Payments />} />
         <Route path="cms" element={<CMSConfig />} />
         <Route path="automation" element={<AutomationRules />} />
+        {/* Super Admin Operations & Observability */}
+        <Route path="operations" element={<RoleGate allowedRoles={[Role.SUPER_ADMIN]}><OperationsDashboard /></RoleGate>} />
+        <Route path="operations/incidents" element={<RoleGate allowedRoles={[Role.SUPER_ADMIN]}><Incidents /></RoleGate>} />
+        <Route path="operations/errors" element={<RoleGate allowedRoles={[Role.SUPER_ADMIN]}><Errors /></RoleGate>} />
+        <Route path="operations/jobs" element={<RoleGate allowedRoles={[Role.SUPER_ADMIN]}><Jobs /></RoleGate>} />
+        <Route path="operations/billing-health" element={<RoleGate allowedRoles={[Role.SUPER_ADMIN]}><BillingHealth /></RoleGate>} />
       </Route>
 
       {/* Customer Portal */}
