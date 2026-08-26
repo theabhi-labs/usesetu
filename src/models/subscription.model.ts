@@ -39,6 +39,9 @@ export interface ISubscription extends Document {
   endsAt?: Date;
   trialEndsAt?: Date;
   cancelledAt?: Date;
+  gracePeriodEndsAt?: Date;
+  lastPaymentRetryAt?: Date;
+  recoveryAttempts?: number;
   planSnapshot?: IPlanSnapshot;
   paymentGateway?: IPaymentGatewayRef;
   metadata?: Record<string, any>;
@@ -105,6 +108,16 @@ const subscriptionSchema = new Schema<ISubscription>(
     cancelledAt: {
       type: Date,
     },
+    gracePeriodEndsAt: {
+      type: Date,
+    },
+    lastPaymentRetryAt: {
+      type: Date,
+    },
+    recoveryAttempts: {
+      type: Number,
+      default: 0,
+    },
     planSnapshot: {
       type: planSnapshotSchema,
     },
@@ -119,18 +132,19 @@ const subscriptionSchema = new Schema<ISubscription>(
   { timestamps: true },
 );
 
-// Enforce rule: An application has at most one active or trialing subscription at a time
+// Enforce rule: An application has at most one active, trialing, or past_due subscription at a time
 subscriptionSchema.index(
   { applicationId: 1 },
   {
     unique: true,
     partialFilterExpression: {
-      status: { $in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIALING] },
+      status: { $in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIALING, SubscriptionStatus.PAST_DUE] },
     },
   },
 );
 
 subscriptionSchema.index({ applicationId: 1, status: 1 });
 subscriptionSchema.index({ endsAt: 1, status: 1 });
+subscriptionSchema.index({ gracePeriodEndsAt: 1, status: 1 });
 
 export const Subscription: Model<ISubscription> = mongoose.model<ISubscription>('Subscription', subscriptionSchema);

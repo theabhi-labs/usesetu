@@ -146,6 +146,7 @@ paymentTransactionSchema.index(
 paymentTransactionSchema.index({ applicationId: 1, createdAt: -1 });
 paymentTransactionSchema.index({ subscriptionId: 1, createdAt: -1 });
 paymentTransactionSchema.index({ accountId: 1, createdAt: -1 });
+paymentTransactionSchema.index({ status: 1, createdAt: 1 });
 
 export const PaymentTransaction: Model<IPaymentTransaction> = mongoose.model<IPaymentTransaction>(
   'PaymentTransaction',

@@ -28,7 +28,7 @@ describe('UseSetu Stage 5 — Production-Ready Custom Domain Management & Verifi
     await seedPlans();
 
     // Ensure digital-service-center template exists
-    let dscTemplate = await ApplicationTemplate.findOne({ slug: 'digital-service-center' });
+    const dscTemplate = await ApplicationTemplate.findOne({ slug: 'digital-service-center' });
     if (!dscTemplate) {
       await ApplicationTemplate.create({
         name: 'Digital Service Center',

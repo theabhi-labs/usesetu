@@ -119,6 +119,7 @@ export interface NormalizedPaymentEvent {
   accountId?: string;
   planId?: string;
   billingCycle?: string;
+  notes?: Record<string, any>;
   occurredAt: Date;
   rawReference?: any;
 }

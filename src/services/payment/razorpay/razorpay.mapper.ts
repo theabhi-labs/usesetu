@@ -33,7 +33,7 @@ export class RazorpayMapper {
     const invoiceId = invoiceEntity?.id || paymentEntity?.invoice_id;
 
     let amount = paymentEntity?.amount ?? orderEntity?.amount ?? refundEntity?.amount ?? 0;
-    let currency = paymentEntity?.currency || orderEntity?.currency || refundEntity?.currency || 'INR';
+    const currency = paymentEntity?.currency || orderEntity?.currency || refundEntity?.currency || 'INR';
 
     let status = 'unknown';
     let failureReason: string | undefined;

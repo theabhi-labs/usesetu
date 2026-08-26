@@ -17,6 +17,8 @@ export interface IPaymentWebhookEvent extends Document {
   processedAt?: Date;
   status: WebhookEventStatus;
   processingAttempts: number;
+  durationMs?: number;
+  resolutionStatus?: string;
   lastError?: string;
   applicationId?: mongoose.Types.ObjectId;
   accountId?: mongoose.Types.ObjectId;
@@ -67,6 +69,13 @@ const paymentWebhookEventSchema = new Schema<IPaymentWebhookEvent>(
     processingAttempts: {
       type: Number,
       default: 0,
+    },
+    durationMs: {
+      type: Number,
+    },
+    resolutionStatus: {
+      type: String,
+      trim: true,
     },
     lastError: {
       type: String,

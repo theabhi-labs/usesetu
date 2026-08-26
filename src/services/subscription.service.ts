@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { env } from '../config/env';
 import { Plan, IPlan, PlanStatus, IPlanEntitlements } from '../models/plan.model';
 import { Subscription, ISubscription, SubscriptionStatus, BillingCycle } from '../models/subscription.model';
 import { SubscriptionAuditLog } from '../models/subscriptionAuditLog.model';
@@ -34,7 +35,7 @@ export class SubscriptionService {
 
     const subscription = (await Subscription.findOne({
       applicationId: appObjectId,
-      status: { $in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIALING] },
+      status: { $in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIALING, SubscriptionStatus.PAST_DUE] },
     }).populate('planId')) as (ISubscription & { planId: IPlan }) | null;
 
     if (!subscription) {
@@ -42,6 +43,29 @@ export class SubscriptionService {
     }
 
     const now = new Date();
+
+    // Check past_due grace period expiration
+    if (
+      subscription.status === SubscriptionStatus.PAST_DUE &&
+      subscription.gracePeriodEndsAt &&
+      subscription.gracePeriodEndsAt < now
+    ) {
+      subscription.status = SubscriptionStatus.EXPIRED;
+      await subscription.save();
+
+      const app = await Application.findById(appObjectId);
+      if (app) {
+        await SubscriptionAuditLog.create({
+          applicationId: app._id,
+          accountId: app.accountId,
+          action: 'SUBSCRIPTION_EXPIRED',
+          oldStatus: SubscriptionStatus.PAST_DUE,
+          newStatus: SubscriptionStatus.EXPIRED,
+          reason: 'Grace period expired',
+        });
+      }
+      return null;
+    }
 
     // Check trial expiration
     if (
@@ -66,7 +90,7 @@ export class SubscriptionService {
       return null;
     }
 
-    // Check active period expiration (for fixed-term subscriptions)
+    // Check active period expiration (for fixed-term subscriptions without grace)
     if (
       subscription.status === SubscriptionStatus.ACTIVE &&
       subscription.endsAt &&
@@ -283,7 +307,7 @@ export class SubscriptionService {
 
     const currentSub = await Subscription.findOne({
       applicationId: appObjectId,
-      status: { $in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIALING] },
+      status: { $in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIALING, SubscriptionStatus.PAST_DUE] },
     });
 
     if (!currentSub) {
@@ -360,6 +384,8 @@ export class SubscriptionService {
       sub.endsAt = endsAt;
       sub.trialEndsAt = undefined;
       sub.cancelledAt = undefined;
+      sub.gracePeriodEndsAt = undefined;
+      sub.recoveryAttempts = 0;
       sub.planSnapshot = {
         planId: plan._id as any,
         slug: plan.slug,
@@ -413,27 +439,31 @@ export class SubscriptionService {
       });
     }
 
+    const previousStatus = oldStatus;
     const isUpgrade = oldPlan && oldPlan.slug !== plan.slug;
-    const action = isUpgrade ? 'SUBSCRIPTION_UPGRADED' : 'SUBSCRIPTION_ACTIVATED';
+    const auditAction = previousStatus === SubscriptionStatus.PAST_DUE
+      ? 'SUBSCRIPTION_RECOVERED'
+      : (isUpgrade ? 'SUBSCRIPTION_UPGRADED' : 'SUBSCRIPTION_ACTIVATED');
 
     await SubscriptionAuditLog.create({
       applicationId: appObjectId,
       accountId: app.accountId,
       actorId: params.actorId ? new mongoose.Types.ObjectId(params.actorId) : undefined,
-      action,
-      oldPlan,
+      action: auditAction,
+      oldPlan: oldPlan ? { id: ((oldPlan as any)._id || (oldPlan as any).id) as any, slug: oldPlan.slug, name: oldPlan.name } : undefined,
       newPlan: {
         id: plan._id as any,
         slug: plan.slug,
         name: plan.name,
       },
-      oldStatus,
+      oldStatus: previousStatus,
       newStatus: SubscriptionStatus.ACTIVE,
       reason: `Activated via ${params.provider || 'razorpay'} payment: ${params.providerPaymentId || 'verified'}`,
       metadata: {
         paymentTransactionId: params.paymentTransactionId,
         providerPaymentId: params.providerPaymentId,
         billingCycle: params.billingCycle,
+        recoveredFromPastDue: previousStatus === SubscriptionStatus.PAST_DUE,
       },
     });
 
@@ -446,10 +476,14 @@ export class SubscriptionService {
       applicationId: app._id,
       category: PlatformNotificationCategory.SUBSCRIPTION,
       type: PlatformNotificationType.SUCCESS,
-      title: `Plan ${isUpgrade ? 'Upgraded' : 'Activated'}: ${plan.name}`,
+      title: previousStatus === SubscriptionStatus.PAST_DUE
+        ? `Subscription Recovered: ${plan.name}`
+        : `Plan ${isUpgrade ? 'Upgraded' : 'Activated'}: ${plan.name}`,
       message: `Your application "${app.name}" is now on the ${plan.name} plan (${params.billingCycle}).`,
       link: `/platform/applications/${app._id}?tab=billing`,
     });
+
+    await this.syncApplicationQuotas(app._id);
 
     return sub;
   }
@@ -477,12 +511,15 @@ export class SubscriptionService {
       throw ApiError.badRequest('No active or past_due subscription found to renew');
     }
 
+    const previousStatus = sub.status;
     const cycle = params.billingCycle || sub.billingCycle || BillingCycle.MONTHLY;
     const cycleDurationDays = cycle === BillingCycle.YEARLY ? 365 : 30;
     const baseDate = sub.endsAt && sub.endsAt > new Date() ? sub.endsAt : new Date();
     sub.endsAt = new Date(baseDate.getTime() + cycleDurationDays * 24 * 60 * 60 * 1000);
     sub.status = SubscriptionStatus.ACTIVE;
     sub.billingCycle = cycle;
+    sub.gracePeriodEndsAt = undefined;
+    sub.recoveryAttempts = 0;
 
     sub.metadata = {
       ...(sub.metadata || {}),
@@ -491,16 +528,22 @@ export class SubscriptionService {
     };
     await sub.save();
 
+    const auditAction = previousStatus === SubscriptionStatus.PAST_DUE
+      ? 'SUBSCRIPTION_RECOVERED'
+      : 'SUBSCRIPTION_RENEWED';
+
     await SubscriptionAuditLog.create({
       applicationId: appObjectId,
       accountId: app.accountId,
-      action: 'SUBSCRIPTION_RENEWED',
+      action: auditAction,
+      oldStatus: previousStatus,
       newStatus: SubscriptionStatus.ACTIVE,
       reason: `Renewed via payment: ${params.providerPaymentId || 'verified'}`,
       metadata: {
         paymentTransactionId: params.paymentTransactionId,
         providerPaymentId: params.providerPaymentId,
         endsAt: sub.endsAt,
+        recoveredFromPastDue: previousStatus === SubscriptionStatus.PAST_DUE,
       },
     });
 
@@ -517,16 +560,19 @@ export class SubscriptionService {
       link: `/platform/applications/${app._id}?tab=billing`,
     });
 
+    await this.syncApplicationQuotas(app._id);
+
     return sub;
   }
 
   /**
-   * Mark subscription as past_due on payment failure
+   * Mark subscription as past_due on payment failure with a 7-day grace period
    */
   static async markPaymentFailed(params: {
     applicationId: string | mongoose.Types.ObjectId;
     failureReason?: string;
     providerPaymentId?: string;
+    gracePeriodDays?: number;
   }): Promise<ISubscription | null> {
     const appObjectId = new mongoose.Types.ObjectId(params.applicationId);
     const app = await Application.findById(appObjectId);
@@ -534,11 +580,20 @@ export class SubscriptionService {
 
     const sub = await Subscription.findOne({
       applicationId: appObjectId,
-      status: SubscriptionStatus.ACTIVE,
+      status: { $in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.PAST_DUE] },
     });
 
     if (sub) {
+      const oldStatus = sub.status;
+      const graceDays = params.gracePeriodDays ?? env.BILLING_GRACE_PERIOD_DAYS ?? 7;
+      const gracePeriodEndsAt = new Date(Date.now() + graceDays * 24 * 60 * 60 * 1000);
+
       sub.status = SubscriptionStatus.PAST_DUE;
+      sub.gracePeriodEndsAt = sub.gracePeriodEndsAt && sub.gracePeriodEndsAt > new Date()
+        ? sub.gracePeriodEndsAt
+        : gracePeriodEndsAt;
+      sub.lastPaymentRetryAt = new Date();
+      sub.recoveryAttempts = (sub.recoveryAttempts || 0) + 1;
       sub.metadata = {
         ...(sub.metadata || {}),
         lastPaymentFailure: {
@@ -553,9 +608,14 @@ export class SubscriptionService {
         applicationId: appObjectId,
         accountId: app.accountId,
         action: 'PAYMENT_FAILED',
-        oldStatus: SubscriptionStatus.ACTIVE,
+        oldStatus,
         newStatus: SubscriptionStatus.PAST_DUE,
-        reason: params.failureReason || 'Payment failed at provider',
+        reason: params.failureReason || 'Payment failed at provider; grace period initiated',
+        metadata: {
+          gracePeriodEndsAt: sub.gracePeriodEndsAt,
+          recoveryAttempts: sub.recoveryAttempts,
+          providerPaymentId: params.providerPaymentId,
+        },
       });
 
       const { PlatformNotification, PlatformNotificationCategory, PlatformNotificationType } = await import(
@@ -566,8 +626,8 @@ export class SubscriptionService {
         applicationId: app._id,
         category: PlatformNotificationCategory.SUBSCRIPTION,
         type: PlatformNotificationType.ERROR,
-        title: `Payment Failed for ${sub.planSnapshot?.name || 'Subscription'}`,
-        message: `Payment failed for "${app.name}": ${params.failureReason || 'Please update payment method'}.`,
+        title: `Payment Failed: Grace Period Active for ${sub.planSnapshot?.name || 'Subscription'}`,
+        message: `Payment failed for "${app.name}". Your services remain active under a ${graceDays}-day grace period until ${sub.gracePeriodEndsAt.toLocaleDateString()}. Please update payment method to avoid service interruption.`,
         link: `/platform/applications/${app._id}?tab=billing`,
       });
     }
@@ -576,7 +636,7 @@ export class SubscriptionService {
   }
 
   /**
-   * Expire subscription
+   * Expire subscription after grace period lapses
    */
   static async expireSubscription(params: {
     applicationId: string | mongoose.Types.ObjectId;
@@ -594,6 +654,7 @@ export class SubscriptionService {
     if (sub) {
       const oldStatus = sub.status;
       sub.status = SubscriptionStatus.EXPIRED;
+      sub.gracePeriodEndsAt = undefined;
       await sub.save();
 
       await SubscriptionAuditLog.create({
@@ -614,12 +675,76 @@ export class SubscriptionService {
         category: PlatformNotificationCategory.SUBSCRIPTION,
         type: PlatformNotificationType.WARNING,
         title: `Subscription Expired`,
-        message: `Your subscription for "${app.name}" has expired. Services have fallen back to the free tier.`,
+        message: `Your subscription for "${app.name}" has expired. Services have fallen back to the free tier limits.`,
         link: `/platform/applications/${app._id}?tab=billing`,
       });
+
+      await this.syncApplicationQuotas(app._id);
     }
 
     return sub;
+  }
+
+  /**
+   * Sync and audit application quotas against effective plan entitlements
+   */
+  static async syncApplicationQuotas(applicationId: string | mongoose.Types.ObjectId): Promise<{
+    overQuota: boolean;
+    activeUsersExceeded: boolean;
+    storageExceeded: boolean;
+  }> {
+    const appObjectId = new mongoose.Types.ObjectId(applicationId);
+    const app = await Application.findById(appObjectId);
+    if (!app) return { overQuota: false, activeUsersExceeded: false, storageExceeded: false };
+
+    const entitlements = await this.resolveEffectiveEntitlements(appObjectId);
+
+    const { User } = await import('../models/user.model');
+    const { MediaAsset } = await import('../models/mediaAsset.model');
+    const { LockerDocument } = await import('../models/lockerDocument.model');
+
+    const [userCount, mediaAssets, lockerDocs] = await Promise.all([
+      User.countDocuments({ tenantId: app.tenantId, isActive: true }).setOptions({ bypassTenantQuery: true }),
+      MediaAsset.find({ tenantId: app.tenantId }).select('sizeBytes').setOptions({ bypassTenantQuery: true }).lean(),
+      LockerDocument.find({ tenantId: app.tenantId }).select('sizeBytes').setOptions({ bypassTenantQuery: true }).lean(),
+    ]);
+
+    const mediaBytes = (mediaAssets as any[]).reduce((sum, item) => sum + (item.sizeBytes || 0), 0);
+    const lockerBytes = (lockerDocs as any[]).reduce((sum, item) => sum + (item.sizeBytes || 0), 0);
+    const totalStorageBytes = mediaBytes + lockerBytes;
+
+    const userLimit = entitlements.activeUsers?.limit ?? 5;
+    const storageLimit = entitlements.storage?.limit ?? 524288000;
+
+    const activeUsersExceeded = userCount > userLimit;
+    const storageExceeded = totalStorageBytes > storageLimit;
+    const overQuota = activeUsersExceeded || storageExceeded;
+
+    const sub = await Subscription.findOne({
+      applicationId: appObjectId,
+      status: { $in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.PAST_DUE, SubscriptionStatus.TRIALING] },
+    });
+
+    if (sub) {
+      sub.metadata = {
+        ...(sub.metadata || {}),
+        over_quota: overQuota,
+        over_quota_details: overQuota
+          ? {
+              storage: storageExceeded ? { used: totalStorageBytes, limit: storageLimit } : undefined,
+              activeUsers: activeUsersExceeded ? { used: userCount, limit: userLimit } : undefined,
+            }
+          : undefined,
+        quotaSyncAt: new Date(),
+      };
+      await sub.save();
+    }
+
+    return {
+      overQuota,
+      activeUsersExceeded,
+      storageExceeded,
+    };
   }
 
   /**

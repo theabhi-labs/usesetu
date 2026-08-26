@@ -69,15 +69,23 @@ export class RazorpayWebhookHandler {
         }
       }
     } else {
-      webhookEvent = await PaymentWebhookEvent.create({
-        provider: 'razorpay',
-        eventId: rawEventId,
-        eventType: parsedPayload.event,
-        payloadHash,
-        status: WebhookEventStatus.PROCESSING,
-        payload: parsedPayload,
-        headers,
-      });
+      try {
+        webhookEvent = await PaymentWebhookEvent.create({
+          provider: 'razorpay',
+          eventId: rawEventId,
+          eventType: parsedPayload.event,
+          payloadHash,
+          status: WebhookEventStatus.PROCESSING,
+          payload: parsedPayload,
+          headers,
+        });
+      } catch (createErr: any) {
+        if (createErr.code === 11000) {
+          logger.info(`Concurrent duplicate webhook event detected: ${rawEventId}`);
+          return { success: true, eventId: rawEventId, duplicate: true };
+        }
+        throw createErr;
+      }
     }
 
     // 4. Normalize Event & Process

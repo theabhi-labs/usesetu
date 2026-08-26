@@ -306,13 +306,57 @@ export class PaymentService {
     switch (event.eventType) {
       case 'payment.captured':
       case 'order.paid': {
+        if (!transaction && event.notes?.applicationId && event.notes?.planId) {
+          const app = await Application.findById(event.notes.applicationId);
+          if (app) {
+            transaction = await PaymentTransaction.create({
+              accountId: app.accountId,
+              applicationId: app._id,
+              planId: event.notes.planId,
+              billingCycle: event.notes.billingCycle || 'monthly',
+              provider: 'razorpay',
+              providerOrderId: event.orderId,
+              providerPaymentId: event.paymentId,
+              amount: event.amount || 0,
+              currency: event.currency || 'INR',
+              status: PaymentTransactionStatus.CAPTURED,
+              paidAt: event.occurredAt || new Date(),
+              method: event.method,
+            });
+          }
+        }
+
         if (transaction) {
-          if (transaction.status !== PaymentTransactionStatus.CAPTURED) {
+          if (
+            transaction.status !== PaymentTransactionStatus.CAPTURED &&
+            transaction.status !== PaymentTransactionStatus.REFUNDED
+          ) {
             transaction.status = PaymentTransactionStatus.CAPTURED;
             transaction.providerPaymentId = event.paymentId || transaction.providerPaymentId;
             transaction.paidAt = event.occurredAt || new Date();
             transaction.method = event.method || transaction.method;
             await transaction.save();
+
+            // Create Invoice if not existing
+            const existingInvoice = await BillingInvoice.findOne({ paymentTransactionId: transaction._id });
+            if (!existingInvoice) {
+              const invoiceNumber = `INV-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+              await BillingInvoice.create({
+                accountId: transaction.accountId,
+                applicationId: transaction.applicationId,
+                paymentTransactionId: transaction._id,
+                planId: transaction.planId,
+                billingCycle: transaction.billingCycle,
+                provider: 'razorpay',
+                invoiceNumber,
+                subtotal: transaction.amount,
+                tax: 0,
+                total: transaction.amount,
+                currency: transaction.currency,
+                status: BillingInvoiceStatus.PAID,
+                paidAt: transaction.paidAt,
+              });
+            }
 
             // Activate subscription
             await SubscriptionService.activateFromPayment({
@@ -321,16 +365,31 @@ export class PaymentService {
               billingCycle: transaction.billingCycle,
               paymentTransactionId: transaction._id,
               provider: 'razorpay',
-              providerPaymentId: event.paymentId,
-              providerOrderId: event.orderId,
+              providerPaymentId: event.paymentId || transaction.providerPaymentId,
+              providerOrderId: event.orderId || transaction.providerOrderId,
             });
           }
         }
         break;
       }
 
+      case 'payment.authorized': {
+        if (transaction && transaction.status === PaymentTransactionStatus.CREATED) {
+          transaction.status = PaymentTransactionStatus.AUTHORIZED;
+          transaction.providerPaymentId = event.paymentId || transaction.providerPaymentId;
+          await transaction.save();
+        }
+        break;
+      }
+
       case 'payment.failed': {
-        if (transaction && transaction.status !== PaymentTransactionStatus.CAPTURED) {
+        // Out-of-order check: Never overwrite a captured or refunded transaction with a delayed failure
+        if (
+          transaction &&
+          transaction.status !== PaymentTransactionStatus.CAPTURED &&
+          transaction.status !== PaymentTransactionStatus.REFUNDED &&
+          transaction.status !== PaymentTransactionStatus.PARTIALLY_REFUNDED
+        ) {
           transaction.status = PaymentTransactionStatus.FAILED;
           transaction.failedAt = event.occurredAt || new Date();
           transaction.failureReason = event.failureReason || 'Payment failed at provider';

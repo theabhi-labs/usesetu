@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { env } from '../../config/env';
 import { logger } from '../../config/logger';
 import { PaymentTransaction, PaymentTransactionStatus } from '../../models/paymentTransaction.model';
 import { SubscriptionService } from '../subscription.service';
@@ -20,7 +21,7 @@ export class PaymentReconciliationService {
    * Reconcile a single payment transaction with provider state
    */
   static async reconcilePayment(paymentIdOrTransactionId: string): Promise<ReconciliationReport> {
-    let transaction = await PaymentTransaction.findOne({
+    const transaction = await PaymentTransaction.findOne({
       $or: [
         { providerPaymentId: paymentIdOrTransactionId },
         { _id: mongoose.isValidObjectId(paymentIdOrTransactionId) ? paymentIdOrTransactionId : undefined },
@@ -106,23 +107,71 @@ export class PaymentReconciliationService {
   }
 
   /**
-   * Reconcile all pending transactions for an application
+   * Reconcile all pending transactions for an application and sync quotas
    */
   static async reconcileApplicationBilling(applicationId: string | mongoose.Types.ObjectId): Promise<ReconciliationReport[]> {
+    const appObjectId = new mongoose.Types.ObjectId(applicationId);
     const pendingTransactions = await PaymentTransaction.find({
-      applicationId: new mongoose.Types.ObjectId(applicationId),
-      status: PaymentTransactionStatus.CREATED,
-      providerPaymentId: { $exists: true, $ne: null },
+      applicationId: appObjectId,
+      status: { $in: [PaymentTransactionStatus.CREATED, PaymentTransactionStatus.AUTHORIZED] },
+      $or: [
+        { providerPaymentId: { $exists: true, $ne: null } },
+        { providerOrderId: { $exists: true, $ne: null } },
+      ],
     });
 
     const reports: ReconciliationReport[] = [];
     for (const tx of pendingTransactions) {
-      if (tx.providerPaymentId) {
-        const report = await this.reconcilePayment(tx.providerPaymentId);
+      const identifier = tx.providerPaymentId || tx.providerOrderId;
+      if (identifier) {
+        const report = await this.reconcilePayment(identifier);
         reports.push(report);
       }
     }
 
+    // Sync quotas as part of application reconciliation
+    await SubscriptionService.syncApplicationQuotas(appObjectId);
+
     return reports;
+  }
+
+  /**
+   * Batch sweep reconciliation for all pending transactions across the platform
+   */
+  static async runScheduledReconciliation(): Promise<{
+    scanned: number;
+    synced: number;
+    reports: ReconciliationReport[];
+  }> {
+    const staleMinutes = env.BILLING_RECONCILIATION_STALE_MINUTES ?? 15;
+    const staleCutoff = new Date(Date.now() - staleMinutes * 60 * 1000);
+    const staleTransactions = await PaymentTransaction.find({
+      status: { $in: [PaymentTransactionStatus.CREATED, PaymentTransactionStatus.AUTHORIZED] },
+      createdAt: { $lte: staleCutoff },
+      $or: [
+        { providerPaymentId: { $exists: true, $ne: null } },
+        { providerOrderId: { $exists: true, $ne: null } },
+      ],
+    }).limit(100);
+
+    const reports: ReconciliationReport[] = [];
+    let syncedCount = 0;
+
+    for (const tx of staleTransactions) {
+      const identifier = tx.providerPaymentId || tx.providerOrderId;
+      if (identifier) {
+        const report = await this.reconcilePayment(identifier);
+        reports.push(report);
+        if (report.synced) {
+          syncedCount += 1;
+        }
+      }
+    }
+
+    return {
+      scanned: staleTransactions.length,
+      synced: syncedCount,
+      reports,
+    };
   }
 }

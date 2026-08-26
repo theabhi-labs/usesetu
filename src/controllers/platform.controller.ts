@@ -25,6 +25,8 @@ import { DomainProvisioningService } from '../services/domainProvisioning.servic
 import { SubscriptionService } from '../services/subscription.service';
 import { EntitlementService } from '../services/entitlement.service';
 import { PaymentService } from '../services/payment/payment.service';
+import { PaymentReconciliationService } from '../services/payment/paymentReconciliation.service';
+import { BillingLifecycleService } from '../services/billingLifecycle.service';
 import { env } from '../config/env';
 
 // ---------------------------------------------------------------------------
@@ -1067,6 +1069,75 @@ export const retryBillingPayment = asyncHandler(async (req: Request, res: Respon
 });
 
 // ---------------------------------------------------------------------------
+// POST /api/v1/platform/applications/:id/billing/reconcile
+// ---------------------------------------------------------------------------
+export const reconcileApplicationBilling = asyncHandler(async (req: Request, res: Response) => {
+  const { app } = await verifyAppOwnership(req.user!.userId, req.params.id);
+
+  const reports = await PaymentReconciliationService.reconcileApplicationBilling(app._id);
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        applicationId: app._id,
+        reconciliationReports: reports,
+        syncedCount: reports.filter((r) => r.synced).length,
+      },
+      'Application billing reconciled successfully',
+    ),
+  );
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/v1/platform/applications/:id/billing/audits
+// ---------------------------------------------------------------------------
+export const getApplicationBillingAudits = asyncHandler(async (req: Request, res: Response) => {
+  const { app } = await verifyAppOwnership(req.user!.userId, req.params.id);
+
+  const page = parseInt(req.query.page as string, 10) || 1;
+  const limit = parseInt(req.query.limit as string, 10) || 15;
+  const skip = (page - 1) * limit;
+
+  const [audits, total] = await Promise.all([
+    SubscriptionAuditLog.find({ applicationId: app._id })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('actorId', 'name email')
+      .lean(),
+    SubscriptionAuditLog.countDocuments({ applicationId: app._id }),
+  ]);
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        audits,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+        },
+      },
+      'Billing audit logs retrieved successfully',
+    ),
+  );
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/v1/platform/applications/:id/billing/sync-lifecycle
+// ---------------------------------------------------------------------------
+export const runBillingLifecycleManual = asyncHandler(async (req: Request, res: Response) => {
+  await verifyAppOwnership(req.user!.userId, req.params.id);
+
+  const report = await BillingLifecycleService.runAutomatedLifecycleCycle();
+
+  res.status(200).json(new ApiResponse(200, report, 'Billing lifecycle cycle executed successfully'));
+});
+
+// ---------------------------------------------------------------------------
 // GET /api/v1/platform/applications/:id/usage
 // ---------------------------------------------------------------------------
 export const getApplicationUsage = asyncHandler(async (req: Request, res: Response) => {
@@ -1667,7 +1738,7 @@ export const getPlatformNotifications = asyncHandler(async (req: Request, res: R
 export const markPlatformNotificationRead = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
 
-  let account = await Account.findOne({ ownerUserId: req.user!.userId });
+  const account = await Account.findOne({ ownerUserId: req.user!.userId });
   if (!account) {
     throw ApiError.forbidden('Account not found');
   }
@@ -1690,7 +1761,7 @@ export const markPlatformNotificationRead = asyncHandler(async (req: Request, re
 // PATCH /api/v1/platform/notifications/read-all
 // ---------------------------------------------------------------------------
 export const markAllPlatformNotificationsRead = asyncHandler(async (req: Request, res: Response) => {
-  let account = await Account.findOne({ ownerUserId: req.user!.userId });
+  const account = await Account.findOne({ ownerUserId: req.user!.userId });
   if (account) {
     await PlatformNotification.updateMany(
       { accountId: account._id, isRead: false },

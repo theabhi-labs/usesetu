@@ -26,6 +26,9 @@ import {
   getPaymentDetail,
   refundBillingPayment,
   retryBillingPayment,
+  reconcileApplicationBilling,
+  getApplicationBillingAudits,
+  runBillingLifecycleManual,
   getApplicationSettings,
   updateApplicationSettings,
   suspendApplication,
@@ -91,7 +94,7 @@ router.post('/applications/:id/subscription/change-plan', changeApplicationPlan)
 router.post('/applications/:id/subscription/cancel', cancelApplicationSubscription);
 router.get('/applications/:id/usage', getApplicationUsage);
 
-// Payment & Checkout endpoints (Stage 7)
+// Payment, Checkout & Billing Lifecycle endpoints (Stage 7 & Stage 8)
 router.get('/applications/:id/billing', getApplicationBillingSummary);
 router.post('/applications/:id/billing/checkout', createBillingCheckout);
 router.post('/applications/:id/billing/verify-payment', verifyBillingPayment);
@@ -99,5 +102,8 @@ router.get('/applications/:id/billing/history', getBillingHistory);
 router.get('/applications/:id/billing/payments/:paymentId', getPaymentDetail);
 router.post('/applications/:id/billing/payments/:paymentId/refund', refundBillingPayment);
 router.post('/applications/:id/billing/retry', retryBillingPayment);
+router.post('/applications/:id/billing/reconcile', reconcileApplicationBilling);
+router.get('/applications/:id/billing/audits', getApplicationBillingAudits);
+router.post('/applications/:id/billing/sync-lifecycle', runBillingLifecycleManual);
 
 export default router;

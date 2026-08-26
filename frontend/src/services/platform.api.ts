@@ -557,6 +557,32 @@ export const platformApi = {
     );
     return res.data.data;
   },
+
+  reconcileBilling: async (applicationId: string): Promise<{ applicationId: string; syncedCount: number; reconciliationReports: any[] }> => {
+    const res = await api.post<{ success: boolean; data: any }>(
+      `/platform/applications/${applicationId}/billing/reconcile`,
+    );
+    return res.data.data;
+  },
+
+  getBillingAudits: async (
+    applicationId: string,
+    page: number = 1,
+    limit: number = 15,
+  ): Promise<BillingAuditsResponse> => {
+    const res = await api.get<{ success: boolean; data: BillingAuditsResponse }>(
+      `/platform/applications/${applicationId}/billing/audits`,
+      { params: { page, limit } },
+    );
+    return res.data.data;
+  },
+
+  runBillingLifecycle: async (applicationId: string): Promise<any> => {
+    const res = await api.post<{ success: boolean; data: any }>(
+      `/platform/applications/${applicationId}/billing/sync-lifecycle`,
+    );
+    return res.data.data;
+  },
 };
 
 export interface CheckoutResponse {
@@ -600,6 +626,41 @@ export interface BillingHistoryItem {
 
 export interface BillingHistoryResponse {
   transactions: BillingHistoryItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
+export interface BillingAuditItem {
+  _id: string;
+  action: string;
+  applicationId: string;
+  accountId: string;
+  actorId?: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  oldPlan?: {
+    slug: string;
+    name: string;
+  };
+  newPlan?: {
+    slug: string;
+    name: string;
+  };
+  oldStatus?: string;
+  newStatus?: string;
+  reason?: string;
+  metadata?: Record<string, any>;
+  createdAt: string;
+}
+
+export interface BillingAuditsResponse {
+  audits: BillingAuditItem[];
   pagination: {
     page: number;
     limit: number;

@@ -26,7 +26,7 @@ describe('UseSetu Stage 4 — Create App, Provisioning, Default Domain & Managem
     await seedPlans();
 
     // Ensure digital-service-center template exists
-    let dscTemplate = await ApplicationTemplate.findOne({ slug: 'digital-service-center' });
+    const dscTemplate = await ApplicationTemplate.findOne({ slug: 'digital-service-center' });
     if (!dscTemplate) {
       await ApplicationTemplate.create({
         name: 'Digital Service Center',
@@ -39,7 +39,7 @@ describe('UseSetu Stage 4 — Create App, Provisioning, Default Domain & Managem
     }
 
     // Ensure an inactive template for negative tests
-    let inactiveTemplate = await ApplicationTemplate.findOne({ slug: 'inactive-blueprint' });
+    const inactiveTemplate = await ApplicationTemplate.findOne({ slug: 'inactive-blueprint' });
     if (!inactiveTemplate) {
       await ApplicationTemplate.create({
         name: 'Inactive Blueprint',

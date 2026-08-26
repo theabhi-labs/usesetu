@@ -35,6 +35,8 @@ import { CancelSubscriptionModal } from '../../components/platform/CancelSubscri
 import { ApplicationDangerZone } from '../../components/platform/ApplicationDangerZone';
 import { PaymentCheckoutModal } from '../../components/platform/PaymentCheckoutModal';
 import { BillingHistoryTable } from '../../components/platform/BillingHistoryTable';
+import { GracePeriodBanner } from '../../components/platform/GracePeriodBanner';
+import { BillingAuditTable } from '../../components/platform/BillingAuditTable';
 
 export const ApplicationDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -299,6 +301,15 @@ export const ApplicationDetail: React.FC = () => {
     });
   };
 
+  const reconcileMutation = useMutation({
+    mutationFn: () => platformApi.reconcileBilling(id!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['application-detail', id] });
+      queryClient.invalidateQueries({ queryKey: ['billing-history', id] });
+      queryClient.invalidateQueries({ queryKey: ['billing-audits', id] });
+    },
+  });
+
   if (appLoading) {
     return (
       <div className="space-y-8 animate-pulse">
@@ -387,6 +398,12 @@ export const ApplicationDetail: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Grace Period Warning Banner (if past_due) */}
+      <GracePeriodBanner
+        subscription={application.subscription}
+        onRetryClick={() => handleTabChange('billing')}
+      />
 
       {/* Tabs Navigation */}
       <div className="flex items-center space-x-1 border-b border-slate-800 overflow-x-auto pb-px">
@@ -631,6 +648,17 @@ export const ApplicationDetail: React.FC = () => {
             </div>
 
             <div className="flex items-center space-x-3">
+              <button
+                type="button"
+                onClick={() => reconcileMutation.mutate()}
+                disabled={reconcileMutation.isPending}
+                className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-bold rounded-xl transition-colors flex items-center space-x-1.5"
+                title="Verify and repair any billing state discrepancy with payment provider"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${reconcileMutation.isPending ? 'animate-spin text-orange-400' : ''}`} />
+                <span>{reconcileMutation.isPending ? 'Syncing...' : 'Sync & Verify Status'}</span>
+              </button>
+
               {currentPlanSlug !== 'free' && (
                 <button
                   onClick={() => setShowCancelModal(true)}
@@ -664,6 +692,9 @@ export const ApplicationDetail: React.FC = () => {
 
           {/* Billing Transactions / History */}
           <BillingHistoryTable applicationId={id!} />
+
+          {/* Immutable Billing Audit Trail */}
+          <BillingAuditTable applicationId={id!} />
         </div>
       )}
 

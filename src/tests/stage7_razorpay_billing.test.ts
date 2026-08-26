@@ -46,16 +46,24 @@ describe('UseSetu Stage 7 — Production-Safe Razorpay Payment & Billing Test Su
 
     try {
       await mongoose.connection.collection('paymenttransactions').drop();
-    } catch {}
+    } catch {
+      // Collection may not exist yet
+    }
     try {
       await mongoose.connection.collection('billinginvoices').drop();
-    } catch {}
+    } catch {
+      // Collection may not exist yet
+    }
     try {
       await mongoose.connection.collection('paymentwebhookevents').drop();
-    } catch {}
+    } catch {
+      // Collection may not exist yet
+    }
     try {
       await mongoose.connection.collection('paymentcustomers').drop();
-    } catch {}
+    } catch {
+      // Collection may not exist yet
+    }
 
     await PaymentTransaction.syncIndexes();
     await BillingInvoice.syncIndexes();
