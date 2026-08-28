@@ -47,50 +47,43 @@ export const UsageGauge: React.FC<UsageGaugeProps> = ({
     ? formatBytes(limit!)
     : `${limit!.toLocaleString()} ${unit}`.trim();
 
-  const getStatusColor = () => {
-    if (isExceeded) return 'bg-rose-500 text-rose-400 border-rose-500/30';
-    if (isCritical) return 'bg-rose-500 text-rose-400 border-rose-500/30';
-    if (isWarning) return 'bg-amber-500 text-amber-400 border-amber-500/30';
-    return 'bg-emerald-500 text-emerald-400 border-emerald-500/30';
-  };
-
   return (
-    <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-5 sm:p-6 space-y-4">
+    <div className="bg-surface border border-border rounded-3xl p-5 sm:p-6 space-y-4 shadow-xs">
       {/* Title & Limits */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">
+          <span className="text-xs font-bold text-text-tertiary uppercase tracking-wider block mb-1">
             {label}
           </span>
           <div className="flex items-baseline space-x-2">
-            <span className="text-xl sm:text-2xl font-black text-white">{formattedUsed}</span>
-            <span className="text-xs text-slate-500 font-medium">/ {formattedLimit}</span>
+            <span className="text-xl sm:text-2xl font-black text-text-primary">{formattedUsed}</span>
+            <span className="text-xs text-text-tertiary font-medium">/ {formattedLimit}</span>
           </div>
         </div>
 
         {/* State Pill */}
         <div>
           {isExceeded ? (
-            <span className="inline-flex items-center space-x-1 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">
+            <span className="inline-flex items-center space-x-1 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-error/10 text-error border border-error/20">
               <AlertTriangle className="w-3 h-3" />
               <span>Over Quota</span>
             </span>
           ) : isCritical ? (
-            <span className="inline-flex items-center space-x-1 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">
+            <span className="inline-flex items-center space-x-1 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-error/10 text-error border border-error/20">
               <AlertTriangle className="w-3 h-3" />
               <span>Critical (90%+)</span>
             </span>
           ) : isWarning ? (
-            <span className="inline-flex items-center space-x-1 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <span className="inline-flex items-center space-x-1 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-warning/10 text-warning border border-warning/20">
               <AlertTriangle className="w-3 h-3" />
               <span>Warning (80%+)</span>
             </span>
           ) : isUnlimited ? (
-            <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-success/10 text-success border border-success/20">
               Unlimited
             </span>
           ) : (
-            <span className="text-[10px] font-bold text-slate-400 font-mono">
+            <span className="text-[10px] font-bold text-text-tertiary font-mono">
               {percentage}%
             </span>
           )}
@@ -100,13 +93,13 @@ export const UsageGauge: React.FC<UsageGaugeProps> = ({
       {/* Progress Bar */}
       {!isUnlimited && !isDisabled && (
         <div className="space-y-1.5">
-          <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800/80">
+          <div className="w-full h-2 bg-surface-elevated rounded-full overflow-hidden border border-border">
             <div
               className={`h-full rounded-full transition-all duration-500 ${
                 isExceeded || isCritical
-                  ? 'bg-rose-500'
+                  ? 'bg-error'
                   : isWarning
-                  ? 'bg-amber-500'
+                  ? 'bg-warning'
                   : 'bg-gradient-to-r from-teal-500 to-emerald-400'
               }`}
               style={{ width: `${Math.min(100, Math.max(used > 0 ? 3 : 0, percentage))}%` }}

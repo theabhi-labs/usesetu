@@ -42,15 +42,15 @@ export const ApplicationsPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight">Applications</h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <h1 className="text-2xl font-black text-text-primary tracking-tight">Applications</h1>
+          <p className="text-xs text-text-secondary mt-0.5">
             Manage your provisioned digital service center applications, domains, and subscriptions.
           </p>
         </div>
 
         <Link
           to="/platform/create-app"
-          className="inline-flex items-center space-x-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg shadow-orange-500/20 transition-all shrink-0"
+          className="inline-flex items-center space-x-2 bg-gradient-to-r from-accent to-accent-hover hover:opacity-90 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg shadow-accent/20 transition-all shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>New Application</span>
@@ -58,16 +58,16 @@ export const ApplicationsPage: React.FC = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-surface border border-border rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xs">
         {/* Search Input */}
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 transform -translate-y-1/2" />
+          <Search className="w-4 h-4 text-text-tertiary absolute left-3.5 top-1/2 transform -translate-y-1/2" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, slug, or domain..."
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-orange-500"
+            className="w-full bg-surface-elevated border border-border rounded-xl pl-9 pr-4 py-2 text-xs text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent"
           />
         </div>
 
@@ -77,10 +77,10 @@ export const ApplicationsPage: React.FC = () => {
             <button
               key={st}
               onClick={() => setStatusFilter(st)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize transition-colors shrink-0 ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize transition-colors shrink-0 cursor-pointer ${
                 statusFilter === st
-                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                  ? 'bg-accent text-white shadow-md shadow-accent/20'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-surface-elevated'
               }`}
             >
               {st}
@@ -89,11 +89,11 @@ export const ApplicationsPage: React.FC = () => {
         </div>
 
         {/* Grid/Table Toggle */}
-        <div className="hidden sm:flex items-center space-x-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+        <div className="hidden sm:flex items-center space-x-1 bg-surface-elevated p-1 rounded-xl border border-border">
           <button
             onClick={() => setViewMode('grid')}
-            className={`p-1.5 rounded-lg transition-colors ${
-              viewMode === 'grid' ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-slate-300'
+            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+              viewMode === 'grid' ? 'bg-surface text-text-primary shadow-xs' : 'text-text-tertiary hover:text-text-primary'
             }`}
             title="Grid view"
           >
@@ -101,8 +101,8 @@ export const ApplicationsPage: React.FC = () => {
           </button>
           <button
             onClick={() => setViewMode('table')}
-            className={`p-1.5 rounded-lg transition-colors ${
-              viewMode === 'table' ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-slate-300'
+            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+              viewMode === 'table' ? 'bg-surface text-text-primary shadow-xs' : 'text-text-tertiary hover:text-text-primary'
             }`}
             title="Table view"
           >
@@ -115,28 +115,28 @@ export const ApplicationsPage: React.FC = () => {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="h-64 bg-slate-900/60 border border-slate-800 rounded-3xl" />
+            <div key={i} className="h-64 bg-surface-elevated border border-border rounded-3xl" />
           ))}
         </div>
       ) : isError ? (
-        <div className="bg-rose-950/20 border border-rose-800/40 rounded-3xl p-8 text-center space-y-4">
-          <AlertCircle className="w-10 h-10 text-rose-400 mx-auto" />
-          <h3 className="text-lg font-bold text-rose-200">Failed to load applications</h3>
-          <p className="text-xs text-slate-400 max-w-md mx-auto">
+        <div className="bg-error/10 border border-error/20 rounded-3xl p-8 text-center space-y-4">
+          <AlertCircle className="w-10 h-10 text-error mx-auto" />
+          <h3 className="text-lg font-bold text-text-primary">Failed to load applications</h3>
+          <p className="text-xs text-text-secondary max-w-md mx-auto">
             {(error as any)?.message || 'An error occurred while fetching application records.'}
           </p>
           <button
             onClick={() => refetch()}
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-xl text-white"
+            className="px-4 py-2 bg-surface-elevated hover:bg-surface text-xs font-semibold rounded-xl text-text-primary border border-border cursor-pointer"
           >
             Retry
           </button>
         </div>
       ) : filteredApps.length === 0 ? (
-        <div className="bg-slate-900/40 border border-dashed border-slate-800 rounded-3xl p-12 text-center space-y-3">
-          <Server className="w-10 h-10 text-slate-600 mx-auto mb-2" />
-          <h3 className="text-base font-bold text-white">No applications matching your filters</h3>
-          <p className="text-xs text-slate-400 max-w-sm mx-auto">
+        <div className="bg-surface-elevated border border-dashed border-border rounded-3xl p-12 text-center space-y-3">
+          <Server className="w-10 h-10 text-text-tertiary mx-auto mb-2" />
+          <h3 className="text-base font-bold text-text-primary">No applications matching your filters</h3>
+          <p className="text-xs text-text-secondary max-w-sm mx-auto">
             Try adjusting your search criteria or create a new application center.
           </p>
         </div>
@@ -148,10 +148,10 @@ export const ApplicationsPage: React.FC = () => {
         </div>
       ) : (
         /* Table View */
-        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl overflow-hidden shadow-sm">
+        <div className="bg-surface border border-border rounded-3xl overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-300">
-              <thead className="bg-slate-950/60 text-slate-400 font-bold uppercase tracking-wider text-[10px] border-b border-slate-800">
+            <table className="w-full text-left text-xs text-text-secondary">
+              <thead className="bg-surface-elevated text-text-tertiary font-bold uppercase tracking-wider text-[10px] border-b border-border">
                 <tr>
                   <th className="px-6 py-4">Application</th>
                   <th className="px-6 py-4">Status</th>
@@ -161,48 +161,48 @@ export const ApplicationsPage: React.FC = () => {
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-border">
                 {filteredApps.map((app) => (
-                  <tr key={app.id} className="hover:bg-slate-800/40 transition-colors">
+                  <tr key={app.id} className="hover:bg-surface-elevated transition-colors">
                     <td className="px-6 py-4">
                       <Link
                         to={`/platform/applications/${app.id}`}
-                        className="font-bold text-white hover:text-orange-400 transition-colors block text-sm"
+                        className="font-bold text-text-primary hover:text-accent transition-colors block text-sm"
                       >
                         {app.name}
                       </Link>
-                      <span className="text-[11px] text-slate-500">{app.slug}</span>
+                      <span className="text-[11px] text-text-tertiary">{app.slug}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border capitalize ${
                           app.status === 'active'
-                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                            : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                            ? 'bg-success/10 text-success border-success/20'
+                            : 'bg-warning/10 text-warning border-warning/20'
                         }`}
                       >
                         {app.status}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="font-extrabold text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20 uppercase">
+                      <span className="font-extrabold text-[10px] text-accent bg-accent/10 px-2 py-0.5 rounded-md border border-accent/20 uppercase">
                         {app.subscription?.plan || 'Free'}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center space-x-1.5 text-slate-300">
-                        <Globe className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                      <div className="flex items-center space-x-1.5 text-text-secondary">
+                        <Globe className="w-3.5 h-3.5 text-text-tertiary shrink-0" />
                         <span className="truncate max-w-[180px]">{app.defaultDomain}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-slate-500">
+                    <td className="px-6 py-4 text-text-tertiary">
                       {new Date(app.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="inline-flex items-center space-x-2">
                         <Link
                           to={`/platform/applications/${app.id}`}
-                          className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-lg transition-colors text-xs"
+                          className="px-3 py-1.5 bg-surface-elevated hover:bg-surface text-text-primary font-bold rounded-lg border border-border transition-colors text-xs cursor-pointer"
                         >
                           Manage
                         </Link>
@@ -210,7 +210,7 @@ export const ApplicationsPage: React.FC = () => {
                           href={getTenantPublicUrl(app.slug, app.defaultDomain)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-1.5 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-lg transition-colors"
+                          className="p-1.5 bg-accent/10 hover:bg-accent/20 text-accent border border-accent/30 rounded-lg transition-colors cursor-pointer"
                           title="Open Application"
                         >
                           <ExternalLink className="w-4 h-4" />

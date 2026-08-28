@@ -25,14 +25,14 @@ export const PlanComparison: React.FC<PlanComparisonProps> = ({
     <div className="space-y-6">
       {/* Billing Cycle Toggle */}
       <div className="flex items-center justify-center">
-        <div className="bg-slate-950 p-1 rounded-2xl border border-slate-800 flex items-center space-x-1">
+        <div className="bg-surface-elevated p-1 rounded-2xl border border-border flex items-center space-x-1">
           <button
             type="button"
             onClick={() => setBillingCycle('monthly')}
-            className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               billingCycle === 'monthly'
-                ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-accent text-white shadow-md shadow-accent/20'
+                : 'text-text-secondary hover:text-text-primary'
             }`}
           >
             Monthly Billing
@@ -40,14 +40,14 @@ export const PlanComparison: React.FC<PlanComparisonProps> = ({
           <button
             type="button"
             onClick={() => setBillingCycle('yearly')}
-            className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 ${
+            className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer ${
               billingCycle === 'yearly'
-                ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-accent text-white shadow-md shadow-accent/20'
+                : 'text-text-secondary hover:text-text-primary'
             }`}
           >
             <span>Yearly Billing</span>
-            <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.2 rounded-full font-extrabold uppercase">
+            <span className="text-[10px] bg-success/20 text-success px-1.5 py-0.2 rounded-full font-extrabold uppercase">
               Save 20%
             </span>
           </button>
@@ -81,89 +81,89 @@ export const PlanComparison: React.FC<PlanComparisonProps> = ({
           return (
             <div
               key={planId}
-              className={`bg-slate-900/80 border rounded-3xl p-6 flex flex-col justify-between transition-all relative ${
+              className={`bg-surface border rounded-3xl p-6 flex flex-col justify-between transition-all relative shadow-xs ${
                 isCurrent
-                  ? 'border-orange-500 ring-2 ring-orange-500/20 shadow-xl shadow-orange-500/5'
-                  : 'border-slate-800 hover:border-slate-700'
+                  ? 'border-accent ring-2 ring-accent/20 shadow-xl shadow-accent/5'
+                  : 'border-border hover:border-border-strong'
               }`}
             >
               {isCurrent && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[10px] font-black uppercase tracking-wider px-3 py-0.5 rounded-full shadow-md">
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-accent to-accent-hover text-white text-[10px] font-black uppercase tracking-wider px-3 py-0.5 rounded-full shadow-md">
                   Active Plan
                 </div>
               )}
 
               <div>
-                <h3 className="text-lg font-black text-white uppercase tracking-tight mb-1">
+                <h3 className="text-lg font-black text-text-primary uppercase tracking-tight mb-1">
                   {plan.name}
                 </h3>
-                <p className="text-xs text-slate-400 line-clamp-2 min-h-[32px] mb-4">
+                <p className="text-xs text-text-secondary line-clamp-2 min-h-[32px] mb-4">
                   {plan.description || 'Comprehensive plan for digital centers'}
                 </p>
 
                 <div className="mb-6">
                   <div className="flex items-baseline space-x-1">
-                    <span className="text-3xl font-black text-white">₹{price.toLocaleString()}</span>
-                    <span className="text-xs text-slate-500 font-medium">
+                    <span className="text-3xl font-black text-text-primary">₹{price.toLocaleString()}</span>
+                    <span className="text-xs text-text-tertiary font-medium">
                       /{billingCycle === 'monthly' ? 'mo' : 'yr'}
                     </span>
                   </div>
                 </div>
 
                 {/* Feature List */}
-                <div className="space-y-3 pt-4 border-t border-slate-800/80 text-xs">
-                  <div className="flex items-center justify-between text-slate-300">
-                    <span className="text-slate-400">Staff Seats:</span>
-                    <span className="font-bold">
+                <div className="space-y-3 pt-4 border-t border-border text-xs">
+                  <div className="flex items-center justify-between text-text-secondary">
+                    <span className="text-text-tertiary">Staff Seats:</span>
+                    <span className="font-bold text-text-primary">
                       {activeUsersLimit === -1 ? 'Unlimited' : `${activeUsersLimit} Seats`}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-slate-300">
-                    <span className="text-slate-400">Cloud Storage:</span>
-                    <span className="font-bold">
+                  <div className="flex items-center justify-between text-text-secondary">
+                    <span className="text-text-tertiary">Cloud Storage:</span>
+                    <span className="font-bold text-text-primary">
                       {storageLimitBytes === -1 ? 'Unlimited' : formatBytes(storageLimitBytes)}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-slate-300">
-                    <span className="text-slate-400">Monthly Requests:</span>
-                    <span className="font-bold">
+                  <div className="flex items-center justify-between text-text-secondary">
+                    <span className="text-text-tertiary">Monthly Requests:</span>
+                    <span className="font-bold text-text-primary">
                       {requestsLimit === -1 ? 'Unlimited' : requestsLimit.toLocaleString()}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-slate-300">
-                    <span className="text-slate-400">Monthly Appointments:</span>
-                    <span className="font-bold">
+                  <div className="flex items-center justify-between text-text-secondary">
+                    <span className="text-text-tertiary">Monthly Appointments:</span>
+                    <span className="font-bold text-text-primary">
                       {appointmentsLimit === -1 ? 'Unlimited' : appointmentsLimit.toLocaleString()}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-slate-300">
-                    <span className="text-slate-400">Custom Domain SSL:</span>
+                  <div className="flex items-center justify-between text-text-secondary">
+                    <span className="text-text-tertiary">Custom Domain SSL:</span>
                     {customDomainEnabled ? (
-                      <Check className="w-4 h-4 text-emerald-400" />
+                      <Check className="w-4 h-4 text-success" />
                     ) : (
-                      <X className="w-4 h-4 text-slate-600" />
+                      <X className="w-4 h-4 text-text-tertiary" />
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between text-slate-300">
-                    <span className="text-slate-400">WhatsApp Engine:</span>
+                  <div className="flex items-center justify-between text-text-secondary">
+                    <span className="text-text-tertiary">WhatsApp Engine:</span>
                     {whatsappEnabled ? (
-                      <Check className="w-4 h-4 text-emerald-400" />
+                      <Check className="w-4 h-4 text-success" />
                     ) : (
-                      <X className="w-4 h-4 text-slate-600" />
+                      <X className="w-4 h-4 text-text-tertiary" />
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between text-slate-300">
-                    <span className="text-slate-400">Export Reports:</span>
+                  <div className="flex items-center justify-between text-text-secondary">
+                    <span className="text-text-tertiary">Export Reports:</span>
                     {exportReportsEnabled ? (
-                      <Check className="w-4 h-4 text-emerald-400" />
+                      <Check className="w-4 h-4 text-success" />
                     ) : (
-                      <X className="w-4 h-4 text-slate-600" />
+                      <X className="w-4 h-4 text-text-tertiary" />
                     )}
                   </div>
                 </div>
@@ -174,7 +174,7 @@ export const PlanComparison: React.FC<PlanComparisonProps> = ({
                   {isCurrent ? (
                     <button
                       disabled
-                      className="w-full py-2.5 px-4 bg-slate-800 text-slate-400 text-xs font-bold rounded-xl cursor-default border border-slate-700/60"
+                      className="w-full py-2.5 px-4 bg-surface-elevated text-text-tertiary text-xs font-bold rounded-xl cursor-default border border-border"
                     >
                       Current Plan
                     </button>
@@ -182,7 +182,7 @@ export const PlanComparison: React.FC<PlanComparisonProps> = ({
                     <button
                       onClick={() => onSelectPlan(plan, billingCycle)}
                       disabled={isLoading}
-                      className="w-full py-2.5 px-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-bold rounded-xl shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 transition-all"
+                      className="w-full py-2.5 px-4 bg-gradient-to-r from-accent to-accent-hover hover:opacity-90 text-white text-xs font-bold rounded-xl shadow-lg shadow-accent/20 transition-all cursor-pointer"
                     >
                       Switch to {plan.name}
                     </button>
