@@ -155,7 +155,13 @@ export const getPublicFaqs = asyncHandler(async (req: Request, res: Response) =>
 // ═══════════════════════════════════════════════════════════════════
 
 export const createAnnouncement = asyncHandler(async (req: Request, res: Response) => {
-  const announcement = await Announcement.create({ ...req.body, createdBy: req.user!.userId });
+  const tenantId = (req as any).tenantId || req.user?.tenantId;
+  const announcement = await Announcement.create({
+    ...req.body,
+    startDate: req.body.startDate ? new Date(req.body.startDate) : new Date(),
+    ...(tenantId ? { tenantId } : {}),
+    createdBy: req.user!.userId,
+  });
   res.status(201).json(new ApiResponse(201, announcement, 'Announcement created'));
 });
 

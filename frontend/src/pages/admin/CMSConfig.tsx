@@ -360,6 +360,20 @@ export function CMSConfig() {
     saveBannerMutation.mutate(formData);
   };
 
+  const handleAnnSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!annTitle.trim() || !annContent.trim()) return;
+
+    saveAnnMutation.mutate({
+      title: annTitle.trim(),
+      content: annContent.trim(),
+      type: annType,
+      isPinned: annIsPinned,
+      isActive: annIsActive,
+      startDate: new Date().toISOString(),
+    });
+  };
+
   // Reusable Media Selection Injection
   const handleMediaSelect = (url: string) => {
     if (mediaPickerTarget === 'settings_logo') setLogoUrl(url);
@@ -1243,6 +1257,79 @@ export function CMSConfig() {
               <Button type="button" variant="outline" onClick={() => setIsBannerModalOpen(false)}>Cancel</Button>
               <Button type="submit" disabled={saveBannerMutation.isPending}>
                 {saveBannerMutation.isPending ? 'Saving Banner...' : 'Save Banner'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Save Announcement Dialog */}
+      <Dialog isOpen={isAnnModalOpen} onClose={() => setIsAnnModalOpen(false)}>
+        <DialogContent className="max-w-md p-6">
+          <DialogHeader>
+            <DialogTitle>{editingAnn ? 'Edit Announcement Alert' : 'Create New Announcement Alert'}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAnnSubmit} className="space-y-4 pt-4 text-left text-xs">
+            <div className="space-y-1.5">
+              <label className="font-bold text-text-secondary select-none">Alert Title / Heading</label>
+              <Input
+                value={annTitle}
+                onChange={(e) => setAnnTitle(e.target.value)}
+                placeholder="e.g. Server Maintenance or New Scheme Available"
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="font-bold text-text-secondary select-none">Alert Message / Content</label>
+              <Textarea
+                value={annContent}
+                onChange={(e) => setAnnContent(e.target.value)}
+                rows={3}
+                placeholder="Provide details about the notice or update..."
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="font-bold text-text-secondary select-none">Alert Category / Type</label>
+                <Select value={annType} onChange={(e: any) => setAnnType(e.target.value)}>
+                  <option value="notice">General Notice</option>
+                  <option value="holiday">Holiday Notice</option>
+                  <option value="new_scheme">New Scheme Launched</option>
+                  <option value="portal_down">Portal Downtime Alert</option>
+                </Select>
+              </div>
+
+              <div className="space-y-2 pt-5">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={annIsPinned}
+                    onChange={(e) => setAnnIsPinned(e.target.checked)}
+                    className="rounded border-border text-accent focus:ring-accent w-4 h-4 cursor-pointer"
+                  />
+                  <span className="text-xs font-semibold text-text-primary">Pin to Top of Homepage</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={annIsActive}
+                    onChange={(e) => setAnnIsActive(e.target.checked)}
+                    className="rounded border-border text-accent focus:ring-accent w-4 h-4 cursor-pointer"
+                  />
+                  <span className="text-xs font-semibold text-text-primary">Active Now</span>
+                </label>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsAnnModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={saveAnnMutation.isPending}>
+                {saveAnnMutation.isPending ? 'Saving...' : editingAnn ? 'Update Alert' : 'Publish Alert'}
               </Button>
             </DialogFooter>
           </form>
