@@ -12,6 +12,7 @@ import { Button } from '../../components/ui/Button';
 import { Checkbox } from '../../components/ui/Checkbox';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { TwoFactorSetupModal } from '../../components/auth/TwoFactorSetupModal';
+import { ThemeToggle } from '../../components/common/ThemeToggle';
 import {
   User as UserIcon,
   ShieldAlert,
@@ -607,6 +608,22 @@ export function Profile() {
                     <span>Setup 2FA</span>
                   </Button>
                 )}
+              </div>
+            </Card>
+
+            {/* Appearance & Theme Mode Card */}
+            <Card className="p-5 space-y-3">
+              <div className="flex items-center justify-between border-b border-border pb-2">
+                <h3 className="font-bold text-text-primary text-xs sm:text-sm flex items-center gap-1.5 select-none">
+                  <Sparkles size={16} className="text-accent" /> Theme & Appearance
+                </h3>
+              </div>
+              <p className="text-xs text-text-secondary">
+                Choose your preferred visual theme for the citizen portal and dashboards.
+              </p>
+              <div className="pt-1 flex items-center justify-between">
+                <span className="text-xs font-semibold text-text-primary">Interface Theme</span>
+                <ThemeToggle variant="segmented" />
               </div>
             </Card>
 

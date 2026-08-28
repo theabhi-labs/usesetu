@@ -11,6 +11,7 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { TwoFactorSetupModal } from '../../components/auth/TwoFactorSetupModal';
 import { TwoFactorAlertBanner } from '../../components/auth/TwoFactorAlertBanner';
+import { ThemeToggle } from '../../components/common/ThemeToggle';
 import {
   User,
   Shield,
@@ -537,6 +538,20 @@ export function UseSetuProfile() {
               </Button>
             )}
           </div>
+        </Card>
+
+        {/* Theme & Appearance */}
+        <Card className="p-6 space-y-4 bg-surface border-border">
+          <div className="flex items-center justify-between border-b border-border pb-4">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-accent" />
+              <h2 className="font-bold text-base text-text-primary">Theme & Appearance</h2>
+            </div>
+            <ThemeToggle variant="segmented" />
+          </div>
+          <p className="text-xs text-text-secondary leading-relaxed">
+            Customize the visual style of your administrative workspace with dark mode, light mode, or system automatic sync.
+          </p>
         </Card>
 
         {/* Security & Password */}

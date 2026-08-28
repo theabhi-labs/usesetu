@@ -19,6 +19,7 @@ import {
 import { useAuthStore } from '../store/authStore';
 import { ApplicationSwitcher } from '../components/platform/ApplicationSwitcher';
 import { TwoFactorAlertBanner } from '../components/auth/TwoFactorAlertBanner';
+import { ThemeToggle } from '../components/common/ThemeToggle';
 import { platformApi } from '../services/platform.api';
 import type { NotificationsResponse } from '../services/platform.api';
 
@@ -106,16 +107,19 @@ export const PlatformLayout: React.FC = () => {
             {/* Notification Bell */}
             <Link
               to="/platform/notifications"
-              className="relative p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors border border-transparent hover:border-slate-700"
+              className="relative p-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-surface-elevated transition-colors border border-transparent hover:border-border"
               title="Notifications"
             >
               <Bell className="w-4 h-4" />
               {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-orange-500 text-white text-[9px] font-black flex items-center justify-center animate-pulse">
+                <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-accent text-white text-[9px] font-black flex items-center justify-center animate-pulse">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
             </Link>
+
+            {/* Theme Toggle Button */}
+            <ThemeToggle />
 
             {/* User Profile Pill */}
             <div className="hidden sm:flex items-center space-x-3 pl-3 border-l border-slate-800">
@@ -186,16 +190,11 @@ export const PlatformLayout: React.FC = () => {
               })}
             </nav>
 
-            <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="w-7 h-7 rounded-lg bg-slate-800 flex items-center justify-center text-orange-400 font-bold text-xs">
-                  {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                </div>
-                <span className="text-xs font-bold text-slate-300">{user?.name}</span>
-              </div>
+            <div className="pt-3 border-t border-border flex items-center justify-between">
+              <ThemeToggle variant="segmented" />
               <button
                 onClick={handleLogout}
-                className="text-xs font-semibold text-rose-400 hover:text-rose-300 flex items-center space-x-1"
+                className="text-xs font-semibold text-error hover:opacity-80 flex items-center space-x-1"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Log Out</span>

@@ -9,6 +9,7 @@ import { cmsApi } from '../services/cms.api';
 import { Skeleton } from '../components/ui/Skeleton';
 import { Bell, FileText, CreditCard, LayoutDashboard, Folder, User } from 'lucide-react';
 import { TwoFactorAlertBanner } from '../components/auth/TwoFactorAlertBanner';
+import { ThemeToggle } from '../components/common/ThemeToggle';
 
 export function PortalLayout() {
   const { user } = useAuthStore();
@@ -189,6 +190,9 @@ export function PortalLayout() {
               </>
             )}
           </div>
+
+          {/* Theme Switcher */}
+          <ThemeToggle />
 
           {/* User Profile Dropdown */}
           <div className="relative">

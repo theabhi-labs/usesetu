@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore';
 import { cmsApi } from '../services/cms.api';
 import { getTenantContext } from '../lib/tenant';
 import { Button } from '../components/ui/Button';
+import { ThemeToggle } from '../components/common/ThemeToggle';
 import {
   Sparkles,
   Laptop,
@@ -111,6 +112,7 @@ export function PublicLayout() {
           </nav>
 
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             {isAuthenticated ? (
               <>
                 <Link
@@ -272,6 +274,7 @@ export function PublicLayout() {
         </nav>
 
         <div className="flex items-center gap-2.5">
+          <ThemeToggle />
           {isAuthenticated ? (
             <Link
               to={

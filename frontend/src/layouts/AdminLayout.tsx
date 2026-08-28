@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { getTenantContext } from '../lib/tenant';
 import { TwoFactorAlertBanner } from '../components/auth/TwoFactorAlertBanner';
+import { ThemeToggle } from '../components/common/ThemeToggle';
 
 export function AdminLayout() {
   const { user } = useAuthStore();
@@ -285,7 +286,10 @@ export function AdminLayout() {
               )}
             </div>
 
-            {/* User Menu Dropdown */}
+            {/* Theme Mode Switcher */}
+            <ThemeToggle />
+
+            {/* User Dropdown */}
             <div className="relative">
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}

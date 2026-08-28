@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Outlet } from 'react-router-dom';
+import { ThemeToggle } from '../components/common/ThemeToggle';
 
 const simulatedEvents = [
   'Application CSC-2026-000391 → Approved',
@@ -49,7 +50,12 @@ export function AuthLayout() {
   }, [logs]);
 
   return (
-    <div className="min-h-screen flex bg-bg">
+    <div className="min-h-screen flex bg-bg relative">
+      {/* Top Floating Theme Switcher */}
+      <div className="absolute top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+
       {/* Left panel: Form */}
       <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-20 xl:px-24">
         <div className="mx-auto w-full max-w-md">

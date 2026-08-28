@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { User, CheckCircle2, AlertCircle, Phone, Mail, Building } from 'lucide-react';
+import { User, CheckCircle2, AlertCircle, Phone, Mail, Building, Sparkles } from 'lucide-react';
 import { platformApi } from '../../services/platform.api';
+import { ThemeToggle } from '../../components/common/ThemeToggle';
 import type { AccountProfileData } from '../../services/platform.api';
 
 export const AccountPage: React.FC = () => {
@@ -84,114 +85,129 @@ export const AccountPage: React.FC = () => {
 
       {/* Account Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-2">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+        <div className="bg-surface border border-border rounded-3xl p-6 space-y-2">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary block">
             Account Status
           </span>
-          <span className="text-lg font-black text-emerald-400 uppercase flex items-center space-x-1.5">
+          <span className="text-lg font-black text-success uppercase flex items-center space-x-1.5">
             <CheckCircle2 className="w-4 h-4" />
             <span>{data?.account.status || 'Active'}</span>
           </span>
-          <span className="text-[11px] text-slate-500 block">
+          <span className="text-[11px] text-text-tertiary block">
             Member since {data?.account?.createdAt ? new Date(data.account.createdAt).toLocaleDateString() : 'N/A'}
           </span>
         </div>
 
-        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-2">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+        <div className="bg-surface border border-border rounded-3xl p-6 space-y-2">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary block">
             Email Verification
           </span>
-          <span className="text-lg font-black text-white flex items-center space-x-1.5">
+          <span className="text-lg font-black text-text-primary flex items-center space-x-1.5">
             {data?.user.isEmailVerified ? (
-              <span className="text-emerald-400 flex items-center space-x-1 text-sm font-bold">
+              <span className="text-success flex items-center space-x-1 text-sm font-bold">
                 <CheckCircle2 className="w-4 h-4" />
                 <span>Verified</span>
               </span>
             ) : (
-              <span className="text-amber-400 text-sm font-bold">Pending OTP</span>
+              <span className="text-warning text-sm font-bold">Pending OTP</span>
             )}
           </span>
-          <span className="text-[11px] text-slate-500 truncate block">{data?.user.email}</span>
+          <span className="text-[11px] text-text-tertiary truncate block">{data?.user.email}</span>
         </div>
 
-        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-2">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+        <div className="bg-surface border border-border rounded-3xl p-6 space-y-2">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary block">
             Role & Security Level
           </span>
-          <span className="text-lg font-black text-white uppercase text-sm">
+          <span className="text-lg font-black text-text-primary uppercase text-sm">
             {data?.user.role?.replace(/_/g, ' ') || 'Platform Owner'}
           </span>
-          <span className="text-[11px] text-slate-500 block">Full control-plane privileges</span>
+          <span className="text-[11px] text-text-tertiary block">Full control-plane privileges</span>
+        </div>
+      </div>
+
+      {/* Theme & Appearance Customization */}
+      <div className="bg-surface border border-border rounded-3xl p-6 sm:p-8 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
+          <div className="space-y-0.5">
+            <h3 className="text-base font-black text-text-primary flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-accent" /> Platform Theme & Appearance
+            </h3>
+            <p className="text-xs text-text-secondary">
+              Toggle between Dark OLED, Light Crisp, or System default theme across the SaaS control plane.
+            </p>
+          </div>
+          <ThemeToggle variant="segmented" />
         </div>
       </div>
 
       {/* Edit Profile Form */}
-      <form onSubmit={handleSubmit} className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6">
+      <form onSubmit={handleSubmit} className="bg-surface border border-border rounded-3xl p-6 sm:p-8 space-y-6">
         <div>
-          <h3 className="text-base font-black text-white">Owner Profile & Organization</h3>
-          <p className="text-xs text-slate-400">Update your public contact info and account display name.</p>
+          <h3 className="text-base font-black text-text-primary">Owner Profile & Organization</h3>
+          <p className="text-xs text-text-secondary">Update your public contact info and account display name.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
           <div className="space-y-1.5">
-            <label className="font-semibold text-slate-300">Account / Organization Name</label>
+            <label className="font-semibold text-text-secondary">Account / Organization Name</label>
             <div className="relative">
-              <Building className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 transform -translate-y-1/2" />
+              <Building className="w-4 h-4 text-text-tertiary absolute left-3.5 top-1/2 transform -translate-y-1/2" />
               <input
                 type="text"
                 value={form.accountName}
                 onChange={(e) => setForm({ ...form, accountName: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3.5 py-2.5 text-white focus:outline-none focus:border-orange-500"
+                className="w-full bg-surface-elevated border border-border rounded-xl pl-9 pr-3.5 py-2.5 text-text-primary focus:outline-none focus:border-accent"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="font-semibold text-slate-300">Owner Full Name</label>
+            <label className="font-semibold text-text-secondary">Owner Full Name</label>
             <div className="relative">
-              <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 transform -translate-y-1/2" />
+              <User className="w-4 h-4 text-text-tertiary absolute left-3.5 top-1/2 transform -translate-y-1/2" />
               <input
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3.5 py-2.5 text-white focus:outline-none focus:border-orange-500"
+                className="w-full bg-surface-elevated border border-border rounded-xl pl-9 pr-3.5 py-2.5 text-text-primary focus:outline-none focus:border-accent"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="font-semibold text-slate-300">Registered Email Address (Read-only)</label>
+            <label className="font-semibold text-text-secondary">Registered Email Address (Read-only)</label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 transform -translate-y-1/2" />
+              <Mail className="w-4 h-4 text-text-tertiary absolute left-3.5 top-1/2 transform -translate-y-1/2" />
               <input
                 type="email"
                 disabled
                 value={data?.user.email || ''}
-                className="w-full bg-slate-950/60 border border-slate-800/80 rounded-xl pl-9 pr-3.5 py-2.5 text-slate-500 cursor-not-allowed"
+                className="w-full bg-surface-elevated/60 border border-border/80 rounded-xl pl-9 pr-3.5 py-2.5 text-text-tertiary cursor-not-allowed"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="font-semibold text-slate-300">Mobile Phone Number (10-digit Indian)</label>
+            <label className="font-semibold text-text-secondary">Mobile Phone Number (10-digit Indian)</label>
             <div className="relative">
-              <Phone className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 transform -translate-y-1/2" />
+              <Phone className="w-4 h-4 text-text-tertiary absolute left-3.5 top-1/2 transform -translate-y-1/2" />
               <input
                 type="tel"
                 value={form.mobile}
                 onChange={(e) => setForm({ ...form, mobile: e.target.value })}
                 placeholder="9876543210"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3.5 py-2.5 text-white focus:outline-none focus:border-orange-500"
+                className="w-full bg-surface-elevated border border-border rounded-xl pl-9 pr-3.5 py-2.5 text-text-primary focus:outline-none focus:border-accent"
               />
             </div>
           </div>
         </div>
 
-        <div className="flex justify-end pt-4 border-t border-slate-800">
+        <div className="flex justify-end pt-4 border-t border-border">
           <button
             type="submit"
             disabled={updateMutation.isPending}
-            className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-bold rounded-xl shadow-lg shadow-orange-500/20 transition-all"
+            className="px-6 py-2.5 bg-gradient-to-r from-accent to-accent-hover hover:opacity-90 text-white text-xs font-bold rounded-xl shadow-lg shadow-accent/20 transition-all cursor-pointer"
           >
             {updateMutation.isPending ? 'Saving...' : 'Save Profile Changes'}
           </button>
