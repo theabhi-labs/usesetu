@@ -5,12 +5,23 @@ import { adminOperationsApi } from '../../../services/adminOperations.api';
 export const SuperAdminSecurityEvents: React.FC = () => {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchEvents = async () => {
     try {
       setLoading(true);
       const res = await adminOperationsApi.getSecurityEvents();
-      setEvents(res);
+      if (res && Array.isArray(res.events)) {
+        setEvents(res.events);
+      } else if (Array.isArray(res)) {
+        setEvents(res);
+      } else {
+        setEvents([]);
+      }
+      setError(null);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Failed to load security audit events');
+      setEvents([]);
     } finally {
       setLoading(false);
     }
@@ -35,7 +46,7 @@ export const SuperAdminSecurityEvents: React.FC = () => {
         <button
           onClick={fetchEvents}
           disabled={loading}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-elevated border border-border hover:bg-border text-xs font-semibold text-text-secondary"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-elevated border border-border hover:bg-border text-xs font-semibold text-text-secondary transition-colors"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           <span>Refresh</span>
@@ -45,23 +56,27 @@ export const SuperAdminSecurityEvents: React.FC = () => {
       <div className="bg-surface rounded-xl border border-border overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-xs font-semibold text-text-secondary">Loading security audit trail...</div>
+        ) : error ? (
+          <div className="p-8 text-center text-xs text-red-500 font-semibold">{error}</div>
         ) : events.length === 0 ? (
           <div className="p-12 text-center text-xs text-text-secondary">
             <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
-            Zero suspicious security anomalies detected.
+            Zero suspicious security anomalies detected. System is safe and secure.
           </div>
         ) : (
           <div className="divide-y divide-border">
             {events.map((evt) => (
-              <div key={evt._id} className="p-4 flex items-center justify-between gap-4 hover:bg-surface-elevated/40">
+              <div key={evt._id || evt.id || Math.random()} className="p-4 flex items-center justify-between gap-4 hover:bg-surface-elevated/40">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-xs text-text-primary">{evt.eventType || 'Security Alert'}</span>
                     <span className="text-[11px] font-mono text-text-tertiary">IP: {evt.ipAddress || 'Unknown'}</span>
                   </div>
-                  <p className="text-xs text-text-secondary mt-1">{evt.details || 'Auth attempt logged'}</p>
+                  <p className="text-xs text-text-secondary mt-1">{evt.details || evt.description || 'Auth attempt logged'}</p>
                 </div>
-                <span className="text-[11px] text-text-tertiary">{new Date(evt.createdAt).toLocaleString()}</span>
+                <span className="text-[11px] text-text-tertiary">
+                  {evt.createdAt ? new Date(evt.createdAt).toLocaleString() : 'Recent'}
+                </span>
               </div>
             ))}
           </div>

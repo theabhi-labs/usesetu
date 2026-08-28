@@ -1,17 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { AlertTriangle, CheckCircle2, EyeOff, RefreshCw } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, RefreshCw } from 'lucide-react';
 import { adminOperationsApi } from '../../../services/adminOperations.api';
 
 export const SuperAdminIncidents: React.FC = () => {
   const [incidents, setIncidents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const fetchIncidents = async () => {
     try {
       setLoading(true);
       const res = await adminOperationsApi.getIncidents({});
-      setIncidents(res.incidents);
+      if (res && Array.isArray(res.incidents)) {
+        setIncidents(res.incidents);
+      } else if (Array.isArray(res)) {
+        setIncidents(res);
+      } else {
+        setIncidents([]);
+      }
+      setError(null);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Failed to load incidents');
+      setIncidents([]);
     } finally {
       setLoading(false);
     }
@@ -56,7 +67,7 @@ export const SuperAdminIncidents: React.FC = () => {
         <button
           onClick={fetchIncidents}
           disabled={loading}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-elevated border border-border hover:bg-border text-xs font-semibold text-text-secondary"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-elevated border border-border hover:bg-border text-xs font-semibold text-text-secondary transition-colors"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           <span>Refresh</span>
@@ -66,6 +77,8 @@ export const SuperAdminIncidents: React.FC = () => {
       <div className="bg-surface rounded-xl border border-border overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-xs font-semibold text-text-secondary">Loading incidents...</div>
+        ) : error ? (
+          <div className="p-8 text-center text-xs text-red-500 font-semibold">{error}</div>
         ) : incidents.length === 0 ? (
           <div className="p-12 text-center text-xs text-text-secondary">
             <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
@@ -74,7 +87,7 @@ export const SuperAdminIncidents: React.FC = () => {
         ) : (
           <div className="divide-y divide-border">
             {incidents.map((inc) => (
-              <div key={inc._id} className="p-4 flex items-center justify-between gap-4 hover:bg-surface-elevated/40">
+              <div key={inc._id || inc.id || Math.random()} className="p-4 flex items-center justify-between gap-4 hover:bg-surface-elevated/40">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-red-500/10 text-red-500 border border-red-500/20">
