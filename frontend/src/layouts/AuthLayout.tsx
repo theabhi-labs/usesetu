@@ -1,108 +1,173 @@
 import * as React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import { ThemeToggle } from '../components/common/ThemeToggle';
-
-const simulatedEvents = [
-  'Application CSC-2026-000391 → Approved',
-  'Token AAD-042 called at Counter 2',
-  'User superadmin@cscos.local logged in',
-  'Webhook sent: Payment completed for CSC-2026-000388',
-  'New service "Income Certificate v2" published by Admin',
-  'Workflow transition: Stage changed to "Verification Pending" for CSC-2026-000395',
-  'Token PMJAY-104 printed at Kiosk 1',
-  'OTP sent successfully to 987654XXXX',
-  'Document Aadhaar_Card.pdf verified by Staff',
-  'Queue configuration "Category A" modified',
-  'Appointment booked: Slot 10:30 AM for Service "Aadhaar Card Update"',
-  'Refund request processed: txn_948271038103',
-  'Daily snapshot job executed: 45 pending requests aggregated',
-  'Notification email dispatched: "Aadhaar Enrolment Complete"',
-];
+import {
+  Layers,
+  ShieldCheck,
+  Zap,
+  Globe,
+  CheckCircle2,
+  Lock,
+  FileCheck2,
+  Users2,
+  ArrowLeft,
+} from 'lucide-react';
 
 export function AuthLayout() {
-  const [logs, setLogs] = React.useState<string[]>([]);
-  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const location = useLocation();
+  const isLoginPage = location.pathname === '/login';
+  const isRegisterPage = location.pathname === '/register';
 
-  React.useEffect(() => {
-    // Populate some initial logs
-    const initialLogs = Array.from({ length: 6 }, () => {
-      const idx = Math.floor(Math.random() * simulatedEvents.length);
-      const timestamp = new Date(Date.now() - Math.random() * 10000000)
-        .toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      return `[${timestamp}] ${simulatedEvents[idx]}`;
-    });
-    setLogs(initialLogs);
-
-    const interval = setInterval(() => {
-      const idx = Math.floor(Math.random() * simulatedEvents.length);
-      const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      const newLog = `[${timestamp}] ${simulatedEvents[idx]}`;
-      setLogs((prev) => [...prev.slice(-15), newLog]);
-    }, 2500);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  React.useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [logs]);
+  // Extract query params to preserve redirects and tenant context
+  const search = location.search;
 
   return (
-    <div className="min-h-screen flex bg-bg relative">
-      {/* Top Floating Theme Switcher */}
-      <div className="absolute top-4 right-4 z-50">
+    <div className="min-h-screen flex bg-bg text-text-primary transition-colors duration-200">
+      {/* Top Floating Header */}
+      <div className="fixed top-4 right-4 z-50 flex items-center gap-3">
+        <Link
+          to="/"
+          className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface/80 backdrop-blur-md border border-border hover:bg-surface-elevated text-xs font-semibold text-text-secondary transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Home</span>
+        </Link>
         <ThemeToggle />
       </div>
 
-      {/* Left panel: Form */}
-      <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-20 xl:px-24">
+      {/* Left panel: Auth Form & Navigation Switcher */}
+      <div className="flex-1 flex flex-col justify-center px-4 sm:px-8 lg:px-16 xl:px-20 py-12">
         <div className="mx-auto w-full max-w-md">
-          {/* Logo and Name */}
-          <div className="flex items-center gap-2 mb-8 justify-center lg:justify-start">
-            <span className="h-8 w-8 rounded-md bg-accent flex items-center justify-center font-bold text-white select-none">C</span>
-            <span className="text-xl font-bold tracking-tight text-text-primary select-none">CSC Operating System</span>
+          {/* Logo & Brand */}
+          <div className="mb-8">
+            <Link to="/" className="inline-flex items-center gap-3 group">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-accent to-accent-hover flex items-center justify-center shadow-lg shadow-accent/25 group-hover:scale-105 transition-transform duration-200 text-white">
+                <Layers className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="font-black text-2xl tracking-tight text-text-primary">
+                    UseSetu
+                  </span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-accent bg-accent/10 px-2 py-0.5 rounded border border-accent/20">
+                    SaaS OS
+                  </span>
+                </div>
+                <span className="text-[11px] font-semibold text-text-tertiary">
+                  Digital Service Center Operating System
+                </span>
+              </div>
+            </Link>
           </div>
-          <Outlet />
+
+          {/* Quick Tabbed Switcher (Sign In vs Create Account) */}
+          {(isLoginPage || isRegisterPage) && (
+            <div className="mb-6 p-1 bg-surface-elevated border border-border rounded-xl flex items-center gap-1">
+              <Link
+                to={`/login${search}`}
+                className={`flex-1 text-center py-2 rounded-lg text-xs font-bold transition-all ${
+                  isLoginPage
+                    ? 'bg-accent text-white shadow-sm shadow-accent/25'
+                    : 'text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                Sign In
+              </Link>
+              <Link
+                to={`/register${search}`}
+                className={`flex-1 text-center py-2 rounded-lg text-xs font-bold transition-all ${
+                  isRegisterPage
+                    ? 'bg-accent text-white shadow-sm shadow-accent/25'
+                    : 'text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                Create Account
+              </Link>
+            </div>
+          )}
+
+          {/* Form Content */}
+          <div className="bg-surface/50 sm:bg-surface border border-border/50 sm:border-border rounded-2xl p-6 sm:p-8 shadow-sm">
+            <Outlet />
+          </div>
+
+          {/* Footer note */}
+          <div className="mt-8 text-center text-xs text-text-tertiary">
+            Protected with 256-bit SSL encryption & RBAC security.
+          </div>
         </div>
       </div>
 
-      {/* Right panel: Activity ticker */}
-      <div className="hidden lg:flex lg:w-1/2 bg-surface border-l border-border relative overflow-hidden flex-col justify-between p-12">
-        <div className="space-y-4 text-left">
-          <div className="inline-flex items-center rounded-full bg-accent/15 px-3 py-1 text-xs font-semibold text-accent border border-accent/20 select-none">
-            System Live Logs
+      {/* Right panel: Production Feature Showcase */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-surface via-surface-elevated/80 to-surface border-l border-border relative overflow-hidden flex-col justify-between p-12 xl:p-16">
+        {/* Background decorative glow */}
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-accent/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        {/* Top Header & Tagline */}
+        <div className="relative z-10 space-y-4">
+          <div className="inline-flex items-center gap-2 rounded-full bg-accent/15 px-3 py-1 text-xs font-bold text-accent border border-accent/25">
+            <Zap className="w-3.5 h-3.5" />
+            <span>Next-Gen CSC Cloud Platform</span>
           </div>
-          <h2 className="text-3xl font-extrabold tracking-tight text-text-primary">Fundamentally tracking transactions in real-time.</h2>
-          <p className="text-text-secondary text-sm leading-relaxed max-w-md">
-            CSC OS manages Aadhaar enrolments, digital token queues, appointment slots, and invoices, rendering codes in JetBrains Mono.
+          <h2 className="text-3xl xl:text-4xl font-black tracking-tight text-text-primary leading-tight">
+            The Complete Operating System for Citizen Service Centers.
+          </h2>
+          <p className="text-text-secondary text-sm leading-relaxed max-w-lg">
+            Provision, manage, and scale your Jan Seva Kendra, Cyber Cafe, or Citizen Service Point with end-to-end digital workflows, token queues, and instant certificate deliveries.
           </p>
         </div>
 
-        {/* Live log ticker */}
-        <div className="flex-1 flex flex-col justify-end mt-8">
-          <div
-            ref={scrollRef}
-            className="h-64 border border-border bg-bg/50 rounded-lg p-4 overflow-y-auto font-mono text-xs text-text-tertiary space-y-2 scrollbar-none select-none"
-          >
-            {logs.map((log, index) => {
-              const isApproved = log.includes('Approved') || log.includes('verified');
-              return (
-                <div key={index} className="transition-all duration-300 text-left">
-                  <span className="text-text-tertiary"># </span>
-                  <span className={isApproved ? 'text-success' : log.includes('Token') ? 'text-accent font-semibold' : 'text-text-secondary'}>
-                    {log}
-                  </span>
-                </div>
-              );
-            })}
+        {/* Core Value Props Grid */}
+        <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 gap-4 my-8">
+          <div className="p-4 rounded-xl bg-surface/80 border border-border backdrop-blur-sm space-y-2">
+            <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
+              <FileCheck2 className="w-4 h-4" />
+            </div>
+            <h3 className="font-bold text-xs text-text-primary">100+ Citizen Services</h3>
+            <p className="text-[11px] text-text-secondary leading-relaxed">
+              Pre-built forms for Income, Caste, PAN, Aadhaar, and Welfare schemes with automated validation.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-surface/80 border border-border backdrop-blur-sm space-y-2">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+              <Globe className="w-4 h-4" />
+            </div>
+            <h3 className="font-bold text-xs text-text-primary">Isolated Subdomains</h3>
+            <p className="text-[11px] text-text-secondary leading-relaxed">
+              Dedicated citizen portals on your own subdomain or custom domain with automated SSL.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-surface/80 border border-border backdrop-blur-sm space-y-2">
+            <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center">
+              <Users2 className="w-4 h-4" />
+            </div>
+            <h3 className="font-bold text-xs text-text-primary">Live Token Desk</h3>
+            <p className="text-[11px] text-text-secondary leading-relaxed">
+              Real-time physical counter queue management, digital appointment booking, and TV displays.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-surface/80 border border-border backdrop-blur-sm space-y-2">
+            <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <h3 className="font-bold text-xs text-text-primary">Digital Locker & Wallet</h3>
+            <p className="text-[11px] text-text-secondary leading-relaxed">
+              Secure citizen document locker, Razorpay payment integrations, and instant digital receipts.
+            </p>
           </div>
         </div>
 
-        <div className="pt-8 border-t border-border flex justify-between text-xs text-text-tertiary font-mono select-none">
-          <span>STATUS: OPERATIONAL</span>
-          <span>BUILD: v1.0.0</span>
+        {/* Bottom Trust Badge */}
+        <div className="relative z-10 pt-6 border-t border-border flex items-center justify-between text-xs text-text-tertiary">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            <span className="font-semibold text-text-secondary">Production Ready • Multi-Tenant Core</span>
+          </div>
+          <span className="font-mono text-[11px]">v1.0.0</span>
         </div>
       </div>
     </div>

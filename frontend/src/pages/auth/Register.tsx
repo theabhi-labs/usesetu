@@ -99,14 +99,13 @@ export function Register() {
   return (
     <div className="space-y-6 text-left">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-text-primary">
-          {tenantContext.isRootPlatform ? 'Create a Platform Account' : 'Create an Account'}
+        <h1 className="text-2xl font-black tracking-tight text-text-primary">
+          {tenantContext.isRootPlatform ? 'Create UseSetu Account' : 'Register Customer Account'}
         </h1>
-        <p className="text-sm text-text-secondary mt-1">
-          Already have an account?{' '}
-          <Link to={loginTarget} className="text-accent hover:text-accent-hover font-medium">
-            Sign in
-          </Link>
+        <p className="text-xs text-text-secondary mt-1">
+          {tenantContext.isRootPlatform
+            ? 'Set up your cloud account to launch digital service centers across India.'
+            : 'Register to apply for government services, tracking, and citizen locker.'}
         </p>
       </div>
 

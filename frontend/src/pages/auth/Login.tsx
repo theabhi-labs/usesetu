@@ -301,14 +301,13 @@ export function Login() {
   return (
     <div className="space-y-6 text-left">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-text-primary">
-          {tenantContext.isRootPlatform ? 'Sign in to UseSetu Platform' : 'Sign in to your account'}
+        <h1 className="text-2xl font-black tracking-tight text-text-primary">
+          {tenantContext.isRootPlatform ? 'Welcome to UseSetu' : 'Welcome Back'}
         </h1>
-        <p className="text-sm text-text-secondary mt-1">
-          Or{' '}
-          <Link to={registerTarget} className="text-accent hover:text-accent-hover font-medium">
-            {tenantContext.isRootPlatform ? 'create a platform account' : 'register a new customer account'}
-          </Link>
+        <p className="text-xs text-text-secondary mt-1">
+          {tenantContext.isRootPlatform
+            ? 'Enter your credentials to manage digital service centers & control planes.'
+            : 'Sign in to track your service requests and citizen documents.'}
         </p>
       </div>
 
