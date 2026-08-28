@@ -347,43 +347,43 @@ export const ApplicationDetail: React.FC = () => {
     <div className="space-y-8">
       {/* Top Breadcrumb & Header */}
       <div className="space-y-4">
-        <div className="flex items-center space-x-2 text-xs text-slate-500">
-          <Link to="/platform/applications" className="hover:text-slate-300 transition-colors flex items-center space-x-1">
+        <div className="flex items-center space-x-2 text-xs text-text-tertiary">
+          <Link to="/platform/applications" className="hover:text-text-primary transition-colors flex items-center space-x-1">
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Applications</span>
           </Link>
           <span>/</span>
-          <span className="text-slate-300 font-semibold truncate max-w-xs">{application.name}</span>
+          <span className="text-text-primary font-semibold truncate max-w-xs">{application.name}</span>
         </div>
 
-        <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border border-slate-800 p-6 sm:p-8 rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl">
+        <div className="bg-surface border border-border p-6 sm:p-8 rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-md">
           <div>
             <div className="flex items-center space-x-2.5 mb-2">
-              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700/60">
+              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg bg-surface-elevated text-text-secondary border border-border">
                 {application.template?.name || 'Digital Service Center'}
               </span>
               <span
                 className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border capitalize ${
                   application.status === 'active'
-                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                    : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                    ? 'bg-success/10 text-success border-success/20'
+                    : 'bg-warning/10 text-warning border-warning/20'
                 }`}
               >
                 {application.status}
               </span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-text-primary tracking-tight">
               {application.name}
             </h1>
 
-            <div className="flex items-center space-x-4 text-xs text-slate-400 mt-2">
+            <div className="flex items-center space-x-4 text-xs text-text-tertiary mt-2">
               <span className="flex items-center space-x-1">
-                <Globe className="w-3.5 h-3.5 text-orange-400" />
-                <span className="font-semibold text-slate-300">{primaryDomain}</span>
+                <Globe className="w-3.5 h-3.5 text-accent" />
+                <span className="font-semibold text-text-secondary">{primaryDomain}</span>
               </span>
               <span>•</span>
-              <span>Plan: <strong className="text-amber-400 uppercase">{application.subscription?.plan || 'Free'}</strong></span>
+              <span>Plan: <strong className="text-accent uppercase">{application.subscription?.plan || 'Free'}</strong></span>
             </div>
           </div>
 
@@ -392,10 +392,10 @@ export const ApplicationDetail: React.FC = () => {
               href={getTenantAdminUrl(application.slug, primaryDomain)}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-bold px-4 py-3 rounded-2xl border border-slate-700/80 transition-all shrink-0"
+              className="inline-flex items-center space-x-2 bg-surface-elevated hover:bg-surface text-text-primary text-xs font-bold px-4 py-3 rounded-2xl border border-border transition-all shrink-0"
               title="Open Tenant Admin Desk"
             >
-              <Laptop className="w-4 h-4 text-orange-400" />
+              <Laptop className="w-4 h-4 text-accent" />
               <span>Admin Panel</span>
             </a>
 
@@ -403,7 +403,7 @@ export const ApplicationDetail: React.FC = () => {
               href={getTenantPublicUrl(application.slug, primaryDomain)}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-bold px-5 py-3 rounded-2xl shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 transition-all shrink-0"
+              className="inline-flex items-center space-x-2 bg-gradient-to-r from-accent to-accent-hover hover:opacity-90 text-white text-xs font-bold px-5 py-3 rounded-2xl shadow-lg shadow-accent/20 transition-all shrink-0"
             >
               <span>Open Live Center</span>
               <ExternalLink className="w-4 h-4" />
@@ -419,7 +419,7 @@ export const ApplicationDetail: React.FC = () => {
       />
 
       {/* Tabs Navigation */}
-      <div className="flex items-center space-x-1 border-b border-slate-800 overflow-x-auto pb-px">
+      <div className="flex items-center space-x-1 border-b border-border overflow-x-auto pb-px">
         {[
           { id: 'overview', label: 'Overview', icon: Activity },
           { id: 'usage', label: 'Usage & Quotas', icon: HardDrive },
@@ -433,10 +433,10 @@ export const ApplicationDetail: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id as TabType)}
-              className={`flex items-center space-x-2 px-4 py-3 text-xs font-bold border-b-2 transition-all shrink-0 ${
+              className={`flex items-center space-x-2 px-4 py-3 text-xs font-bold border-b-2 transition-all shrink-0 cursor-pointer ${
                 isActive
-                  ? 'border-orange-500 text-orange-400 bg-slate-900/40 rounded-t-xl'
-                  : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                  ? 'border-accent text-accent bg-surface-elevated rounded-t-xl'
+                  : 'border-transparent text-text-tertiary hover:text-text-primary hover:border-border'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -450,14 +450,14 @@ export const ApplicationDetail: React.FC = () => {
       {activeTab === 'overview' && (
         <div className="space-y-8">
           {/* Health & Status Card */}
-          <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="bg-surface border border-border rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-1">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Center Status</span>
-              <h3 className="text-lg font-bold text-white flex items-center space-x-2">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              <span className="text-[10px] font-black uppercase tracking-wider text-text-tertiary">Center Status</span>
+              <h3 className="text-lg font-bold text-text-primary flex items-center space-x-2">
+                <CheckCircle2 className="w-5 h-5 text-success" />
                 <span>Operating Normally ({application.status.toUpperCase()})</span>
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-text-secondary">
                 All microservices, request intake workflows, and customer verification tokens are operational.
               </p>
             </div>
@@ -465,7 +465,7 @@ export const ApplicationDetail: React.FC = () => {
             <div className="flex items-center space-x-3">
               <Link
                 to={`/platform/applications/${id}?tab=usage`}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl transition-colors"
+                className="px-4 py-2 bg-surface-elevated hover:bg-surface text-text-primary text-xs font-bold rounded-xl border border-border transition-colors cursor-pointer"
               >
                 Inspect Quotas
               </Link>
@@ -474,68 +474,68 @@ export const ApplicationDetail: React.FC = () => {
 
           {/* Quick Metrics Snapshot */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
+            <div className="bg-surface-elevated border border-border rounded-2xl p-5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary block mb-1">
                 Active Staff
               </span>
-              <span className="text-xl font-black text-white">
+              <span className="text-xl font-black text-text-primary">
                 {usageData?.metrics?.activeUsers?.used || 0} / {usageData?.metrics?.activeUsers?.limit || 5}
               </span>
             </div>
 
-            <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
+            <div className="bg-surface-elevated border border-border rounded-2xl p-5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary block mb-1">
                 Storage Used
               </span>
-              <span className="text-xl font-black text-white">
+              <span className="text-xl font-black text-text-primary">
                 {formatBytes(usageData?.metrics?.storage?.used || 0)}
               </span>
             </div>
 
-            <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
+            <div className="bg-surface-elevated border border-border rounded-2xl p-5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary block mb-1">
                 Monthly Requests
               </span>
-              <span className="text-xl font-black text-white">
+              <span className="text-xl font-black text-text-primary">
                 {usageData?.metrics?.requests?.used || 0} / {usageData?.metrics?.requests?.limit?.toLocaleString() || '200'}
               </span>
             </div>
 
-            <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
+            <div className="bg-surface-elevated border border-border rounded-2xl p-5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary block mb-1">
                 Monthly Appointments
               </span>
-              <span className="text-xl font-black text-white">
+              <span className="text-xl font-black text-text-primary">
                 {usageData?.metrics?.appointments?.used || 0} / {usageData?.metrics?.appointments?.limit?.toLocaleString() || '50'}
               </span>
             </div>
           </div>
 
           {/* Center Details Grid */}
-          <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-200">
+          <div className="bg-surface border border-border rounded-3xl p-6 sm:p-8 space-y-6">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-text-primary">
               Center Blueprint & Infrastructure
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
               <div className="space-y-1">
-                <span className="text-slate-500 font-semibold">Primary Public Hostname</span>
-                <span className="font-bold text-white block text-sm">{primaryDomain}</span>
+                <span className="text-text-tertiary font-semibold">Primary Public Hostname</span>
+                <span className="font-bold text-text-primary block text-sm">{primaryDomain}</span>
               </div>
 
               <div className="space-y-1">
-                <span className="text-slate-500 font-semibold">Default Platform URL</span>
-                <span className="font-bold text-slate-300 block text-sm">{application.defaultDomain}</span>
+                <span className="text-text-tertiary font-semibold">Default Platform URL</span>
+                <span className="font-bold text-text-secondary block text-sm">{application.defaultDomain}</span>
               </div>
 
               <div className="space-y-1">
-                <span className="text-slate-500 font-semibold">Template Blueprint</span>
-                <span className="font-bold text-white block">{application.template?.name || 'Digital Service Center'}</span>
+                <span className="text-text-tertiary font-semibold">Template Blueprint</span>
+                <span className="font-bold text-text-primary block">{application.template?.name || 'Digital Service Center'}</span>
               </div>
 
               <div className="space-y-1">
-                <span className="text-slate-500 font-semibold">Created Date</span>
-                <span className="font-bold text-white block">
+                <span className="text-text-tertiary font-semibold">Created Date</span>
+                <span className="font-bold text-text-primary block">
                   {new Date(application.createdAt).toLocaleString(undefined, {
                     dateStyle: 'medium',
                     timeStyle: 'short',

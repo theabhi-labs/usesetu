@@ -15,6 +15,17 @@
   --theme-success: #22c55e;
   --theme-error: #ef4444;
   --theme-warning: #f59e0b;
+
+  --theme-slate-950: #020617;
+  --theme-slate-900: #0f172a;
+  --theme-slate-800: #1e293b;
+  --theme-slate-700: #334155;
+  --theme-slate-600: #475569;
+  --theme-slate-500: #64748b;
+  --theme-slate-400: #94a3b8;
+  --theme-slate-300: #cbd5e1;
+  --theme-slate-200: #e2e8f0;
+  --theme-slate-100: #f1f5f9;
 }
 
 html.light, [data-theme="light"] {
@@ -31,6 +42,18 @@ html.light, [data-theme="light"] {
   --theme-success: #16a34a;
   --theme-error: #dc2626;
   --theme-warning: #d97706;
+
+  /* In light mode: Dynamically invert slate so containers become crisp white & elevated slate */
+  --theme-slate-950: #f8fafc;
+  --theme-slate-900: #ffffff;
+  --theme-slate-800: #e2e8f0;
+  --theme-slate-700: #cbd5e1;
+  --theme-slate-600: #94a3b8;
+  --theme-slate-500: #64748b;
+  --theme-slate-400: #475569;
+  --theme-slate-300: #334155;
+  --theme-slate-200: #1e293b;
+  --theme-slate-100: #0f172a;
 }
 
 @theme {
@@ -47,6 +70,17 @@ html.light, [data-theme="light"] {
   --color-success: var(--theme-success);
   --color-error: var(--theme-error);
   --color-warning: var(--theme-warning);
+
+  --color-slate-950: var(--theme-slate-950);
+  --color-slate-900: var(--theme-slate-900);
+  --color-slate-800: var(--theme-slate-800);
+  --color-slate-700: var(--theme-slate-700);
+  --color-slate-600: var(--theme-slate-600);
+  --color-slate-500: var(--theme-slate-500);
+  --color-slate-400: var(--theme-slate-400);
+  --color-slate-300: var(--theme-slate-300);
+  --color-slate-200: var(--theme-slate-200);
+  --color-slate-100: var(--theme-slate-100);
 
   --font-sans: "Inter", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
@@ -92,5 +126,10 @@ html.light, [data-theme="light"] {
 
   ::-webkit-scrollbar-thumb:hover {
     background: var(--color-text-tertiary);
+  }
+
+  /* Light mode heading and text adaptation */
+  html.light .text-white:not(button):not(button *):not(a[class*="bg-"]):not(a[class*="bg-"] *):not([class*="bg-orange"] *):not([class*="bg-amber"] *):not([class*="bg-emerald"] *):not([class*="bg-rose"] *):not([class*="from-orange"] *):not([class*="bg-accent"] *) {
+    color: #0f172a;
   }
 }
