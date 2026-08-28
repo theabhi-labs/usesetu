@@ -39,6 +39,7 @@ import { StaffManagement } from '../pages/admin/StaffManagement';
 import { StaffForm } from '../pages/admin/StaffForm';
 import { Customers } from '../pages/admin/Customers';
 import { CustomerProfile } from '../pages/admin/CustomerProfile';
+import { UseSetuProfile } from '../pages/admin/UseSetuProfile';
 import { OperationsDashboard } from '../pages/admin/operations/OperationsDashboard';
 import { Incidents } from '../pages/admin/operations/Incidents';
 import { Errors } from '../pages/admin/operations/Errors';
@@ -128,6 +129,7 @@ export function AppRoutes() {
         <Route path="payments" element={<Payments />} />
         <Route path="cms" element={<CMSConfig />} />
         <Route path="automation" element={<AutomationRules />} />
+        <Route path="usesetu-profile" element={<UseSetuProfile />} />
         {/* Super Admin Operations & Observability */}
         <Route path="operations" element={<RoleGate allowedRoles={[Role.SUPER_ADMIN]}><OperationsDashboard /></RoleGate>} />
         <Route path="operations/incidents" element={<RoleGate allowedRoles={[Role.SUPER_ADMIN]}><Incidents /></RoleGate>} />

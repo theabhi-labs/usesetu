@@ -46,8 +46,9 @@ export function Customers() {
   const customers: CustomerListItem[] = customersQuery.data?.users || [];
   const pagination = customersQuery.data?.pagination || { page: 1, limit: 10, total: 0, pages: 1 };
 
-  const getCustomerId = (id: string) => {
-    return 'CUST-' + id.substring(18).toUpperCase();
+  const getCustomerId = (id?: string) => {
+    if (!id) return 'CUST-000000';
+    return 'CUST-' + (id.length > 6 ? id.substring(id.length - 6) : id).toUpperCase();
   };
 
   return (

@@ -206,6 +206,21 @@ export const CreateApp: React.FC = () => {
 
           {templatesLoading ? (
             <div className="h-48 bg-slate-800/60 animate-pulse rounded-xl" />
+          ) : !templates || templates.length === 0 ? (
+            <div className="p-8 rounded-2xl bg-slate-900/60 border border-slate-800 text-center space-y-3">
+              <Layers className="w-10 h-10 text-orange-400 mx-auto opacity-70" />
+              <h3 className="font-bold text-white text-base">No Application Templates Found</h3>
+              <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                No active application blueprints were found. Please click below to refresh.
+              </p>
+              <button
+                type="button"
+                onClick={() => queryClient.invalidateQueries({ queryKey: ['platform-templates'] })}
+                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow transition-colors cursor-pointer"
+              >
+                Reload Templates
+              </button>
+            </div>
           ) : (
             <div className="grid grid-cols-1 gap-4">
               {templates?.map((t) => {

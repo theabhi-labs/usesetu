@@ -77,19 +77,21 @@ export function VerifyOtp() {
       const redirectUrl = params.get('redirect');
       const tenantContext = getTenantContext();
 
-      if (redirectUrl) {
-        if (tenantContext.isRootPlatform && (redirectUrl === '/admin' || redirectUrl.startsWith('/admin?'))) {
+      if (response.user) {
+        if (redirectUrl) {
+          if (tenantContext.isRootPlatform && (redirectUrl === '/admin' || redirectUrl.startsWith('/admin?'))) {
+            navigate('/platform');
+          } else {
+            navigate(redirectUrl);
+          }
+        } else if (tenantContext.isRootPlatform) {
           navigate('/platform');
         } else {
-          navigate(redirectUrl);
-        }
-      } else if (tenantContext.isRootPlatform) {
-        navigate('/platform');
-      } else {
-        if (response.user.role === 'customer') {
-          navigate(tenantContext.tenantSlug ? `/portal?tenant=${tenantContext.tenantSlug}` : '/portal');
-        } else {
-          navigate(tenantContext.tenantSlug ? `/admin?tenant=${tenantContext.tenantSlug}` : '/admin');
+          if (response.user.role === 'customer') {
+            navigate(tenantContext.tenantSlug ? `/portal?tenant=${tenantContext.tenantSlug}` : '/portal');
+          } else {
+            navigate(tenantContext.tenantSlug ? `/admin?tenant=${tenantContext.tenantSlug}` : '/admin');
+          }
         }
       }
     } catch (err: any) {

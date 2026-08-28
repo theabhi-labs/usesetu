@@ -2,9 +2,11 @@ import app from './app';
 import { env } from './config/env';
 import { connectDB, disconnectDB } from './config/db';
 import { logger } from './config/logger';
+import { ensureEssentialPlatformData } from './seeders/defaultTemplates.seeder';
 
 const startServer = async (): Promise<void> => {
   await connectDB();
+  await ensureEssentialPlatformData();
 
   const server = app.listen(env.PORT, () => {
     logger.info(`CSC OS API running in ${env.NODE_ENV} mode on port ${env.PORT}`);

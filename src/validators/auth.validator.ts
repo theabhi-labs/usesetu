@@ -50,3 +50,17 @@ export const changePasswordSchema = z.object({
     newPassword: passwordSchema,
   }),
 });
+
+export const updateProfileSchema = z.object({
+  body: z.object({
+    name: z.string().trim().min(2).max(100).optional(),
+    mobile: z.string().regex(/^[6-9]\d{9}$/, 'Invalid Indian mobile number').optional(),
+    avatar: z
+      .object({
+        url: z.string(),
+        fileId: z.string().optional(),
+      })
+      .optional(),
+  }),
+});
+

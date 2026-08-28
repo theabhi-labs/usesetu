@@ -27,13 +27,14 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!isAuthenticated) {
-    const tenantContext = getTenantContext();
+    const tenantContext = getTenantContext(location.search);
     let target = location.pathname + location.search;
     if (tenantContext.isRootPlatform && (location.pathname === '/admin' || location.pathname.startsWith('/admin/'))) {
       target = '/platform';
     }
     const redirectTarget = encodeURIComponent(target);
-    return <Navigate to={`/login?redirect=${redirectTarget}`} state={{ from: location }} replace />;
+    const tenantPrefix = tenantContext.tenantSlug ? `tenant=${encodeURIComponent(tenantContext.tenantSlug)}&` : '';
+    return <Navigate to={`/login?${tenantPrefix}redirect=${redirectTarget}`} state={{ from: location }} replace />;
   }
 
   return <>{children}</>;

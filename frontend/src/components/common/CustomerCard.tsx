@@ -9,15 +9,17 @@ import { Eye, Download, Printer, Share2, Copy, Check, ShieldAlert } from 'lucide
 
 interface CustomerCardProps {
   customer: {
-    _id: string;
+    _id?: string;
+    id?: string;
     name: string;
-    mobile: string;
     email?: string;
-    role: string;
-    isActive: boolean;
-    createdAt: string;
+    mobile: string;
+    isActive?: boolean;
     cardVerificationToken?: string;
-    avatar?: { url: string };
+    avatar?: {
+      url: string;
+    };
+    createdAt?: string | Date;
   };
 }
 
@@ -30,27 +32,36 @@ export function CustomerCard({ customer }: CustomerCardProps) {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
 
+  const searchParams = new URLSearchParams(window.location.search);
+  const tenantParam = searchParams.get('tenant') || searchParams.get('app');
+
   // Fetch Website Settings for Organization Branding
   const settingsQuery = useQuery({
-    queryKey: ['publicSettingsForCard'],
+    queryKey: ['publicSettingsForCard', tenantParam],
     queryFn: () => cmsApi.getSettings(),
   });
 
   const settings = settingsQuery.data || {
-    cscName: 'CSC OS Digital Seva',
-    websiteName: 'CSC OS Portal',
+    cscName: 'Digital Seva Kendra',
+    websiteName: 'Portal',
     logoUrl: '',
     tagline: 'Empowering Citizens Digitally',
   };
 
-  const getCustomerId = (id: string) => {
-    return 'CUST-' + id.substring(18).toUpperCase();
+
+  const rawId = (customer as any)?._id || (customer as any)?.id || '';
+  const getCustomerId = (id?: string) => {
+    const val = id || rawId;
+    if (!val) return 'CUST-000000';
+    return 'CUST-' + (val.length > 6 ? val.substring(val.length - 6) : val).toUpperCase();
   };
 
-  const formattedDate = new Date(customer.createdAt).toLocaleDateString('en-IN', {
-    month: 'short',
-    year: 'numeric',
-  });
+  const formattedDate = customer?.createdAt
+    ? new Date(customer.createdAt).toLocaleDateString('en-IN', {
+        month: 'short',
+        year: 'numeric',
+      })
+    : 'MEMBER';
 
   const verificationUrl = `${window.location.origin}/verify-customer/${customer.cardVerificationToken || ''}`;
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(verificationUrl)}`;
@@ -134,7 +145,7 @@ export function CustomerCard({ customer }: CustomerCardProps) {
                   </div>
                   <div class="space-y-0.5">
                     <span class="text-xs text-slate-400 font-bold uppercase block tracking-wider">Customer ID</span>
-                    <span class="text-sm font-bold font-mono text-indigo-600 block">${getCustomerId(customer._id)}</span>
+                    <span class="text-sm font-bold font-mono text-indigo-600 block">${getCustomerId()}</span>
                   </div>
                   <div class="space-y-0.5">
                     <span class="text-xs text-slate-400 font-bold uppercase block tracking-wider">Contact Number</span>
@@ -199,7 +210,7 @@ export function CustomerCard({ customer }: CustomerCardProps) {
   };
 
   const handleCopyId = () => {
-    navigator.clipboard.writeText(getCustomerId(customer._id));
+    navigator.clipboard.writeText(getCustomerId());
     setCopiedId(true);
     setTimeout(() => setCopiedId(false), 2000);
   };
@@ -240,7 +251,7 @@ export function CustomerCard({ customer }: CustomerCardProps) {
                 <img src={customer.avatar.url} className="h-28 w-24 object-cover border border-border rounded-md bg-surface-elevated" />
               ) : (
                 <div className="h-28 w-24 bg-surface-elevated border border-border rounded-md flex items-center justify-center font-bold text-text-secondary text-2xl uppercase">
-                  {customer.name.substring(0, 2)}
+                  {(customer.name || 'CU').substring(0, 2)}
                 </div>
               )}
             </div>
@@ -249,13 +260,13 @@ export function CustomerCard({ customer }: CustomerCardProps) {
             <div className="text-left space-y-2 flex-1 min-w-0">
               <div className="space-y-0.5">
                 <span className="text-[10px] text-text-tertiary font-bold uppercase block tracking-wider">Name</span>
-                <span className="text-sm sm:text-base font-extrabold text-text-primary truncate block">{customer.name}</span>
+                <span className="text-sm sm:text-base font-extrabold text-text-primary truncate block">{customer.name || 'Valued Customer'}</span>
               </div>
               <div className="space-y-0.5">
                 <span className="text-[10px] text-text-tertiary font-bold uppercase block tracking-wider">Customer ID</span>
                 <div className="flex items-center gap-1">
-                  <span className="text-xs sm:text-sm font-bold font-mono text-accent block">{getCustomerId(customer._id)}</span>
-                  <button onClick={handleCopyId} className="text-text-tertiary hover:text-accent p-0.5 rounded transition-colors">
+                  <span className="text-xs sm:text-sm font-bold font-mono text-accent block">{getCustomerId()}</span>
+                  <button onClick={handleCopyId} className="text-text-tertiary hover:text-accent p-0.5 rounded transition-colors cursor-pointer">
                     {copiedId ? <Check size={10} className="text-success" /> : <Copy size={10} />}
                   </button>
                 </div>
@@ -335,7 +346,7 @@ export function CustomerCard({ customer }: CustomerCardProps) {
                     <img src={customer.avatar.url} className="h-24 w-20 object-cover border border-slate-200 rounded-md bg-slate-50" />
                   ) : (
                     <div className="h-24 w-20 bg-slate-100 border border-slate-200 rounded-md flex items-center justify-center font-bold text-slate-500 text-lg uppercase">
-                      {customer.name.substring(0, 2)}
+                      {(customer.name || 'CU').substring(0, 2)}
                     </div>
                   )}
                 </div>
@@ -343,11 +354,11 @@ export function CustomerCard({ customer }: CustomerCardProps) {
                 <div className="text-left space-y-1.5 flex-1 min-w-0">
                   <div className="space-y-0.5">
                     <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Name</span>
-                    <span className="text-sm font-extrabold text-slate-800 truncate block">{customer.name}</span>
+                    <span className="text-sm font-extrabold text-slate-800 truncate block">{customer.name || 'Valued Customer'}</span>
                   </div>
                   <div className="space-y-0.5">
                     <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Customer ID</span>
-                    <span className="text-xs font-bold font-mono text-indigo-600 block">{getCustomerId(customer._id)}</span>
+                    <span className="text-xs font-bold font-mono text-indigo-600 block">{getCustomerId()}</span>
                   </div>
                   <div className="space-y-0.5">
                     <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Contact</span>

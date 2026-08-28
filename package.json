@@ -5,6 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/server.ts",
+    "seed:essential": "ts-node -r tsconfig-paths/register src/scripts/seedEssential.ts",
     "seed:super-admin": "ts-node -r tsconfig-paths/register src/seeders/superAdmin.seeder.ts",
     "migrate:tenants": "ts-node -r tsconfig-paths/register src/scripts/runMigration.ts",
     "migrate:stage5": "ts-node -r tsconfig-paths/register src/seeders/stage5DomainMigration.ts",

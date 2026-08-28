@@ -7,6 +7,14 @@ export const Role = {
 
 export type Role = typeof Role[keyof typeof Role];
 
+export type TwoFactorMethod = 'email' | 'mobile' | 'authenticator';
+
+export interface TwoFactorStatus {
+  enabled: boolean;
+  method?: TwoFactorMethod;
+  lastVerifiedAt?: string;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -15,6 +23,7 @@ export interface User {
   role: Role;
   isEmailVerified: boolean;
   isActive: boolean;
+  twoFactor?: TwoFactorStatus;
   avatar?: {
     url: string;
     fileId: string;
@@ -39,4 +48,18 @@ export interface ApiErrorResponse {
   success: boolean;
   message: string;
   errors?: ApiFieldError[];
+}
+
+export interface Initiate2FAResponse {
+  method: TwoFactorMethod;
+  secret?: string;
+  qrCodeUrl?: string;
+  otpAuthUri?: string;
+  targetMasked?: string;
+}
+
+export interface Confirm2FAResponse {
+  enabled: boolean;
+  method: TwoFactorMethod;
+  backupCodes: string[];
 }

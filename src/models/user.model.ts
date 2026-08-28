@@ -36,6 +36,16 @@ export interface IUser extends Document {
     fileId: string;
   };
 
+  // Two-Factor Authentication (2FA)
+  twoFactor?: {
+    enabled: boolean;
+    method?: 'email' | 'mobile' | 'authenticator';
+    secret?: string;
+    tempSecret?: string;
+    backupCodes?: string[];
+    lastVerifiedAt?: Date;
+  };
+
   lastLoginAt?: Date;
   lastLoginIp?: string;
   cardVerificationToken?: string;
@@ -69,6 +79,15 @@ const userSchema = new Schema<IUser>(
 
     isEmailVerified: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
+
+    twoFactor: {
+      enabled: { type: Boolean, default: false },
+      method: { type: String, enum: ['email', 'mobile', 'authenticator'] },
+      secret: { type: String, select: false },
+      tempSecret: { type: String, select: false },
+      backupCodes: { type: [String], select: false },
+      lastVerifiedAt: { type: Date },
+    },
 
     otp: { type: String, select: false },
     otpExpiry: { type: Date, select: false },

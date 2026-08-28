@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Skeleton } from '../../components/ui/Skeleton';
@@ -34,6 +34,8 @@ import {
 } from 'lucide-react';
 
 export function TenantPublicHome() {
+  const [searchParams] = useSearchParams();
+  const tenantParam = searchParams.get('tenant') || searchParams.get('app');
   const [activeFaq, setActiveFaq] = useState<string | null>(null);
   const [showAnnouncement, setShowAnnouncement] = useState(true);
   const [activeCycleStep, setActiveCycleStep] = useState<number>(0);
@@ -326,17 +328,17 @@ export function TenantPublicHome() {
                 Browse Services & Apply <ArrowRight className="w-4 h-4" />
               </Button>
             </a>
-            <Link to="/track">
+            <Link to={tenantParam ? `/track?tenant=${tenantParam}` : '/track'}>
               <Button variant="outline" size="lg" className="gap-2">
                 <Search className="w-4 h-4 text-accent" /> Track Application Status
               </Button>
             </Link>
-            <Link to="/queue-display">
+            <Link to={tenantParam ? `/queue-display?tenant=${tenantParam}` : '/queue-display'}>
               <Button variant="secondary" size="lg" className="gap-2">
                 <Monitor className="w-4 h-4 text-success" /> Live TV Queue Screen
               </Button>
             </Link>
-            <Link to="/portal">
+            <Link to={tenantParam ? `/portal?tenant=${tenantParam}` : '/portal'}>
               <Button variant="ghost" size="lg" className="gap-2 text-text-secondary hover:text-text-primary">
                 <Lock className="w-4 h-4" /> Customer Locker
               </Button>
@@ -435,7 +437,7 @@ export function TenantPublicHome() {
                   <div className="font-mono text-text-secondary">
                     Total Fee: <span className="text-text-primary font-bold">₹{service.fees.total}</span>
                   </div>
-                  <Link to={`/services/${service.slug}`}>
+                  <Link to={tenantParam ? `/services/${service.slug}?tenant=${tenantParam}` : `/services/${service.slug}`}>
                     <Button size="sm" className="gap-1">
                       Apply Now <ArrowRight className="w-3 h-3" />
                     </Button>
@@ -501,7 +503,13 @@ export function TenantPublicHome() {
                 <Button className="gap-2 shrink-0">{lifecycleSteps[activeCycleStep].cta}</Button>
               </a>
             ) : (
-              <Link to={lifecycleSteps[activeCycleStep].route}>
+              <Link
+                to={
+                  tenantParam && !lifecycleSteps[activeCycleStep].route.includes('?')
+                    ? `${lifecycleSteps[activeCycleStep].route}?tenant=${tenantParam}`
+                    : lifecycleSteps[activeCycleStep].route
+                }
+              >
                 <Button className="gap-2 shrink-0">
                   {lifecycleSteps[activeCycleStep].cta} <ExternalLink className="w-4 h-4" />
                 </Button>

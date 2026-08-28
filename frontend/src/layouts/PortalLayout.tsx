@@ -5,8 +5,10 @@ import { useAuth } from '../hooks/useAuth';
 import { cn } from '../lib/cn';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationApi } from '../services/notification.api';
+import { cmsApi } from '../services/cms.api';
 import { Skeleton } from '../components/ui/Skeleton';
 import { Bell, FileText, CreditCard, LayoutDashboard, Folder, User } from 'lucide-react';
+import { TwoFactorAlertBanner } from '../components/auth/TwoFactorAlertBanner';
 
 export function PortalLayout() {
   const { user } = useAuthStore();
@@ -16,6 +18,17 @@ export function PortalLayout() {
   const [userMenuOpen, setUserMenuOpen] = React.useState(false);
   const [bellOpen, setBellOpen] = React.useState(false);
   const queryClient = useQueryClient();
+
+  const searchParams = new URLSearchParams(location.search);
+  const tenantParam = searchParams.get('tenant') || searchParams.get('app');
+
+  // Fetch tenant / organization branding settings
+  const settingsQuery = useQuery({
+    queryKey: ['cmsSettings', tenantParam],
+    queryFn: cmsApi.getSettings,
+  });
+  const settings = settingsQuery.data;
+  const orgName = settings?.cscName || settings?.websiteName || 'Citizen Portal';
 
   const handleLogout = async () => {
     await logout.mutateAsync();
@@ -29,6 +42,7 @@ export function PortalLayout() {
     { label: 'Locker', path: '/portal/locker', icon: Folder },
     { label: 'Profile', path: '/portal/profile', icon: User },
   ];
+
 
   // Queries
   const unreadCountQuery = useQuery({
@@ -64,12 +78,28 @@ export function PortalLayout() {
 
   return (
     <div className="min-h-screen flex flex-col bg-bg text-text-primary">
+      {/* 2FA Setup Alert Banner */}
+      <TwoFactorAlertBanner />
+
       {/* Top Navbar */}
       <header className="h-16 border-b border-border bg-surface flex items-center justify-between px-6 shrink-0">
         <div className="flex items-center gap-6">
-          <Link to="/portal" className="flex items-center gap-2">
-            <span className="h-8 w-8 rounded-md bg-accent flex items-center justify-center font-bold text-white select-none">C</span>
-            <span className="font-bold tracking-tight text-text-primary font-sans select-none">CSC User Portal</span>
+          <Link to={location.search ? `/portal${location.search}` : '/portal'} className="flex items-center gap-2.5 group">
+            {settings?.logoUrl ? (
+              <img src={settings.logoUrl} alt={orgName} className="h-8 w-auto max-h-8 object-contain rounded" />
+            ) : (
+              <span className="h-8 w-8 rounded-lg bg-accent flex items-center justify-center font-bold text-white select-none font-mono text-sm shadow-sm">
+                {orgName.charAt(0).toUpperCase()}
+              </span>
+            )}
+            <div className="flex items-center gap-1.5">
+              <span className="font-extrabold text-sm sm:text-base tracking-tight text-text-primary font-sans group-hover:text-accent transition-colors select-none">
+                {orgName}
+              </span>
+              <span className="hidden sm:inline-block text-[9px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-surface-elevated border border-border text-text-secondary">
+                User Portal
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Nav Links */}
@@ -79,7 +109,7 @@ export function PortalLayout() {
               return (
                 <Link
                   key={link.path}
-                  to={link.path}
+                  to={location.search ? `${link.path}${location.search}` : link.path}
                   className={cn(
                     'px-3 py-2 text-sm font-medium rounded-md transition-colors',
                     isActive ? 'bg-surface-elevated text-text-primary font-semibold' : 'text-text-secondary hover:text-text-primary'
@@ -166,11 +196,16 @@ export function PortalLayout() {
               onClick={() => setUserMenuOpen(!userMenuOpen)}
               className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary focus:outline-none cursor-pointer select-none"
             >
-              <div className="h-8 w-8 rounded-full bg-border-strong flex items-center justify-center font-bold text-text-primary uppercase">
-                {user?.name?.substring(0, 2)}
+              <div className="h-8 w-8 rounded-full bg-border-strong flex items-center justify-center font-bold text-text-primary uppercase overflow-hidden ring-1 ring-border shrink-0">
+                {user?.avatar?.url ? (
+                  <img src={user.avatar.url} alt={user?.name || 'User'} className="h-full w-full object-cover" />
+                ) : (
+                  <span>{user?.name?.substring(0, 2)}</span>
+                )}
               </div>
               <span className="hidden md:block font-medium">{user?.name}</span>
             </button>
+
 
             {userMenuOpen && (
               <>
@@ -180,7 +215,7 @@ export function PortalLayout() {
                     Customer Account
                   </div>
                   <Link
-                    to="/portal/profile"
+                    to={location.search ? `/portal/profile${location.search}` : '/portal/profile'}
                     onClick={() => setUserMenuOpen(false)}
                     className="block px-4 py-2 text-sm text-text-secondary hover:bg-surface hover:text-text-primary"
                   >

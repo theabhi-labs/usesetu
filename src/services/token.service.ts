@@ -22,6 +22,26 @@ export const verifyRefreshToken = (token: string): JwtRefreshPayload => {
   return jwt.verify(token, env.JWT_REFRESH_SECRET) as JwtRefreshPayload;
 };
 
+export interface JwtTwoFactorPayload {
+  userId: string;
+  method?: string;
+  action: '2fa_challenge';
+}
+
+export const generateTwoFactorToken = (payload: JwtTwoFactorPayload): string => {
+  return jwt.sign(payload, env.JWT_ACCESS_SECRET, {
+    expiresIn: '10m',
+  } as SignOptions);
+};
+
+export const verifyTwoFactorToken = (token: string): JwtTwoFactorPayload => {
+  const decoded = jwt.verify(token, env.JWT_ACCESS_SECRET) as JwtTwoFactorPayload;
+  if (decoded.action !== '2fa_challenge') {
+    throw new Error('Invalid 2FA token action');
+  }
+  return decoded;
+};
+
 export const REFRESH_COOKIE_NAME = 'csc_refresh_token';
 
 export const refreshCookieOptions = {

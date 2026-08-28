@@ -32,7 +32,7 @@ export function Register() {
   const [generalError, setGeneralError] = React.useState<string | null>(null);
 
   const redirectUrl = searchParams.get('redirect');
-  const tenantContext = React.useMemo(() => getTenantContext(), [searchParams]);
+  const tenantContext = React.useMemo(() => getTenantContext(searchParams.toString()), [searchParams]);
 
   const {
     register,
@@ -66,11 +66,15 @@ export function Register() {
   const requirements = getPasswordRequirements(password);
   const strengthScore = requirements.filter((req) => req.met).length;
 
+  const tenantPrefix = tenantContext.tenantSlug ? `tenant=${encodeURIComponent(tenantContext.tenantSlug)}&` : '';
+  const tenantOnly = tenantContext.tenantSlug ? `?tenant=${encodeURIComponent(tenantContext.tenantSlug)}` : '';
+
   const onSubmit = async (data: RegisterFormValues) => {
     setGeneralError(null);
     try {
       await registerUser.mutateAsync(data);
-      const target = `/verify-otp?email=${encodeURIComponent(data.email)}${
+      const tenantArg = tenantContext.tenantSlug ? `&tenant=${encodeURIComponent(tenantContext.tenantSlug)}` : '';
+      const target = `/verify-otp?email=${encodeURIComponent(data.email)}${tenantArg}${
         redirectUrl ? `&redirect=${encodeURIComponent(redirectUrl)}` : tenantContext.isRootPlatform ? '&redirect=%2Fplatform' : ''
       }`;
       navigate(target);
@@ -87,10 +91,10 @@ export function Register() {
   };
 
   const loginTarget = redirectUrl
-    ? `/login?redirect=${encodeURIComponent(redirectUrl)}`
+    ? `/login?${tenantPrefix}redirect=${encodeURIComponent(redirectUrl)}`
     : tenantContext.isRootPlatform
     ? '/login?redirect=%2Fplatform'
-    : '/login';
+    : `/login${tenantOnly}`;
 
   return (
     <div className="space-y-6 text-left">

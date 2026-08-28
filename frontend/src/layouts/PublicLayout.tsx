@@ -238,32 +238,47 @@ export function PublicLayout() {
           <a href="#lifecycle" className="text-xs font-medium text-text-secondary hover:text-text-primary transition-colors">
             Process Cycle
           </a>
-          <Link to="/track" className="text-xs font-medium text-text-secondary hover:text-text-primary transition-colors flex items-center gap-1">
+          <Link
+            to={tenantParam ? `/track?tenant=${tenantParam}` : '/track'}
+            className="text-xs font-medium text-text-secondary hover:text-text-primary transition-colors flex items-center gap-1"
+          >
             <Search className="w-3.5 h-3.5" /> Track Application
           </Link>
-          <Link to="/queue-display" className="text-xs font-medium text-text-secondary hover:text-text-primary transition-colors flex items-center gap-1">
+          <Link
+            to={tenantParam ? `/queue-display?tenant=${tenantParam}` : '/queue-display'}
+            className="text-xs font-medium text-text-secondary hover:text-text-primary transition-colors flex items-center gap-1"
+          >
             <Monitor className="w-3.5 h-3.5" /> TV Display
           </Link>
 
           {headerLinks
             .filter((item) => item.isActive)
-            .map((item) => (
-              <Link
-                key={item.key}
-                to={item.url}
-                target={item.openInNewTab ? '_blank' : undefined}
-                rel={item.openInNewTab ? 'noopener noreferrer' : undefined}
-                className="text-xs font-medium text-text-secondary hover:text-text-primary transition-colors"
-              >
-                {item.label}
-              </Link>
-            ))}
+            .map((item) => {
+              const linkUrl = tenantParam && item.url.startsWith('/') && !item.url.includes('?')
+                ? `${item.url}?tenant=${tenantParam}`
+                : item.url;
+              return (
+                <Link
+                  key={item.key}
+                  to={linkUrl}
+                  target={item.openInNewTab ? '_blank' : undefined}
+                  rel={item.openInNewTab ? 'noopener noreferrer' : undefined}
+                  className="text-xs font-medium text-text-secondary hover:text-text-primary transition-colors"
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
         </nav>
 
         <div className="flex items-center gap-2.5">
           {isAuthenticated ? (
             <Link
-              to={user?.role === 'customer' ? '/portal' : '/admin'}
+              to={
+                user?.role === 'customer'
+                  ? tenantParam ? `/portal?tenant=${tenantParam}` : '/portal'
+                  : tenantParam ? `/admin?tenant=${tenantParam}` : '/admin'
+              }
               className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-accent text-white hover:bg-accent-hover transition-colors flex items-center gap-1.5 shadow-sm"
             >
               Dashboard <ArrowRight className="w-3.5 h-3.5" />
@@ -311,19 +326,47 @@ export function PublicLayout() {
             <div className="font-bold text-text-primary uppercase tracking-wider text-[11px] font-mono">Citizen Tools</div>
             <ul className="space-y-2">
               <li><a href="#services" className="hover:text-accent transition-colors">Citizen Service Catalog</a></li>
-              <li><Link to="/track" className="hover:text-accent transition-colors">Track Application Status</Link></li>
-              <li><Link to="/portal" className="hover:text-accent transition-colors">Customer Digital Portal</Link></li>
-              <li><Link to="/portal/locker" className="hover:text-accent transition-colors">Encrypted Document Locker</Link></li>
+              <li>
+                <Link to={tenantParam ? `/track?tenant=${tenantParam}` : '/track'} className="hover:text-accent transition-colors">
+                  Track Application Status
+                </Link>
+              </li>
+              <li>
+                <Link to={tenantParam ? `/portal?tenant=${tenantParam}` : '/portal'} className="hover:text-accent transition-colors">
+                  Customer Digital Portal
+                </Link>
+              </li>
+              <li>
+                <Link to={tenantParam ? `/portal/locker?tenant=${tenantParam}` : '/portal/locker'} className="hover:text-accent transition-colors">
+                  Encrypted Document Locker
+                </Link>
+              </li>
             </ul>
           </div>
 
           <div className="space-y-2.5">
             <div className="font-bold text-text-primary uppercase tracking-wider text-[11px] font-mono">Operator & Desks</div>
             <ul className="space-y-2">
-              <li><Link to="/admin/queue" className="hover:text-accent transition-colors">Queue Counter Operator</Link></li>
-              <li><Link to="/queue-display" className="hover:text-accent transition-colors">TV Lobby Queue Display</Link></li>
-              <li><Link to="/admin/requests" className="hover:text-accent transition-colors">Requests & Workflow Center</Link></li>
-              <li><Link to="/admin" className="hover:text-accent transition-colors">Admin Console</Link></li>
+              <li>
+                <Link to={tenantParam ? `/admin/queue?tenant=${tenantParam}` : '/admin/queue'} className="hover:text-accent transition-colors">
+                  Queue Counter Operator
+                </Link>
+              </li>
+              <li>
+                <Link to={tenantParam ? `/queue-display?tenant=${tenantParam}` : '/queue-display'} className="hover:text-accent transition-colors">
+                  TV Lobby Queue Display
+                </Link>
+              </li>
+              <li>
+                <Link to={tenantParam ? `/admin/requests?tenant=${tenantParam}` : '/admin/requests'} className="hover:text-accent transition-colors">
+                  Requests & Workflow Center
+                </Link>
+              </li>
+              <li>
+                <Link to={tenantParam ? `/admin?tenant=${tenantParam}` : '/admin'} className="hover:text-accent transition-colors">
+                  Admin Console
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -335,8 +378,16 @@ export function PublicLayout() {
                   <Sparkles className="w-3 h-3" /> UseSetu SaaS Platform
                 </Link>
               </li>
-              <li><Link to="/pages/terms-and-conditions" className="hover:text-accent transition-colors">Terms of Service</Link></li>
-              <li><Link to="/pages/privacy-policy" className="hover:text-accent transition-colors">Privacy Policy</Link></li>
+              <li>
+                <Link to={tenantParam ? `/pages/terms-and-conditions?tenant=${tenantParam}` : '/pages/terms-and-conditions'} className="hover:text-accent transition-colors">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link to={tenantParam ? `/pages/privacy-policy?tenant=${tenantParam}` : '/pages/privacy-policy'} className="hover:text-accent transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

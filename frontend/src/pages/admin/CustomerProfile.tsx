@@ -62,8 +62,9 @@ export function CustomerProfile() {
     );
   }
 
-  const getCustomerId = (id: string) => {
-    return 'CUST-' + id.substring(18).toUpperCase();
+  const getCustomerId = (id?: string) => {
+    if (!id) return 'CUST-000000';
+    return 'CUST-' + (id.length > 6 ? id.substring(id.length - 6) : id).toUpperCase();
   };
 
   // Filter currently active applications

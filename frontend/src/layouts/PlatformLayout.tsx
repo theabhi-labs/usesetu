@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { ApplicationSwitcher } from '../components/platform/ApplicationSwitcher';
+import { TwoFactorAlertBanner } from '../components/auth/TwoFactorAlertBanner';
 import { platformApi } from '../services/platform.api';
 import type { NotificationsResponse } from '../services/platform.api';
 
@@ -62,6 +63,9 @@ export const PlatformLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-orange-500 selection:text-white">
+      {/* 2FA Setup Alert Banner */}
+      <TwoFactorAlertBanner />
+
       {/* Top Navigation Header */}
       <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-xl border-b border-slate-800/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">

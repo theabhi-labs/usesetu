@@ -12,8 +12,10 @@ export function useAuth() {
   const loginMutation = useMutation({
     mutationFn: authApi.login,
     onSuccess: (data) => {
-      setSession(data.user, data.accessToken);
-      addToast('Logged in successfully', 'success');
+      if (data.user && data.accessToken) {
+        setSession(data.user, data.accessToken);
+        addToast('Logged in successfully', 'success');
+      }
     },
   });
 
@@ -27,8 +29,10 @@ export function useAuth() {
   const verifyOtpMutation = useMutation({
     mutationFn: authApi.verifyOtp,
     onSuccess: (data) => {
-      setSession(data.user, data.accessToken);
-      addToast('Account verified and logged in', 'success');
+      if (data.user && data.accessToken) {
+        setSession(data.user, data.accessToken);
+        addToast('Account verified and logged in', 'success');
+      }
     },
   });
 

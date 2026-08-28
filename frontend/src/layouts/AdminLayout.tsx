@@ -24,6 +24,7 @@ import {
   Cpu,
 } from 'lucide-react';
 import { getTenantContext } from '../lib/tenant';
+import { TwoFactorAlertBanner } from '../components/auth/TwoFactorAlertBanner';
 
 export function AdminLayout() {
   const { user } = useAuthStore();
@@ -168,16 +169,38 @@ export function AdminLayout() {
         </nav>
 
         {/* Sidebar Footer */}
-        <div className="p-3 border-t border-border space-y-1">
+        <div className="p-2 border-t border-border space-y-1.5">
+          {/* UseSetu Profile Platform Hub Link */}
+          <Link
+            to={location.search ? `/admin/usesetu-profile${location.search}` : '/admin/usesetu-profile'}
+            className={cn(
+              'flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold rounded-lg transition-all',
+              location.pathname === '/admin/usesetu-profile'
+                ? 'bg-accent text-white shadow-sm'
+                : 'bg-accent/10 text-accent hover:bg-accent/20 border border-accent/25'
+            )}
+            title={sidebarCollapsed ? 'UseSetu Profile' : undefined}
+          >
+            <div className="w-5 h-5 rounded-md bg-gradient-to-br from-accent to-accent-hover text-white flex items-center justify-center font-mono font-bold text-[11px] shrink-0 shadow-xs">
+              U
+            </div>
+            {!sidebarCollapsed && (
+              <div className="flex flex-col text-left overflow-hidden min-w-0">
+                <span className="truncate leading-tight font-sans font-bold">UseSetu Profile</span>
+                <span className="text-[9px] text-text-tertiary font-mono tracking-tight truncate">Platform & Cloud OS</span>
+              </div>
+            )}
+          </Link>
+
           <button
             onClick={handleLogout}
             className={cn(
-              'w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-error hover:bg-error/10 rounded-md transition-colors cursor-pointer',
+              'w-full flex items-center gap-3 px-3 py-1.5 text-xs font-medium text-error hover:bg-error/10 rounded-md transition-colors cursor-pointer',
               sidebarCollapsed ? 'justify-center' : ''
             )}
             title={sidebarCollapsed ? 'Logout' : undefined}
           >
-            <LogOut size={18} className="shrink-0" />
+            <LogOut size={16} className="shrink-0" />
             {!sidebarCollapsed && <span>Logout</span>}
           </button>
         </div>
@@ -185,6 +208,9 @@ export function AdminLayout() {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 2FA Setup Alert Banner */}
+        <TwoFactorAlertBanner />
+
         {/* Topbar */}
         <header className="h-16 border-b border-border bg-surface flex items-center justify-between px-6 z-10">
           <div className="flex items-center gap-4">
@@ -279,11 +305,18 @@ export function AdminLayout() {
                       Logged in as <span className="text-text-secondary font-mono">{user?.role}</span>
                     </div>
                     <Link
-                      to="/portal/profile"
+                      to={location.search ? `/admin/usesetu-profile${location.search}` : '/admin/usesetu-profile'}
+                      onClick={() => setUserMenuOpen(false)}
+                      className="block px-4 py-2 text-sm text-text-secondary hover:bg-surface hover:text-text-primary font-medium"
+                    >
+                      UseSetu Profile
+                    </Link>
+                    <Link
+                      to={location.search ? `/admin/cms${location.search}` : '/admin/cms'}
                       onClick={() => setUserMenuOpen(false)}
                       className="block px-4 py-2 text-sm text-text-secondary hover:bg-surface hover:text-text-primary"
                     >
-                      Settings
+                      CMS & Settings
                     </Link>
                     <button
                       onClick={() => {

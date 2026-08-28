@@ -17,6 +17,10 @@ interface SendEmailParams {
 
 export const sendEmail = async ({ to, subject, htmlContent }: SendEmailParams): Promise<void> => {
   try {
+    if (!env.BREVO_API_KEY || env.BREVO_API_KEY.startsWith('dummy') || env.BREVO_API_KEY.includes('your_')) {
+      logger.info(`[LOCAL DEV EMAIL] To: ${to.map((t) => t.email).join(', ')} | Subject: ${subject}`);
+      return;
+    }
     await transactionalEmailsApi.sendTransacEmail({
       sender: { email: env.BREVO_SENDER_EMAIL, name: env.BREVO_SENDER_NAME },
       to,
@@ -25,6 +29,10 @@ export const sendEmail = async ({ to, subject, htmlContent }: SendEmailParams): 
     });
   } catch (error) {
     logger.error(`Brevo email failed: ${(error as Error).message}`);
+    if (env.NODE_ENV === 'development' || env.NODE_ENV === 'test') {
+      logger.warn('Suppressed email error in non-production mode to permit local registration & testing.');
+      return;
+    }
     throw ApiError.internal('Failed to send email. Please try again later.');
   }
 };
@@ -40,6 +48,22 @@ export const sendOtpEmail = async (email: string, name: string, otp: string): Pr
         <p>Your One-Time Password (OTP) is:</p>
         <div style="font-size: 28px; font-weight: bold; letter-spacing: 4px; color:#FF6700; margin: 16px 0;">${otp}</div>
         <p>This code expires in ${env.OTP_EXPIRY_MINUTES} minutes. Do not share it with anyone.</p>
+      </div>
+    `,
+  });
+};
+
+export const sendTwoFactorOtpEmail = async (email: string, name: string, otp: string): Promise<void> => {
+  await sendEmail({
+    to: [{ email, name }],
+    subject: 'Your 2FA Security Verification Code - UseSetu',
+    htmlContent: `
+      <div style="font-family: Arial, sans-serif; max-width: 480px; margin: auto; background:#0d0d0d; color:#fff; padding:24px; border-radius:8px;">
+        <h2 style="color:#FF6700;">Two-Factor Authentication Code</h2>
+        <p>Hi ${name},</p>
+        <p>Your Two-Factor Authentication (2FA) verification code is:</p>
+        <div style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color:#FF6700; margin: 20px 0; text-align: center; font-family: monospace;">${otp}</div>
+        <p>This code expires in 10 minutes. If you did not request this login attempt or 2FA setup, please secure your account immediately.</p>
       </div>
     `,
   });
