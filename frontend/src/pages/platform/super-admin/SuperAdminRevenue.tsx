@@ -115,8 +115,11 @@ export const SuperAdminRevenue: React.FC = () => {
           <span className="text-xs text-text-tertiary">Live Razorpay ledger</span>
         </div>
 
-        {data?.recentTransactions.length === 0 ? (
-          <div className="p-8 text-center text-xs text-text-tertiary">No payment transactions recorded yet.</div>
+        {(!data?.recentTransactions || data.recentTransactions.length === 0) ? (
+          <div className="p-12 text-center text-xs text-text-tertiary">
+            <CreditCard className="w-8 h-8 text-text-tertiary/50 mx-auto mb-2" />
+            No payment transactions recorded yet. Live Razorpay transactions will appear here automatically when centers subscribe to paid plans.
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
