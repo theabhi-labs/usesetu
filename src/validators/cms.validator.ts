@@ -71,6 +71,33 @@ export const updateWebsiteSettingSchema = z.object({
         autoPlayIntervalSeconds: z.number().min(2).max(60).optional(),
       })
       .optional(),
+    sideDisplays: z
+      .object({
+        enabled: z.boolean().optional(),
+        leftWing: z
+          .object({
+            enabled: z.boolean().optional(),
+            type: z.enum(['banner', 'legal_pages', 'custom_html']).optional(),
+            title: z.string().optional(),
+            bannerImageUrl: z.string().optional(),
+            bannerLink: z.string().optional(),
+            customHtml: z.string().optional(),
+            showLegalPagesList: z.boolean().optional(),
+          })
+          .optional(),
+        rightWing: z
+          .object({
+            enabled: z.boolean().optional(),
+            type: z.enum(['banner', 'legal_pages', 'custom_html']).optional(),
+            title: z.string().optional(),
+            bannerImageUrl: z.string().optional(),
+            bannerLink: z.string().optional(),
+            customHtml: z.string().optional(),
+            showLegalPagesList: z.boolean().optional(),
+          })
+          .optional(),
+      })
+      .optional(),
   }),
 });
 

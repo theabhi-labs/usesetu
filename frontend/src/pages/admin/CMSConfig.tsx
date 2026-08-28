@@ -14,17 +14,36 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { MediaPickerModal } from '../../components/common/MediaPickerModal';
 import { Table, THead, TBody, TR, TH, TD } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
-import { ArrowUp, ArrowDown, Edit2, Trash2, Plus, Monitor, AlertOctagon, FolderOpen, Sparkles, ExternalLink } from 'lucide-react';
+import {
+  ArrowUp,
+  ArrowDown,
+  Edit2,
+  Trash2,
+  Plus,
+  Monitor,
+  AlertOctagon,
+  FolderOpen,
+  Sparkles,
+  ExternalLink,
+  Layout,
+  PanelLeft,
+  PanelRight,
+  Code2,
+  Image as ImageIcon,
+  FileText,
+} from 'lucide-react';
 
 export function CMSConfig() {
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const tenantParam = searchParams.get('tenant') || searchParams.get('app');
-  const [activeTab, setActiveTab] = useState<'settings' | 'menus' | 'pages' | 'banners' | 'faqs' | 'announcements'>('settings');
+  const [activeTab, setActiveTab] = useState<'settings' | 'menus' | 'pages' | 'banners' | 'faqs' | 'announcements' | 'side_displays'>('settings');
 
   // Media Picker Trigger State
   const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
-  const [mediaPickerTarget, setMediaPickerTarget] = useState<'settings_logo' | 'banner' | 'page' | 'hero_bg' | null>(null);
+  const [mediaPickerTarget, setMediaPickerTarget] = useState<
+    'settings_logo' | 'banner' | 'page' | 'hero_bg' | 'left_wing_banner' | 'right_wing_banner' | null
+  >(null);
 
   // Settings states
   const [websiteName, setWebsiteName] = useState('');
@@ -46,6 +65,26 @@ export function CMSConfig() {
   const [heroOverlayOpacity, setHeroOverlayOpacity] = useState(0.65);
   const [heroAutoPlaySeconds, setHeroAutoPlaySeconds] = useState(5);
   const [customHeroImageUrl, setCustomHeroImageUrl] = useState('');
+
+  // Side Displays & Wings State
+  const [sideDisplaysEnabled, setSideDisplaysEnabled] = useState(false);
+  // Left Wing
+  const [leftWingEnabled, setLeftWingEnabled] = useState(false);
+  const [leftWingType, setLeftWingType] = useState<'banner' | 'legal_pages' | 'custom_html'>('banner');
+  const [leftWingTitle, setLeftWingTitle] = useState('Festival Greetings');
+  const [leftWingBannerUrl, setLeftWingBannerUrl] = useState('');
+  const [leftWingBannerLink, setLeftWingBannerLink] = useState('');
+  const [leftWingCustomHtml, setLeftWingCustomHtml] = useState('');
+  const [leftWingShowLegal, setLeftWingShowLegal] = useState(false);
+
+  // Right Wing
+  const [rightWingEnabled, setRightWingEnabled] = useState(false);
+  const [rightWingType, setRightWingType] = useState<'banner' | 'legal_pages' | 'custom_html'>('legal_pages');
+  const [rightWingTitle, setRightWingTitle] = useState('Important Links');
+  const [rightWingBannerUrl, setRightWingBannerUrl] = useState('');
+  const [rightWingBannerLink, setRightWingBannerLink] = useState('');
+  const [rightWingCustomHtml, setRightWingCustomHtml] = useState('');
+  const [rightWingShowLegal, setRightWingShowLegal] = useState(true);
 
   // Menus tab states
   const [menuLocation, setMenuLocation] = useState<'header' | 'footer' | 'sidebar'>('header');
@@ -124,6 +163,23 @@ export function CMSConfig() {
       setHeroBgImages(cfg.heroBackground?.images || []);
       setHeroOverlayOpacity(cfg.heroBackground?.overlayOpacity ?? 0.65);
       setHeroAutoPlaySeconds(cfg.heroBackground?.autoPlayIntervalSeconds ?? 5);
+
+      setSideDisplaysEnabled(cfg.sideDisplays?.enabled || false);
+      setLeftWingEnabled(cfg.sideDisplays?.leftWing?.enabled || false);
+      setLeftWingType(cfg.sideDisplays?.leftWing?.type || 'banner');
+      setLeftWingTitle(cfg.sideDisplays?.leftWing?.title || '');
+      setLeftWingBannerUrl(cfg.sideDisplays?.leftWing?.bannerImageUrl || '');
+      setLeftWingBannerLink(cfg.sideDisplays?.leftWing?.bannerLink || '');
+      setLeftWingCustomHtml(cfg.sideDisplays?.leftWing?.customHtml || '');
+      setLeftWingShowLegal(cfg.sideDisplays?.leftWing?.showLegalPagesList || false);
+
+      setRightWingEnabled(cfg.sideDisplays?.rightWing?.enabled || false);
+      setRightWingType(cfg.sideDisplays?.rightWing?.type || 'legal_pages');
+      setRightWingTitle(cfg.sideDisplays?.rightWing?.title || '');
+      setRightWingBannerUrl(cfg.sideDisplays?.rightWing?.bannerImageUrl || '');
+      setRightWingBannerLink(cfg.sideDisplays?.rightWing?.bannerLink || '');
+      setRightWingCustomHtml(cfg.sideDisplays?.rightWing?.customHtml || '');
+      setRightWingShowLegal(cfg.sideDisplays?.rightWing?.showLegalPagesList ?? true);
     }
   }, [settingsQuery.data]);
 
@@ -281,8 +337,8 @@ export function CMSConfig() {
     },
   });
 
-  const handleSaveSettings = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveSettings = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     saveSettingsMutation.mutate({
       websiteName,
       cscName,
@@ -295,6 +351,27 @@ export function CMSConfig() {
         images: heroBgImages,
         overlayOpacity: Number(heroOverlayOpacity),
         autoPlayIntervalSeconds: Number(heroAutoPlaySeconds),
+      },
+      sideDisplays: {
+        enabled: sideDisplaysEnabled,
+        leftWing: {
+          enabled: leftWingEnabled,
+          type: leftWingType,
+          title: leftWingTitle,
+          bannerImageUrl: leftWingBannerUrl,
+          bannerLink: leftWingBannerLink,
+          customHtml: leftWingCustomHtml,
+          showLegalPagesList: leftWingShowLegal,
+        },
+        rightWing: {
+          enabled: rightWingEnabled,
+          type: rightWingType,
+          title: rightWingTitle,
+          bannerImageUrl: rightWingBannerUrl,
+          bannerLink: rightWingBannerLink,
+          customHtml: rightWingCustomHtml,
+          showLegalPagesList: rightWingShowLegal,
+        },
       },
     });
   };
@@ -398,6 +475,8 @@ export function CMSConfig() {
         setHeroBgImages((prev) => [...prev, url]);
       }
     }
+    if (mediaPickerTarget === 'left_wing_banner') setLeftWingBannerUrl(url);
+    if (mediaPickerTarget === 'right_wing_banner') setRightWingBannerUrl(url);
     setMediaPickerTarget(null);
   };
 
@@ -410,7 +489,7 @@ export function CMSConfig() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-border text-xs select-none">
+      <div className="flex border-b border-border text-xs select-none overflow-x-auto">
         {[
           { key: 'settings', label: 'Site Settings' },
           { key: 'menus', label: 'Menus Editor' },
@@ -418,6 +497,7 @@ export function CMSConfig() {
           { key: 'banners', label: 'Hero Banners' },
           { key: 'faqs', label: 'FAQs CRUD' },
           { key: 'announcements', label: 'Announcements' },
+          { key: 'side_displays', label: 'Side Displays & Wings' },
         ].map((tab) => (
           <button
             key={tab.key}
@@ -1135,6 +1215,341 @@ export function CMSConfig() {
               })}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Side Displays & Wings Tab */}
+      {activeTab === 'side_displays' && (
+        <div className="space-y-6 text-left text-xs">
+          {/* Header & Global Switch */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
+            <div>
+              <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider flex items-center gap-2">
+                <Layout size={16} className="text-accent" /> Hero Side Displays & Wings
+              </h3>
+              <p className="text-[11px] text-text-secondary mt-0.5">
+                Display promotional festival greeting banners (PNG, JPG, JPEG), custom HTML widgets, or quick legal pages lists on the Left and Right sides of your Citizen Portal Hero section.
+              </p>
+            </div>
+            <label className="flex items-center gap-2.5 cursor-pointer select-none bg-surface-elevated px-4 py-2.5 rounded-xl border border-border shrink-0 shadow-sm">
+              <input
+                type="checkbox"
+                checked={sideDisplaysEnabled}
+                onChange={(e) => setSideDisplaysEnabled(e.target.checked)}
+                className="rounded border-border text-accent focus:ring-accent w-4 h-4 cursor-pointer"
+              />
+              <span className="text-xs font-bold text-text-primary">Enable Side Displays on Portal</span>
+            </label>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* 👈 LEFT DISPLAY WING */}
+            <Card className={`p-5 space-y-4 border transition-all ${leftWingEnabled ? 'border-accent/40 bg-surface shadow-sm' : 'border-border opacity-70 bg-surface/50'}`}>
+              <div className="flex items-center justify-between border-b border-border pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-accent/10 text-accent flex items-center justify-center font-bold">
+                    <PanelLeft size={16} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm text-text-primary">Left Display Wing</h4>
+                    <span className="text-[10px] text-text-tertiary">Positioned on the Left side of Hero</span>
+                  </div>
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={leftWingEnabled}
+                    onChange={(e) => setLeftWingEnabled(e.target.checked)}
+                    className="rounded border-border text-accent focus:ring-accent w-4 h-4 cursor-pointer"
+                  />
+                  <span className="text-xs font-bold text-text-secondary">Active Left Wing</span>
+                </label>
+              </div>
+
+              {leftWingEnabled && (
+                <div className="space-y-4 pt-1">
+                  <div className="space-y-1.5">
+                    <label className="font-bold text-text-secondary select-none">Wing Title / Heading</label>
+                    <Input
+                      value={leftWingTitle}
+                      onChange={(e) => setLeftWingTitle(e.target.value)}
+                      placeholder="e.g. Festival Greetings or Special Notice"
+                    />
+                  </div>
+
+                  {/* Widget Type Selector */}
+                  <div className="space-y-1.5">
+                    <label className="font-bold text-text-secondary select-none">Content Type</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: 'banner', label: 'Image Banner', icon: ImageIcon },
+                        { id: 'legal_pages', label: 'Legal Pages List', icon: FileText },
+                        { id: 'custom_html', label: 'Custom HTML', icon: Code2 },
+                      ].map((t) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => setLeftWingType(t.id as any)}
+                          className={`p-2.5 rounded-lg border text-center transition-all cursor-pointer flex flex-col items-center gap-1 ${
+                            leftWingType === t.id
+                              ? 'border-accent bg-accent/10 text-accent font-bold shadow-sm'
+                              : 'border-border bg-surface hover:bg-surface-elevated text-text-secondary'
+                          }`}
+                        >
+                          <t.icon size={15} />
+                          <span className="text-[11px]">{t.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Type 1: Image Banner */}
+                  {leftWingType === 'banner' && (
+                    <div className="space-y-3 p-3.5 rounded-xl bg-surface-elevated/40 border border-border">
+                      <div className="space-y-1.5">
+                        <label className="font-bold text-text-secondary select-none">Banner Image Link (PNG, JPG, JPEG)</label>
+                        <div className="flex gap-2">
+                          <Input
+                            value={leftWingBannerUrl}
+                            onChange={(e) => setLeftWingBannerUrl(e.target.value)}
+                            placeholder="https://... or pick from Media Assets"
+                          />
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => {
+                              setMediaPickerTarget('left_wing_banner');
+                              setIsMediaPickerOpen(true);
+                            }}
+                            className="shrink-0 text-xs"
+                          >
+                            <FolderOpen size={14} /> Media Assets
+                          </Button>
+                        </div>
+                      </div>
+
+                      {leftWingBannerUrl && (
+                        <div className="rounded-lg overflow-hidden border border-border aspect-video max-h-36 bg-bg">
+                          <img src={leftWingBannerUrl} alt="Left Wing Banner" className="w-full h-full object-cover" />
+                        </div>
+                      )}
+
+                      <div className="space-y-1.5">
+                        <label className="font-bold text-text-secondary select-none">Click Destination URL (Optional)</label>
+                        <Input
+                          value={leftWingBannerLink}
+                          onChange={(e) => setLeftWingBannerLink(e.target.value)}
+                          placeholder="e.g. /pages/mera-work or https://..."
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Type 2: Legal Pages List */}
+                  {leftWingType === 'legal_pages' && (
+                    <div className="space-y-3 p-3.5 rounded-xl bg-surface-elevated/40 border border-border">
+                      <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={leftWingShowLegal}
+                          onChange={(e) => setLeftWingShowLegal(e.target.checked)}
+                          className="rounded border-border text-accent focus:ring-accent w-4 h-4 cursor-pointer"
+                        />
+                        <span className="text-xs font-bold text-text-primary">
+                          Automatically show all published legal / custom pages ({pagesList.length} pages)
+                        </span>
+                      </label>
+                      <p className="text-[11px] text-text-tertiary">
+                        Citizens can click any page link directly from the Left Wing widget to view your published documents.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Type 3: Custom HTML */}
+                  {leftWingType === 'custom_html' && (
+                    <div className="space-y-2 p-3.5 rounded-xl bg-surface-elevated/40 border border-border">
+                      <div className="flex justify-between items-center">
+                        <label className="font-bold text-text-secondary select-none">Custom HTML / Festive Greeting Code</label>
+                        <button
+                          type="button"
+                          onClick={() => setLeftWingCustomHtml('<div class="p-4 text-center bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl text-white font-bold">✨ Happy Festival Mubarak! ✨<p class="text-xs mt-1 font-normal opacity-90">Visit our Kendra for digital certificate and token services.</p></div>')}
+                          className="text-accent text-[10px] hover:underline cursor-pointer"
+                        >
+                          Insert Greeting Template
+                        </button>
+                      </div>
+                      <Textarea
+                        value={leftWingCustomHtml}
+                        onChange={(e) => setLeftWingCustomHtml(e.target.value)}
+                        rows={4}
+                        placeholder="<div class='p-3 text-center'><h3>Festival Greeting</h3></div>"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </Card>
+
+            {/* 👉 RIGHT DISPLAY WING */}
+            <Card className={`p-5 space-y-4 border transition-all ${rightWingEnabled ? 'border-accent/40 bg-surface shadow-sm' : 'border-border opacity-70 bg-surface/50'}`}>
+              <div className="flex items-center justify-between border-b border-border pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-accent/10 text-accent flex items-center justify-center font-bold">
+                    <PanelRight size={16} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm text-text-primary">Right Display Wing</h4>
+                    <span className="text-[10px] text-text-tertiary">Positioned on the Right side of Hero</span>
+                  </div>
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={rightWingEnabled}
+                    onChange={(e) => setRightWingEnabled(e.target.checked)}
+                    className="rounded border-border text-accent focus:ring-accent w-4 h-4 cursor-pointer"
+                  />
+                  <span className="text-xs font-bold text-text-secondary">Active Right Wing</span>
+                </label>
+              </div>
+
+              {rightWingEnabled && (
+                <div className="space-y-4 pt-1">
+                  <div className="space-y-1.5">
+                    <label className="font-bold text-text-secondary select-none">Wing Title / Heading</label>
+                    <Input
+                      value={rightWingTitle}
+                      onChange={(e) => setRightWingTitle(e.target.value)}
+                      placeholder="e.g. Important Links or Quick Info"
+                    />
+                  </div>
+
+                  {/* Widget Type Selector */}
+                  <div className="space-y-1.5">
+                    <label className="font-bold text-text-secondary select-none">Content Type</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: 'banner', label: 'Image Banner', icon: ImageIcon },
+                        { id: 'legal_pages', label: 'Legal Pages List', icon: FileText },
+                        { id: 'custom_html', label: 'Custom HTML', icon: Code2 },
+                      ].map((t) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => setRightWingType(t.id as any)}
+                          className={`p-2.5 rounded-lg border text-center transition-all cursor-pointer flex flex-col items-center gap-1 ${
+                            rightWingType === t.id
+                              ? 'border-accent bg-accent/10 text-accent font-bold shadow-sm'
+                              : 'border-border bg-surface hover:bg-surface-elevated text-text-secondary'
+                          }`}
+                        >
+                          <t.icon size={15} />
+                          <span className="text-[11px]">{t.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Type 1: Image Banner */}
+                  {rightWingType === 'banner' && (
+                    <div className="space-y-3 p-3.5 rounded-xl bg-surface-elevated/40 border border-border">
+                      <div className="space-y-1.5">
+                        <label className="font-bold text-text-secondary select-none">Banner Image Link (PNG, JPG, JPEG)</label>
+                        <div className="flex gap-2">
+                          <Input
+                            value={rightWingBannerUrl}
+                            onChange={(e) => setRightWingBannerUrl(e.target.value)}
+                            placeholder="https://... or pick from Media Assets"
+                          />
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => {
+                              setMediaPickerTarget('right_wing_banner');
+                              setIsMediaPickerOpen(true);
+                            }}
+                            className="shrink-0 text-xs"
+                          >
+                            <FolderOpen size={14} /> Media Assets
+                          </Button>
+                        </div>
+                      </div>
+
+                      {rightWingBannerUrl && (
+                        <div className="rounded-lg overflow-hidden border border-border aspect-video max-h-36 bg-bg">
+                          <img src={rightWingBannerUrl} alt="Right Wing Banner" className="w-full h-full object-cover" />
+                        </div>
+                      )}
+
+                      <div className="space-y-1.5">
+                        <label className="font-bold text-text-secondary select-none">Click Destination URL (Optional)</label>
+                        <Input
+                          value={rightWingBannerLink}
+                          onChange={(e) => setRightWingBannerLink(e.target.value)}
+                          placeholder="e.g. /pages/terms or https://..."
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Type 2: Legal Pages List */}
+                  {rightWingType === 'legal_pages' && (
+                    <div className="space-y-3 p-3.5 rounded-xl bg-surface-elevated/40 border border-border">
+                      <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={rightWingShowLegal}
+                          onChange={(e) => setRightWingShowLegal(e.target.checked)}
+                          className="rounded border-border text-accent focus:ring-accent w-4 h-4 cursor-pointer"
+                        />
+                        <span className="text-xs font-bold text-text-primary">
+                          Automatically show all published legal / custom pages ({pagesList.length} pages)
+                        </span>
+                      </label>
+                      <p className="text-[11px] text-text-tertiary">
+                        Citizens can click any page link directly from the Right Wing widget to view your published documents.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Type 3: Custom HTML */}
+                  {rightWingType === 'custom_html' && (
+                    <div className="space-y-2 p-3.5 rounded-xl bg-surface-elevated/40 border border-border">
+                      <div className="flex justify-between items-center">
+                        <label className="font-bold text-text-secondary select-none">Custom HTML / Festive Greeting Code</label>
+                        <button
+                          type="button"
+                          onClick={() => setRightWingCustomHtml('<div class="p-4 text-center bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl text-white font-bold">🎉 Special Mubarak & Greetings! 🎉<p class="text-xs mt-1 font-normal opacity-90">All Kendra online services are running fast and active.</p></div>')}
+                          className="text-accent text-[10px] hover:underline cursor-pointer"
+                        >
+                          Insert Greeting Template
+                        </button>
+                      </div>
+                      <Textarea
+                        value={rightWingCustomHtml}
+                        onChange={(e) => setRightWingCustomHtml(e.target.value)}
+                        rows={4}
+                        placeholder="<div class='p-3 text-center'><h3>Custom Widget</h3></div>"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </Card>
+          </div>
+
+          {/* Save Action Footer */}
+          <div className="flex justify-end pt-3">
+            <Button
+              type="button"
+              onClick={() => handleSaveSettings()}
+              disabled={saveSettingsMutation.isPending}
+              className="gap-2 shadow-lg shadow-accent/20"
+            >
+              <Sparkles size={14} />
+              {saveSettingsMutation.isPending ? 'Saving Displays...' : 'Save Side Displays Configuration'}
+            </Button>
+          </div>
         </div>
       )}
 

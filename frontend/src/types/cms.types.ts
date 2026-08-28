@@ -19,6 +19,21 @@ export interface WebsiteSetting {
     overlayOpacity: number;
     autoPlayIntervalSeconds: number;
   };
+  sideDisplays?: {
+    enabled: boolean;
+    leftWing?: SideWingConfig;
+    rightWing?: SideWingConfig;
+  };
+}
+
+export interface SideWingConfig {
+  enabled: boolean;
+  type: 'banner' | 'legal_pages' | 'custom_html';
+  title?: string;
+  bannerImageUrl?: string;
+  bannerLink?: string;
+  customHtml?: string;
+  showLegalPagesList?: boolean;
 }
 
 export interface MenuItem {

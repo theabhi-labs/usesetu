@@ -84,6 +84,28 @@ export interface IWebsiteSetting extends Omit<Document, '_id'> {
     autoPlayIntervalSeconds: number;
   };
 
+  sideDisplays?: {
+    enabled: boolean;
+    leftWing?: {
+      enabled: boolean;
+      type: 'banner' | 'legal_pages' | 'custom_html';
+      title?: string;
+      bannerImageUrl?: string;
+      bannerLink?: string;
+      customHtml?: string;
+      showLegalPagesList?: boolean;
+    };
+    rightWing?: {
+      enabled: boolean;
+      type: 'banner' | 'legal_pages' | 'custom_html';
+      title?: string;
+      bannerImageUrl?: string;
+      bannerLink?: string;
+      customHtml?: string;
+      showLegalPagesList?: boolean;
+    };
+  };
+
   updatedBy?: mongoose.Types.ObjectId;
   updatedAt: Date;
   createdAt: Date;
@@ -173,6 +195,28 @@ const websiteSettingSchema = new Schema<IWebsiteSetting>(
       images: { type: [String], default: [] },
       overlayOpacity: { type: Number, default: 0.65 },
       autoPlayIntervalSeconds: { type: Number, default: 5 },
+    },
+
+    sideDisplays: {
+      enabled: { type: Boolean, default: false },
+      leftWing: {
+        enabled: { type: Boolean, default: false },
+        type: { type: String, enum: ['banner', 'legal_pages', 'custom_html'], default: 'banner' },
+        title: { type: String, default: '' },
+        bannerImageUrl: { type: String, default: '' },
+        bannerLink: { type: String, default: '' },
+        customHtml: { type: String, default: '' },
+        showLegalPagesList: { type: Boolean, default: false },
+      },
+      rightWing: {
+        enabled: { type: Boolean, default: false },
+        type: { type: String, enum: ['banner', 'legal_pages', 'custom_html'], default: 'banner' },
+        title: { type: String, default: '' },
+        bannerImageUrl: { type: String, default: '' },
+        bannerLink: { type: String, default: '' },
+        customHtml: { type: String, default: '' },
+        showLegalPagesList: { type: Boolean, default: false },
+      },
     },
 
     updatedBy: { type: Schema.Types.ObjectId, ref: 'User' },

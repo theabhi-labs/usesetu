@@ -56,11 +56,24 @@ export function TenantPublicHome() {
     queryFn: () => cmsApi.getPublicFaqs(),
   });
 
+  const pagesQuery = useQuery({
+    queryKey: ['publicPagesList', tenantParam],
+    queryFn: () => cmsApi.getPages(1, 50),
+  });
+
   const settings = settingsQuery.data;
   const announcements = announcementsQuery.data || [];
   const categories = categoriesQuery.data || [];
   const allServices = publicServicesQuery.data || [];
   const faqs = faqsQuery.data || [];
+  const pagesList: any[] = Array.isArray(pagesQuery.data)
+    ? pagesQuery.data
+    : (pagesQuery.data as any)?.pages || [];
+
+  const sideDisplays = settings?.sideDisplays;
+  const isSideDisplaysActive = sideDisplays?.enabled;
+  const leftWing = isSideDisplaysActive && sideDisplays?.leftWing?.enabled ? sideDisplays.leftWing : null;
+  const rightWing = isSideDisplaysActive && sideDisplays?.rightWing?.enabled ? sideDisplays.rightWing : null;
 
   const pinnedAnnouncement = announcements.find((a) => a.isPinned && a.isActive);
 
@@ -119,100 +132,113 @@ export function TenantPublicHome() {
         </div>
       )}
 
-      {/* Hero Section with Dynamic Background Thumbnail / Carousel */}
-      <section className="relative px-6 max-w-6xl mx-auto pt-4 md:pt-8">
+      {/* Hero Section Container with Dynamic Background Carousel & Optional Display Wings */}
+      <section className="relative px-4 sm:px-6 max-w-7xl mx-auto pt-4 md:pt-8">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-accent/15 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative border border-border bg-surface/80 backdrop-blur-md rounded-2xl p-8 md:p-14 overflow-hidden shadow-2xl space-y-8 min-h-[380px] flex flex-col justify-between">
-          {/* Dynamic Background Image Slider (Single / Multi Thumbnail) */}
-          {heroImages.length > 0 && (
-            <>
-              {heroImages.map((imgUrl, idx) => (
-                <div
-                  key={idx}
-                  className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
-                    idx === currentHeroSlide ? 'opacity-100 scale-105' : 'opacity-0 scale-100'
-                  }`}
-                  style={{
-                    backgroundImage: `url(${imgUrl})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                  }}
-                />
-              ))}
-
-              {/* Dynamic Dark Gradient Overlay for Maximum Text Contrast */}
-              <div
-                className="absolute inset-0 transition-opacity"
-                style={{
-                  backgroundColor: `rgba(0, 0, 0, ${heroBg?.overlayOpacity ?? 0.65})`,
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 pointer-events-none" />
-            </>
+        <div className="flex flex-col lg:flex-row items-stretch gap-6 relative z-10">
+          {/* 👈 Left Display Wing */}
+          {leftWing && (
+            <SideWingCard wing={leftWing} pages={pagesList} tenantParam={tenantParam} />
           )}
 
-          {/* Hero Content Layer */}
-          <div className="relative z-10 space-y-8">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-accent/20 border border-accent/30 text-accent backdrop-blur-md">
-                <Sparkles className="w-3.5 h-3.5" /> Citizen Service Center
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 backdrop-blur-md">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Counter Services Open
-              </span>
+          {/* 🎯 Center Main Hero Card */}
+          <div className="flex-1 relative border border-border bg-surface/80 backdrop-blur-md rounded-2xl p-8 md:p-12 overflow-hidden shadow-2xl space-y-8 min-h-[380px] flex flex-col justify-between">
+            {/* Dynamic Background Image Slider (Single / Multi Thumbnail) */}
+            {heroImages.length > 0 && (
+              <>
+                {heroImages.map((imgUrl, idx) => (
+                  <div
+                    key={idx}
+                    className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+                      idx === currentHeroSlide ? 'opacity-100 scale-105' : 'opacity-0 scale-100'
+                    }`}
+                    style={{
+                      backgroundImage: `url(${imgUrl})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                    }}
+                  />
+                ))}
+
+                {/* Dynamic Dark Gradient Overlay for Maximum Text Contrast */}
+                <div
+                  className="absolute inset-0 transition-opacity"
+                  style={{
+                    backgroundColor: `rgba(0, 0, 0, ${heroBg?.overlayOpacity ?? 0.65})`,
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 pointer-events-none" />
+              </>
+            )}
+
+            {/* Hero Content Layer */}
+            <div className="relative z-10 space-y-8">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-accent/20 border border-accent/30 text-accent backdrop-blur-md">
+                  <Sparkles className="w-3.5 h-3.5" /> Citizen Service Center
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 backdrop-blur-md">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Counter Services Open
+                </span>
+              </div>
+
+              <div className="space-y-4 max-w-3xl">
+                <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-text-primary leading-[1.15]">
+                  {websiteTitle}
+                </h1>
+                <p className="text-base md:text-lg text-text-secondary leading-relaxed">
+                  {settings?.tagline ||
+                    'Simplifying access to Government, Financial, and Digital services securely. Apply online, generate counter tokens, or track your application status.'}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-4 pt-2">
+                <a href="#services">
+                  <Button size="lg" className="gap-2 shadow-lg shadow-accent/20">
+                    Browse Services & Apply <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </a>
+                <Link to={tenantParam ? `/track?tenant=${tenantParam}` : '/track'}>
+                  <Button variant="outline" size="lg" className="gap-2 backdrop-blur-sm">
+                    <Search className="w-4 h-4 text-accent" /> Track Application Status
+                  </Button>
+                </Link>
+                <Link to={tenantParam ? `/queue-display?tenant=${tenantParam}` : '/queue-display'}>
+                  <Button variant="secondary" size="lg" className="gap-2 backdrop-blur-sm">
+                    <Monitor className="w-4 h-4 text-emerald-400" /> Live TV Queue Screen
+                  </Button>
+                </Link>
+                <Link to={tenantParam ? `/portal?tenant=${tenantParam}` : '/portal'}>
+                  <Button variant="ghost" size="lg" className="gap-2 text-text-secondary hover:text-text-primary backdrop-blur-sm">
+                    <Lock className="w-4 h-4" /> Customer Locker
+                  </Button>
+                </Link>
+              </div>
             </div>
 
-            <div className="space-y-4 max-w-3xl">
-              <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-text-primary leading-[1.15]">
-                {websiteTitle}
-              </h1>
-              <p className="text-base md:text-lg text-text-secondary leading-relaxed">
-                {settings?.tagline ||
-                  'Simplifying access to Government, Financial, and Digital services securely. Apply online, generate counter tokens, or track your application status.'}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <a href="#services">
-                <Button size="lg" className="gap-2 shadow-lg shadow-accent/20">
-                  Browse Services & Apply <ArrowRight className="w-4 h-4" />
-                </Button>
-              </a>
-              <Link to={tenantParam ? `/track?tenant=${tenantParam}` : '/track'}>
-                <Button variant="outline" size="lg" className="gap-2 backdrop-blur-sm">
-                  <Search className="w-4 h-4 text-accent" /> Track Application Status
-                </Button>
-              </Link>
-              <Link to={tenantParam ? `/queue-display?tenant=${tenantParam}` : '/queue-display'}>
-                <Button variant="secondary" size="lg" className="gap-2 backdrop-blur-sm">
-                  <Monitor className="w-4 h-4 text-emerald-400" /> Live TV Queue Screen
-                </Button>
-              </Link>
-              <Link to={tenantParam ? `/portal?tenant=${tenantParam}` : '/portal'}>
-                <Button variant="ghost" size="lg" className="gap-2 text-text-secondary hover:text-text-primary backdrop-blur-sm">
-                  <Lock className="w-4 h-4" /> Customer Locker
-                </Button>
-              </Link>
-            </div>
+            {/* Slide Indicator Dots (If multiple thumbnails configured) */}
+            {heroImages.length > 1 && (
+              <div className="relative z-10 flex items-center justify-start gap-1.5 pt-4">
+                {heroImages.map((_, dotIdx) => (
+                  <button
+                    key={dotIdx}
+                    onClick={() => setCurrentHeroSlide(dotIdx)}
+                    className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                      dotIdx === currentHeroSlide
+                        ? 'w-6 bg-accent shadow-sm shadow-accent'
+                        : 'w-2 bg-white/40 hover:bg-white/70'
+                    }`}
+                    title={`Slide ${dotIdx + 1}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Slide Indicator Dots (If multiple thumbnails configured) */}
-          {heroImages.length > 1 && (
-            <div className="relative z-10 flex items-center justify-start gap-1.5 pt-4">
-              {heroImages.map((_, dotIdx) => (
-                <button
-                  key={dotIdx}
-                  onClick={() => setCurrentHeroSlide(dotIdx)}
-                  className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                    dotIdx === currentHeroSlide
-                      ? 'w-6 bg-accent shadow-sm shadow-accent'
-                      : 'w-2 bg-white/40 hover:bg-white/70'
-                  }`}
-                  title={`Slide ${dotIdx + 1}`}
-                />
-              ))}
-            </div>
+          {/* 👉 Right Display Wing */}
+          {rightWing && (
+            <SideWingCard wing={rightWing} pages={pagesList} tenantParam={tenantParam} />
           )}
         </div>
       </section>
@@ -454,6 +480,110 @@ export function TenantPublicHome() {
           </div>
         )}
       </section>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SIDE DISPLAY WING WIDGET (BANNER / PAGES LIST / CUSTOM HTML GREETINGS)
+// ═══════════════════════════════════════════════════════════════════
+function SideWingCard({
+  wing,
+  pages,
+  tenantParam,
+}: {
+  wing: any;
+  pages: any[];
+  tenantParam: string | null;
+}) {
+  if (!wing || !wing.enabled) return null;
+
+  return (
+    <div className="w-full lg:w-72 shrink-0 flex flex-col justify-between gap-4 rounded-2xl border border-border bg-surface/85 backdrop-blur-md p-5 shadow-2xl text-left self-stretch transition-all hover:border-accent/40">
+      <div className="space-y-3">
+        {wing.title && (
+          <div className="flex items-center gap-2 border-b border-border/80 pb-2.5">
+            <Sparkles className="w-3.5 h-3.5 text-accent shrink-0" />
+            <h3 className="font-bold text-xs uppercase tracking-wider text-text-primary line-clamp-1">
+              {wing.title}
+            </h3>
+          </div>
+        )}
+
+        {/* 1. Image Banner (PNG, JPG, JPEG) */}
+        {wing.type === 'banner' && wing.bannerImageUrl && (
+          <div className="space-y-2">
+            {wing.bannerLink ? (
+              <a
+                href={
+                  tenantParam && wing.bannerLink.startsWith('/') && !wing.bannerLink.includes('?')
+                    ? `${wing.bannerLink}?tenant=${tenantParam}`
+                    : wing.bannerLink
+                }
+                target={wing.bannerLink.startsWith('http') ? '_blank' : undefined}
+                rel={wing.bannerLink.startsWith('http') ? 'noopener noreferrer' : undefined}
+                className="group block overflow-hidden rounded-xl border border-border/80 relative aspect-[4/3] bg-bg/50 shadow-md"
+              >
+                <img
+                  src={wing.bannerImageUrl}
+                  alt={wing.title || 'Promotional Banner'}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
+              </a>
+            ) : (
+              <div className="overflow-hidden rounded-xl border border-border/80 relative aspect-[4/3] bg-bg/50 shadow-md">
+                <img
+                  src={wing.bannerImageUrl}
+                  alt={wing.title || 'Promotional Banner'}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 2. Legal Pages Quick Links (All Published Pages) */}
+        {(wing.type === 'legal_pages' || wing.showLegalPagesList) && (
+          <div className="space-y-2">
+            <div className="text-[11px] font-semibold text-text-secondary">Official Documents:</div>
+            {pages.length === 0 ? (
+              <p className="text-[11px] text-text-tertiary">No pages published.</p>
+            ) : (
+              <div className="flex flex-col gap-1.5 max-h-56 overflow-y-auto pr-1">
+                {pages
+                  .filter((p) => p.status === 'published')
+                  .map((p) => {
+                    const url = tenantParam ? `/pages/${p.slug}?tenant=${tenantParam}` : `/pages/${p.slug}`;
+                    return (
+                      <Link
+                        key={p._id || p.slug}
+                        to={url}
+                        className="px-3 py-2 rounded-lg bg-surface-elevated/70 hover:bg-accent/15 border border-border/60 text-xs font-medium text-text-primary hover:text-accent flex items-center justify-between transition-colors group"
+                      >
+                        <span className="truncate">{p.title}</span>
+                        <ArrowRight className="w-3.5 h-3.5 text-text-tertiary group-hover:text-accent shrink-0 ml-1" />
+                      </Link>
+                    );
+                  })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 3. Custom HTML / Festive Mubarak Greeting Code */}
+        {wing.type === 'custom_html' && wing.customHtml && (
+          <div
+            className="text-xs leading-relaxed overflow-hidden rounded-xl shadow-sm"
+            dangerouslySetInnerHTML={{ __html: wing.customHtml }}
+          />
+        )}
+      </div>
+
+      <div className="pt-2 border-t border-border/40 text-[10px] text-text-tertiary font-mono flex items-center justify-between">
+        <span>Verified Kendra Widget</span>
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+      </div>
     </div>
   );
 }
