@@ -63,6 +63,14 @@ export const updateWebsiteSettingSchema = z.object({
       )
       .optional(),
     holidays: z.array(z.object({ date: z.string(), label: z.string() })).optional(),
+    heroBackground: z
+      .object({
+        enabled: z.boolean().optional(),
+        images: z.array(z.string()).optional(),
+        overlayOpacity: z.number().min(0).max(1).optional(),
+        autoPlayIntervalSeconds: z.number().min(2).max(60).optional(),
+      })
+      .optional(),
   }),
 });
 

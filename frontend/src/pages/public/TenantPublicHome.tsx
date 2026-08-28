@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
@@ -16,7 +16,6 @@ import {
   Sparkles,
   Search,
   Lock,
-  CheckCircle2,
   FileCheck2,
   Clock,
   ShieldCheck,
@@ -64,6 +63,23 @@ export function TenantPublicHome() {
 
   const pinnedAnnouncement = announcements.find((a) => a.isPinned && a.isActive);
 
+  // Hero Background Carousel / Thumbnails
+  const heroBg = settings?.heroBackground;
+  const heroImages = heroBg?.enabled && Array.isArray(heroBg?.images) && heroBg.images.length > 0
+    ? heroBg.images
+    : [];
+
+  const [currentHeroSlide, setCurrentHeroSlide] = useState(0);
+
+  useEffect(() => {
+    if (heroImages.length <= 1) return;
+    const intervalTime = Math.max(2, heroBg?.autoPlayIntervalSeconds || 5) * 1000;
+    const timer = setInterval(() => {
+      setCurrentHeroSlide((prev) => (prev + 1) % heroImages.length);
+    }, intervalTime);
+    return () => clearInterval(timer);
+  }, [heroImages.length, heroBg?.autoPlayIntervalSeconds]);
+
   // Filter services by Category and Search
   const filteredServices = allServices.filter((s) => {
     const matchesCategory =
@@ -102,52 +118,101 @@ export function TenantPublicHome() {
         </div>
       )}
 
-      {/* Hero Section */}
+      {/* Hero Section with Dynamic Background Thumbnail / Carousel */}
       <section className="relative px-6 max-w-6xl mx-auto pt-4 md:pt-8">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-accent/15 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative border border-border bg-surface/80 backdrop-blur-md rounded-2xl p-8 md:p-14 overflow-hidden shadow-2xl space-y-8">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-accent/10 border border-accent/30 text-accent">
-              <Sparkles className="w-3.5 h-3.5" /> Citizen Service Center
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono text-success bg-success/10 border border-success/20">
-              <span className="w-2 h-2 rounded-full bg-success animate-pulse" /> Counter Services Open
-            </span>
+        <div className="relative border border-border bg-surface/80 backdrop-blur-md rounded-2xl p-8 md:p-14 overflow-hidden shadow-2xl space-y-8 min-h-[380px] flex flex-col justify-between">
+          {/* Dynamic Background Image Slider (Single / Multi Thumbnail) */}
+          {heroImages.length > 0 && (
+            <>
+              {heroImages.map((imgUrl, idx) => (
+                <div
+                  key={idx}
+                  className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+                    idx === currentHeroSlide ? 'opacity-100 scale-105' : 'opacity-0 scale-100'
+                  }`}
+                  style={{
+                    backgroundImage: `url(${imgUrl})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
+                />
+              ))}
+
+              {/* Dynamic Dark Gradient Overlay for Maximum Text Contrast */}
+              <div
+                className="absolute inset-0 transition-opacity"
+                style={{
+                  backgroundColor: `rgba(0, 0, 0, ${heroBg?.overlayOpacity ?? 0.65})`,
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 pointer-events-none" />
+            </>
+          )}
+
+          {/* Hero Content Layer */}
+          <div className="relative z-10 space-y-8">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-accent/20 border border-accent/30 text-accent backdrop-blur-md">
+                <Sparkles className="w-3.5 h-3.5" /> Citizen Service Center
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 backdrop-blur-md">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Counter Services Open
+              </span>
+            </div>
+
+            <div className="space-y-4 max-w-3xl">
+              <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-text-primary leading-[1.15]">
+                {websiteTitle}
+              </h1>
+              <p className="text-base md:text-lg text-text-secondary leading-relaxed">
+                {settings?.tagline ||
+                  'Simplifying access to Government, Financial, and Digital services securely. Apply online, generate counter tokens, or track your application status.'}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-4 pt-2">
+              <a href="#services">
+                <Button size="lg" className="gap-2 shadow-lg shadow-accent/20">
+                  Browse Services & Apply <ArrowRight className="w-4 h-4" />
+                </Button>
+              </a>
+              <Link to={tenantParam ? `/track?tenant=${tenantParam}` : '/track'}>
+                <Button variant="outline" size="lg" className="gap-2 backdrop-blur-sm">
+                  <Search className="w-4 h-4 text-accent" /> Track Application Status
+                </Button>
+              </Link>
+              <Link to={tenantParam ? `/queue-display?tenant=${tenantParam}` : '/queue-display'}>
+                <Button variant="secondary" size="lg" className="gap-2 backdrop-blur-sm">
+                  <Monitor className="w-4 h-4 text-emerald-400" /> Live TV Queue Screen
+                </Button>
+              </Link>
+              <Link to={tenantParam ? `/portal?tenant=${tenantParam}` : '/portal'}>
+                <Button variant="ghost" size="lg" className="gap-2 text-text-secondary hover:text-text-primary backdrop-blur-sm">
+                  <Lock className="w-4 h-4" /> Customer Locker
+                </Button>
+              </Link>
+            </div>
           </div>
 
-          <div className="space-y-4 max-w-3xl">
-            <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-text-primary leading-[1.15]">
-              {websiteTitle}
-            </h1>
-            <p className="text-base md:text-lg text-text-secondary leading-relaxed">
-              {settings?.tagline ||
-                'Simplifying access to Government, Financial, and Digital services securely. Apply online, generate counter tokens, or track your application status.'}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-4 pt-2">
-            <a href="#services">
-              <Button size="lg" className="gap-2 shadow-lg shadow-accent/20">
-                Browse Services & Apply <ArrowRight className="w-4 h-4" />
-              </Button>
-            </a>
-            <Link to={tenantParam ? `/track?tenant=${tenantParam}` : '/track'}>
-              <Button variant="outline" size="lg" className="gap-2">
-                <Search className="w-4 h-4 text-accent" /> Track Application Status
-              </Button>
-            </Link>
-            <Link to={tenantParam ? `/queue-display?tenant=${tenantParam}` : '/queue-display'}>
-              <Button variant="secondary" size="lg" className="gap-2">
-                <Monitor className="w-4 h-4 text-success" /> Live TV Queue Screen
-              </Button>
-            </Link>
-            <Link to={tenantParam ? `/portal?tenant=${tenantParam}` : '/portal'}>
-              <Button variant="ghost" size="lg" className="gap-2 text-text-secondary hover:text-text-primary">
-                <Lock className="w-4 h-4" /> Customer Locker
-              </Button>
-            </Link>
-          </div>
+          {/* Slide Indicator Dots (If multiple thumbnails configured) */}
+          {heroImages.length > 1 && (
+            <div className="relative z-10 flex items-center justify-start gap-1.5 pt-4">
+              {heroImages.map((_, dotIdx) => (
+                <button
+                  key={dotIdx}
+                  onClick={() => setCurrentHeroSlide(dotIdx)}
+                  className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                    dotIdx === currentHeroSlide
+                      ? 'w-6 bg-accent shadow-sm shadow-accent'
+                      : 'w-2 bg-white/40 hover:bg-white/70'
+                  }`}
+                  title={`Slide ${dotIdx + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

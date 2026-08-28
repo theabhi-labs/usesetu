@@ -13,6 +13,12 @@ export interface WebsiteSetting {
   businessHours: { dayOfWeek: number; isOpen: boolean; startTime: string; endTime: string }[];
   holidays: { date: string; label: string }[];
   maintenanceMode: { enabled: boolean; message?: string; estimatedTime?: string };
+  heroBackground?: {
+    enabled: boolean;
+    images: string[];
+    overlayOpacity: number;
+    autoPlayIntervalSeconds: number;
+  };
 }
 
 export interface MenuItem {

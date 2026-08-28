@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { MediaPickerModal } from '../../components/common/MediaPickerModal';
 import { Table, THead, TBody, TR, TH, TD } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
-import { ArrowUp, ArrowDown, Edit2, Trash2, Plus, Monitor, AlertOctagon, FolderOpen } from 'lucide-react';
+import { ArrowUp, ArrowDown, Edit2, Trash2, Plus, Monitor, AlertOctagon, FolderOpen, Sparkles } from 'lucide-react';
 
 export function CMSConfig() {
   const queryClient = useQueryClient();
@@ -21,7 +21,7 @@ export function CMSConfig() {
 
   // Media Picker Trigger State
   const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
-  const [mediaPickerTarget, setMediaPickerTarget] = useState<'settings_logo' | 'banner' | 'page' | null>(null);
+  const [mediaPickerTarget, setMediaPickerTarget] = useState<'settings_logo' | 'banner' | 'page' | 'hero_bg' | null>(null);
 
   // Settings states
   const [websiteName, setWebsiteName] = useState('');
@@ -36,6 +36,13 @@ export function CMSConfig() {
   const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
   const [maintenanceMessage, setMaintenanceMessage] = useState('');
   const [maintenanceDuration, setMaintenanceDuration] = useState('');
+
+  // Hero Background / Thumbnails State
+  const [heroBgEnabled, setHeroBgEnabled] = useState(false);
+  const [heroBgImages, setHeroBgImages] = useState<string[]>([]);
+  const [heroOverlayOpacity, setHeroOverlayOpacity] = useState(0.65);
+  const [heroAutoPlaySeconds, setHeroAutoPlaySeconds] = useState(5);
+  const [customHeroImageUrl, setCustomHeroImageUrl] = useState('');
 
   // Menus tab states
   const [menuLocation, setMenuLocation] = useState<'header' | 'footer' | 'sidebar'>('header');
@@ -108,6 +115,10 @@ export function CMSConfig() {
       setMaintenanceEnabled(cfg.maintenanceMode?.enabled || false);
       setMaintenanceMessage(cfg.maintenanceMode?.message || '');
       setMaintenanceDuration(cfg.maintenanceMode?.estimatedTime || '');
+      setHeroBgEnabled(cfg.heroBackground?.enabled || false);
+      setHeroBgImages(cfg.heroBackground?.images || []);
+      setHeroOverlayOpacity(cfg.heroBackground?.overlayOpacity ?? 0.65);
+      setHeroAutoPlaySeconds(cfg.heroBackground?.autoPlayIntervalSeconds ?? 5);
     }
   }, [settingsQuery.data]);
 
@@ -266,6 +277,12 @@ export function CMSConfig() {
       description,
       logoUrl,
       contact: { address, email, phone, whatsapp },
+      heroBackground: {
+        enabled: heroBgEnabled,
+        images: heroBgImages,
+        overlayOpacity: Number(heroOverlayOpacity),
+        autoPlayIntervalSeconds: Number(heroAutoPlaySeconds),
+      },
     });
   };
 
@@ -348,6 +365,11 @@ export function CMSConfig() {
     if (mediaPickerTarget === 'settings_logo') setLogoUrl(url);
     if (mediaPickerTarget === 'banner') setBannerImageUrl(url);
     if (mediaPickerTarget === 'page') setPageContent((p) => p + `<img src="${url}" alt="image" />`);
+    if (mediaPickerTarget === 'hero_bg') {
+      if (!heroBgImages.includes(url)) {
+        setHeroBgImages((prev) => [...prev, url]);
+      }
+    }
     setMediaPickerTarget(null);
   };
 
@@ -429,6 +451,150 @@ export function CMSConfig() {
                   <label className="font-bold text-text-secondary select-none">Business Profile Description</label>
                   <Textarea value={description} onChange={(e) => setDescription(e.target.value)} />
                 </div>
+              </Card>
+
+              {/* Hero Background & Thumbnail Slider Configuration */}
+              <Card className="p-5 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-3">
+                  <div>
+                    <h3 className="font-bold text-text-primary text-sm flex items-center gap-2">
+                      <Sparkles size={16} className="text-accent" /> Hero Background & Thumbnail Slider
+                    </h3>
+                    <p className="text-[11px] text-text-secondary mt-0.5">
+                      Display single thumbnail or multiple rotating image banners in the background of your Citizen Portal Hero section.
+                    </p>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer select-none bg-surface-elevated px-3 py-1.5 rounded-lg border border-border">
+                    <input
+                      type="checkbox"
+                      checked={heroBgEnabled}
+                      onChange={(e) => setHeroBgEnabled(e.target.checked)}
+                      className="rounded border-border text-accent focus:ring-accent w-4 h-4 cursor-pointer"
+                    />
+                    <span className="text-xs font-bold text-text-primary">Enable Background</span>
+                  </label>
+                </div>
+
+                {heroBgEnabled && (
+                  <div className="space-y-4 pt-1">
+                    {/* Image List / Gallery */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="font-bold text-text-secondary select-none text-xs">
+                          Background Thumbnails ({heroBgImages.length} images)
+                        </label>
+                        <span className="text-[10px] text-text-tertiary">
+                          {heroBgImages.length > 1 ? 'Auto-sliding enabled' : heroBgImages.length === 1 ? 'Single cover banner' : 'No images'}
+                        </span>
+                      </div>
+
+                      {heroBgImages.length === 0 ? (
+                        <div className="p-5 border border-dashed border-border rounded-xl text-center text-xs text-text-tertiary bg-surface-elevated/20">
+                          No background thumbnails added yet. Pick from Media Assets or paste an Image URL below.
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                          {heroBgImages.map((imgUrl, idx) => (
+                            <div key={idx} className="relative group rounded-xl overflow-hidden border border-border bg-surface-elevated aspect-video shadow-sm">
+                              <img src={imgUrl} alt={`hero-bg-${idx}`} className="w-full h-full object-cover" />
+                              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setHeroBgImages((prev) => prev.filter((_, i) => i !== idx))}
+                                  className="p-1.5 rounded-lg bg-red-600 text-white text-xs hover:bg-red-700 transition-colors shadow-md"
+                                  title="Remove image"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              </div>
+                              <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/75 text-[9px] font-mono font-bold text-white">
+                                Slide #{idx + 1}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Add Image Controls */}
+                    <div className="flex flex-col sm:flex-row gap-2 items-center">
+                      <Input
+                        placeholder="Paste image URL (https://...) or choose from Media Assets"
+                        value={customHeroImageUrl}
+                        onChange={(e) => setCustomHeroImageUrl(e.target.value)}
+                        className="flex-1 text-xs"
+                      />
+                      <div className="flex gap-2 w-full sm:w-auto">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => {
+                            if (customHeroImageUrl.trim()) {
+                              setHeroBgImages((prev) => [...prev, customHeroImageUrl.trim()]);
+                              setCustomHeroImageUrl('');
+                            }
+                          }}
+                          disabled={!customHeroImageUrl.trim()}
+                          className="text-xs shrink-0"
+                        >
+                          <Plus size={14} /> Add URL
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setMediaPickerTarget('hero_bg');
+                            setIsMediaPickerOpen(true);
+                          }}
+                          className="text-xs shrink-0"
+                        >
+                          <FolderOpen size={14} /> Media Assets
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Controls: Overlay Opacity & Rotation Speed */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-border/60">
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-center text-[11px]">
+                          <label className="font-bold text-text-secondary">Dark Overlay Darkness</label>
+                          <span className="font-mono text-accent font-bold">{Math.round(heroOverlayOpacity * 100)}%</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0.1"
+                          max="0.9"
+                          step="0.05"
+                          value={heroOverlayOpacity}
+                          onChange={(e) => setHeroOverlayOpacity(parseFloat(e.target.value))}
+                          className="w-full accent-accent cursor-pointer"
+                        />
+                        <span className="text-[10px] text-text-tertiary block">
+                          Higher darkness improves readability for white text and buttons.
+                        </span>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-center text-[11px]">
+                          <label className="font-bold text-text-secondary">Slide Auto-Rotation Speed</label>
+                          <span className="font-mono text-accent font-bold">{heroAutoPlaySeconds}s</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="2"
+                          max="20"
+                          step="1"
+                          value={heroAutoPlaySeconds}
+                          onChange={(e) => setHeroAutoPlaySeconds(parseInt(e.target.value, 10))}
+                          className="w-full accent-accent cursor-pointer"
+                        />
+                        <span className="text-[10px] text-text-tertiary block">
+                          Duration in seconds before crossfading to the next thumbnail.
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </Card>
 
               <Card className="p-5 space-y-4">

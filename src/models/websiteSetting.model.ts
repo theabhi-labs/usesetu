@@ -77,6 +77,13 @@ export interface IWebsiteSetting extends Omit<Document, '_id'> {
     allowedIps: string[];
   };
 
+  heroBackground?: {
+    enabled: boolean;
+    images: string[];
+    overlayOpacity: number;
+    autoPlayIntervalSeconds: number;
+  };
+
   updatedBy?: mongoose.Types.ObjectId;
   updatedAt: Date;
   createdAt: Date;
@@ -159,6 +166,13 @@ const websiteSettingSchema = new Schema<IWebsiteSetting>(
       message: { type: String, default: 'We are currently performing maintenance. Please check back soon.' },
       estimatedTime: String,
       allowedIps: { type: [String], default: [] },
+    },
+
+    heroBackground: {
+      enabled: { type: Boolean, default: false },
+      images: { type: [String], default: [] },
+      overlayOpacity: { type: Number, default: 0.65 },
+      autoPlayIntervalSeconds: { type: Number, default: 5 },
     },
 
     updatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
