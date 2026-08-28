@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { cmsApi } from '../../services/cms.api';
+import { useToastStore } from '../../store/toastStore';
 import type { WebsiteSetting, MenuItem, Banner, Announcement } from '../../types/cms.types';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
@@ -31,7 +32,20 @@ import {
   Code2,
   Image as ImageIcon,
   FileText,
+  Copy,
+  Check,
 } from 'lucide-react';
+
+const UNIVERSAL_AI_BANNER_PROMPT = `Create a sleek, modern vertical HTML greeting card/banner that fits 100% in a container of width: 240px and height: 380px without any scrollbars (overflow: hidden).
+
+Specifications:
+- Use inline CSS styles only (style="...").
+- Flexbox layout: display: flex; flex-direction: column; justify-content: space-between; align-items: center; width: 100%; height: 100%; min-height: 340px; box-sizing: border-box; padding: 16px; border-radius: 14px; text-align: center; overflow: hidden;
+- Background: Vibrant modern CSS gradient with subtle border.
+- Top: Circular white/glass icon badge with festive emoji/icon.
+- Middle: Catchy Hindi and English greeting typography (e.g. Shubh Deepawali / Happy Raksha Bandhan / Eid Mubarak / Special Offer).
+- Bottom: Small badge ("✨ Digital Seva Kendra").
+- Target Occasion/Festival: [Change this to Diwali / Holi / Raksha Bandhan / Eid / Independence Day / New Year / Kendra Offer]`;
 
 export function CMSConfig() {
   const queryClient = useQueryClient();
@@ -234,15 +248,38 @@ export function CMSConfig() {
     ? announcementsQuery.data
     : (announcementsQuery.data as any)?.announcements || [];
 
+  const addToast = useToastStore((state) => state.addToast);
+  const [copiedPrompt, setCopiedPrompt] = useState(false);
+
+  const handleCopyAiPrompt = () => {
+    navigator.clipboard.writeText(UNIVERSAL_AI_BANNER_PROMPT);
+    setCopiedPrompt(true);
+    addToast('📋 Universal AI Banner Prompt copied! Paste in ChatGPT or Gemini.', 'info');
+    setTimeout(() => setCopiedPrompt(false), 3000);
+  };
+
   // Mutations
   const saveSettingsMutation = useMutation({
     mutationFn: (body: Partial<WebsiteSetting>) => cmsApi.updateSettings(body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminSettings'] });
+      queryClient.invalidateQueries({ queryKey: ['publicSettings'] });
+      addToast('✅ Configuration saved successfully!', 'success');
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to save configuration';
+      addToast(`❌ Save Failed: ${msg}`, 'error');
+    },
   });
 
   const maintenanceMutation = useMutation({
     mutationFn: (body: any) => cmsApi.toggleMaintenanceMode(body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminSettings'] });
+      addToast('✅ Maintenance mode status updated!', 'success');
+    },
+    onError: (err: any) => {
+      addToast(`❌ Maintenance mode update failed: ${err?.message || 'Error'}`, 'error');
     },
   });
 
@@ -250,6 +287,7 @@ export function CMSConfig() {
     mutationFn: (items: MenuItem[]) => cmsApi.saveMenu(menuLocation, items),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminMenus', menuLocation] });
+      addToast('✅ Navigation menu updated successfully!', 'success');
     },
   });
 
@@ -264,6 +302,10 @@ export function CMSConfig() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminPagesList'] });
       setIsPageModalOpen(false);
+      addToast('✅ Legal Page saved successfully!', 'success');
+    },
+    onError: (err: any) => {
+      addToast(`❌ Failed to save page: ${err?.message || 'Error'}`, 'error');
     },
   });
 
@@ -271,6 +313,7 @@ export function CMSConfig() {
     mutationFn: (id: string) => cmsApi.deletePage(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminPagesList'] });
+      addToast('🗑️ Legal Page deleted!', 'info');
     },
   });
 
@@ -285,6 +328,10 @@ export function CMSConfig() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminBannersList'] });
       setIsBannerModalOpen(false);
+      addToast('✅ Carousel Banner saved successfully!', 'success');
+    },
+    onError: (err: any) => {
+      addToast(`❌ Failed to save banner: ${err?.message || 'Error'}`, 'error');
     },
   });
 
@@ -292,6 +339,7 @@ export function CMSConfig() {
     mutationFn: (id: string) => cmsApi.deleteBanner(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminBannersList'] });
+      addToast('🗑️ Banner deleted!', 'info');
     },
   });
 
@@ -306,6 +354,7 @@ export function CMSConfig() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminFaqsList'] });
       setIsFaqModalOpen(false);
+      addToast('✅ FAQ row saved successfully!', 'success');
     },
   });
 
@@ -313,6 +362,7 @@ export function CMSConfig() {
     mutationFn: (id: string) => cmsApi.deleteFaq(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminFaqsList'] });
+      addToast('🗑️ FAQ deleted!', 'info');
     },
   });
 
@@ -327,6 +377,10 @@ export function CMSConfig() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminAnnouncementsList'] });
       setIsAnnModalOpen(false);
+      addToast('✅ Announcement Alert saved successfully!', 'success');
+    },
+    onError: (err: any) => {
+      addToast(`❌ Failed to save announcement: ${err?.message || 'Error'}`, 'error');
     },
   });
 
@@ -334,6 +388,7 @@ export function CMSConfig() {
     mutationFn: (id: string) => cmsApi.deleteAnnouncement(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminAnnouncementsList'] });
+      addToast('🗑️ Announcement deleted!', 'info');
     },
   });
 
@@ -739,8 +794,25 @@ export function CMSConfig() {
               </Card>
 
               <div className="flex justify-end pt-2 select-none">
-                <Button type="submit" disabled={saveSettingsMutation.isPending}>
-                  {saveSettingsMutation.isPending ? 'Saving...' : 'Save Site Settings'}
+                <Button
+                  type="submit"
+                  disabled={saveSettingsMutation.isPending}
+                  className={`gap-2 shadow-lg transition-all ${
+                    saveSettingsMutation.isSuccess
+                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20'
+                      : 'shadow-accent/20'
+                  }`}
+                >
+                  {saveSettingsMutation.isPending ? (
+                    <Sparkles size={14} className="animate-spin" />
+                  ) : saveSettingsMutation.isSuccess ? (
+                    <Check size={14} />
+                  ) : null}
+                  {saveSettingsMutation.isPending
+                    ? 'Saving...'
+                    : saveSettingsMutation.isSuccess
+                    ? '✓ Saved Successfully!'
+                    : 'Save Site Settings'}
                 </Button>
               </div>
             </form>
@@ -1434,11 +1506,11 @@ export function CMSConfig() {
 
                           <div className="flex flex-wrap justify-between items-center gap-1.5">
                             <label className="font-bold text-text-secondary select-none">Custom HTML / Form Code</label>
-                            <div className="flex gap-2 text-[10px]">
+                            <div className="flex flex-wrap items-center gap-2 text-[10px]">
                               <button
                                 type="button"
                                 onClick={() => setLeftWingCustomHtml('<div style="text-align:center; padding:10px; background:linear-gradient(135deg, #d97706, #ea580c); border-radius:12px; color:#fff; font-weight:bold;">✨ Happy Festival Mubarak! ✨<p style="font-size:11px; margin-top:4px; font-weight:normal; opacity:0.9;">Visit our Kendra for instant digital services.</p></div>')}
-                                className="text-accent hover:underline cursor-pointer"
+                                className="text-accent hover:underline cursor-pointer font-medium"
                               >
                                 + Greeting
                               </button>
@@ -1446,9 +1518,18 @@ export function CMSConfig() {
                               <button
                                 type="button"
                                 onClick={() => setLeftWingCustomHtml('<form onsubmit="alert(\'Request received!\'); return false;" style="padding:10px; background:#18181b; border:1px solid #3f3f46; border-radius:10px;"><h4 style="font-size:12px; font-weight:bold; margin-bottom:8px; color:#f97316;">⚡ Quick Help Desk</h4><input type="text" placeholder="Your Name" required style="width:100%; padding:6px; margin-bottom:6px; background:#27272a; border:1px solid #52525b; border-radius:6px; color:#fff; font-size:11px;"/><input type="tel" placeholder="Mobile No." required style="width:100%; padding:6px; margin-bottom:6px; background:#27272a; border:1px solid #52525b; border-radius:6px; color:#fff; font-size:11px;"/><button type="submit" style="width:100%; padding:7px; background:#ea580c; color:#fff; border:none; border-radius:6px; font-weight:bold; font-size:11px; cursor:pointer;">Submit Request</button></form>')}
-                                className="text-accent hover:underline cursor-pointer"
+                                className="text-accent hover:underline cursor-pointer font-medium"
                               >
                                 + Inquiry Form
+                              </button>
+                              <span className="text-border">|</span>
+                              <button
+                                type="button"
+                                onClick={handleCopyAiPrompt}
+                                className="inline-flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-bold hover:underline cursor-pointer bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30"
+                              >
+                                {copiedPrompt ? <Check size={11} /> : <Copy size={11} />}
+                                {copiedPrompt ? 'Copied Prompt!' : '📋 Copy AI Prompt'}
                               </button>
                             </div>
                           </div>
@@ -1649,11 +1730,11 @@ export function CMSConfig() {
 
                           <div className="flex flex-wrap justify-between items-center gap-1.5">
                             <label className="font-bold text-text-secondary select-none">Custom HTML / Form Code</label>
-                            <div className="flex gap-2 text-[10px]">
+                            <div className="flex flex-wrap items-center gap-2 text-[10px]">
                               <button
                                 type="button"
                                 onClick={() => setRightWingCustomHtml('<div style="text-align:center; padding:10px; background:linear-gradient(135deg, #059669, #0d9488); border-radius:12px; color:#fff; font-weight:bold;">🎉 Mubarak & Greetings! 🎉<p style="font-size:11px; margin-top:4px; font-weight:normal; opacity:0.9;">All Kendra digital services are active and fast.</p></div>')}
-                                className="text-accent hover:underline cursor-pointer"
+                                className="text-accent hover:underline cursor-pointer font-medium"
                               >
                                 + Greeting
                               </button>
@@ -1661,9 +1742,18 @@ export function CMSConfig() {
                               <button
                                 type="button"
                                 onClick={() => setRightWingCustomHtml('<form onsubmit="alert(\'Request received!\'); return false;" style="padding:10px; background:#18181b; border:1px solid #3f3f46; border-radius:10px;"><h4 style="font-size:12px; font-weight:bold; margin-bottom:8px; color:#f97316;">⚡ Quick Help Desk</h4><input type="text" placeholder="Your Name" required style="width:100%; padding:6px; margin-bottom:6px; background:#27272a; border:1px solid #52525b; border-radius:6px; color:#fff; font-size:11px;"/><input type="tel" placeholder="Mobile No." required style="width:100%; padding:6px; margin-bottom:6px; background:#27272a; border:1px solid #52525b; border-radius:6px; color:#fff; font-size:11px;"/><button type="submit" style="width:100%; padding:7px; background:#ea580c; color:#fff; border:none; border-radius:6px; font-weight:bold; font-size:11px; cursor:pointer;">Submit Request</button></form>')}
-                                className="text-accent hover:underline cursor-pointer"
+                                className="text-accent hover:underline cursor-pointer font-medium"
                               >
                                 + Inquiry Form
+                              </button>
+                              <span className="text-border">|</span>
+                              <button
+                                type="button"
+                                onClick={handleCopyAiPrompt}
+                                className="inline-flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-bold hover:underline cursor-pointer bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30"
+                              >
+                                {copiedPrompt ? <Check size={11} /> : <Copy size={11} />}
+                                {copiedPrompt ? 'Copied Prompt!' : '📋 Copy AI Prompt'}
                               </button>
                             </div>
                           </div>
@@ -1683,15 +1773,32 @@ export function CMSConfig() {
           </div>
 
           {/* Save Action Footer */}
-          <div className="flex justify-end pt-3">
+          <div className="flex items-center justify-between border-t border-border pt-4">
+            <div className="text-xs text-text-tertiary">
+              Changes apply live to your Citizen Portal immediately upon saving.
+            </div>
             <Button
               type="button"
               onClick={() => handleSaveSettings()}
               disabled={saveSettingsMutation.isPending}
-              className="gap-2 shadow-lg shadow-accent/20"
+              className={`gap-2 shadow-lg transition-all ${
+                saveSettingsMutation.isSuccess
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20'
+                  : 'shadow-accent/20'
+              }`}
             >
-              <Sparkles size={14} />
-              {saveSettingsMutation.isPending ? 'Saving Displays...' : 'Save Side Displays Configuration'}
+              {saveSettingsMutation.isPending ? (
+                <Sparkles size={14} className="animate-spin" />
+              ) : saveSettingsMutation.isSuccess ? (
+                <Check size={14} />
+              ) : (
+                <Sparkles size={14} />
+              )}
+              {saveSettingsMutation.isPending
+                ? 'Saving Displays...'
+                : saveSettingsMutation.isSuccess
+                ? '✓ Saved Successfully!'
+                : 'Save Side Displays Configuration'}
             </Button>
           </div>
         </div>
