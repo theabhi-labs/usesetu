@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 import { cmsApi } from '../../services/cms.api';
 import type { WebsiteSetting, MenuItem, Banner, Announcement } from '../../types/cms.types';
 import { Button } from '../../components/ui/Button';
@@ -13,10 +14,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { MediaPickerModal } from '../../components/common/MediaPickerModal';
 import { Table, THead, TBody, TR, TH, TD } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
-import { ArrowUp, ArrowDown, Edit2, Trash2, Plus, Monitor, AlertOctagon, FolderOpen, Sparkles } from 'lucide-react';
+import { ArrowUp, ArrowDown, Edit2, Trash2, Plus, Monitor, AlertOctagon, FolderOpen, Sparkles, ExternalLink } from 'lucide-react';
 
 export function CMSConfig() {
   const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
+  const tenantParam = searchParams.get('tenant') || searchParams.get('app');
   const [activeTab, setActiveTab] = useState<'settings' | 'menus' | 'pages' | 'banners' | 'faqs' | 'announcements'>('settings');
 
   // Media Picker Trigger State
@@ -809,45 +812,76 @@ export function CMSConfig() {
 
           {pagesQuery.isLoading ? (
             <div className="space-y-2">
-              <Skeleton className="h-10 w-full animate-pulse" />
+              <Skeleton className="h-14 w-full animate-pulse" />
             </div>
           ) : pagesList.length === 0 ? (
-            <Card className="text-center p-8 border border-dashed border-border bg-surface select-none">
-              <p className="text-xs text-text-tertiary">No custom pages configured.</p>
+            <Card className="text-center p-8 border border-dashed border-border bg-surface select-none space-y-2">
+              <p className="text-xs text-text-secondary font-semibold">No custom pages configured yet.</p>
+              <p className="text-[11px] text-text-tertiary">Click "+ Create Page" to publish custom pages like Terms, Privacy, About Us, or Services Details.</p>
             </Card>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {pagesList.map((p: any) => (
-                <Card key={p._id} className="p-4 flex flex-col justify-between items-start gap-4">
-                  <div className="text-left space-y-1">
-                    <span className="font-bold text-xs text-text-primary block">{p.title}</span>
-                    <span className="text-[10px] text-text-tertiary block font-mono">/{p.slug}</span>
-                    <Badge variant={p.status === 'published' ? 'success' : 'secondary'}>{p.status}</Badge>
-                  </div>
-                  <div className="flex gap-2 select-none">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setEditingPage(p);
-                        setPageTitle(p.title);
-                        setPageSlug(p.slug);
-                        setPageContent(p.content);
-                        setPageStatus(p.status);
-                        setIsPageModalOpen(true);
-                      }}
-                    >
-                      Edit Page
-                    </Button>
-                    <button
-                      onClick={() => deletePageMutation.mutate(p._id)}
-                      className="text-text-tertiary hover:text-error p-1.5 hover:bg-surface-elevated rounded cursor-pointer"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </Card>
-              ))}
+              {pagesList.map((p: any) => {
+                const liveUrl = tenantParam ? `/pages/${p.slug}?tenant=${tenantParam}` : `/pages/${p.slug}`;
+                return (
+                  <Card key={p._id} className="p-4 flex flex-col justify-between items-start gap-4 hover:border-accent/40 transition-colors">
+                    <div className="text-left space-y-2 w-full">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <span className="font-bold text-sm text-text-primary block line-clamp-1">{p.title}</span>
+                          <span className="text-[10px] text-accent font-mono block mt-0.5">
+                            Public URL: /pages/{p.slug}
+                          </span>
+                        </div>
+                        <Badge variant={p.status === 'published' ? 'success' : 'secondary'}>
+                          {p.status}
+                        </Badge>
+                      </div>
+
+                      {p.content && (
+                        <p className="text-[11px] text-text-tertiary line-clamp-2 select-none leading-relaxed bg-surface-elevated/40 p-2 rounded border border-border/40">
+                          {p.content.replace(/<[^>]+>/g, '').slice(0, 120)}...
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2 w-full pt-2 border-t border-border/50 select-none">
+                      <a
+                        href={liveUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs text-accent font-semibold hover:underline"
+                      >
+                        <ExternalLink size={13} /> View Live Page ↗
+                      </a>
+
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingPage(p);
+                            setPageTitle(p.title || '');
+                            setPageSlug(p.slug || '');
+                            setPageContent(p.content || '');
+                            setPageStatus(p.status || 'published');
+                            setIsPageModalOpen(true);
+                          }}
+                        >
+                          Edit Page
+                        </Button>
+                        <button
+                          onClick={() => deletePageMutation.mutate(p._id)}
+                          className="text-text-tertiary hover:text-error p-1.5 hover:bg-surface-elevated rounded cursor-pointer transition-colors"
+                          title="Delete Page"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })}
             </div>
           )}
         </div>

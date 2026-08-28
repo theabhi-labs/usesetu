@@ -388,6 +388,25 @@ export function PublicLayout() {
                   Privacy Policy
                 </Link>
               </li>
+              {footerLinks
+                .filter((item) => item.isActive)
+                .map((item) => {
+                  const linkUrl = tenantParam && item.url.startsWith('/') && !item.url.includes('?')
+                    ? `${item.url}?tenant=${tenantParam}`
+                    : item.url;
+                  return (
+                    <li key={item.key}>
+                      <Link
+                        to={linkUrl}
+                        target={item.openInNewTab ? '_blank' : undefined}
+                        rel={item.openInNewTab ? 'noopener noreferrer' : undefined}
+                        className="hover:text-accent transition-colors"
+                      >
+                        {item.label}
+                      </Link>
+                    </li>
+                  );
+                })}
             </ul>
           </div>
         </div>

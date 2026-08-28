@@ -13,10 +13,15 @@ import { uploadToImageKit, deleteFromImageKit } from '../services/imagekit.servi
 // ═══════════════════════════════════════════════════════════════════
 
 export const createPage = asyncHandler(async (req: Request, res: Response) => {
+  const tenantId = (req as any).tenantId || req.user?.tenantId;
   const exists = await Page.exists({ slug: req.body.slug });
   if (exists) throw ApiError.conflict('A page with this slug already exists');
 
-  const page = await Page.create({ ...req.body, createdBy: req.user!.userId });
+  const page = await Page.create({
+    ...req.body,
+    ...(tenantId ? { tenantId } : {}),
+    createdBy: req.user!.userId,
+  });
   res.status(201).json(new ApiResponse(201, page, 'Page created'));
 });
 
@@ -25,7 +30,7 @@ export const getPages = asyncHandler(async (req: Request, res: Response) => {
   const filter: Record<string, unknown> = {};
   if (status) filter.status = status;
 
-  const pages = await Page.find(filter).select('slug title type status showInMenu updatedAt').sort({ updatedAt: -1 }).lean();
+  const pages = await Page.find(filter).select('slug title content type status showInMenu updatedAt').sort({ updatedAt: -1 }).lean();
   res.status(200).json(new ApiResponse(200, pages));
 });
 
