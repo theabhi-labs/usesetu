@@ -86,6 +86,8 @@ export function CMSConfig() {
   const [annType, setAnnType] = useState<'notice' | 'holiday' | 'new_scheme' | 'portal_down'>('notice');
   const [annIsPinned, setAnnIsPinned] = useState(false);
   const [annIsActive, setAnnIsActive] = useState(true);
+  const [annHasExpiry, setAnnHasExpiry] = useState(false);
+  const [annEndDate, setAnnEndDate] = useState('');
 
   // Auto-fill slug
   useEffect(() => {
@@ -139,7 +141,9 @@ export function CMSConfig() {
     enabled: activeTab === 'pages',
   });
 
-  const pagesList = pagesQuery.data?.pages || [];
+  const pagesList = Array.isArray(pagesQuery.data)
+    ? pagesQuery.data
+    : (pagesQuery.data as any)?.pages || [];
 
   const bannersQuery = useQuery({
     queryKey: ['adminBannersList'],
@@ -147,7 +151,9 @@ export function CMSConfig() {
     enabled: activeTab === 'banners',
   });
 
-  const bannersList: Banner[] = bannersQuery.data?.banners || [];
+  const bannersList: Banner[] = Array.isArray(bannersQuery.data)
+    ? bannersQuery.data
+    : (bannersQuery.data as any)?.banners || [];
 
   const faqsQuery = useQuery({
     queryKey: ['adminFaqsList'],
@@ -155,7 +161,9 @@ export function CMSConfig() {
     enabled: activeTab === 'faqs',
   });
 
-  const faqsList = faqsQuery.data?.faqs || [];
+  const faqsList = Array.isArray(faqsQuery.data)
+    ? faqsQuery.data
+    : (faqsQuery.data as any)?.faqs || [];
 
   const announcementsQuery = useQuery({
     queryKey: ['adminAnnouncementsList'],
@@ -163,7 +171,9 @@ export function CMSConfig() {
     enabled: activeTab === 'announcements',
   });
 
-  const announcementsList: Announcement[] = announcementsQuery.data?.announcements || [];
+  const announcementsList: Announcement[] = Array.isArray(announcementsQuery.data)
+    ? announcementsQuery.data
+    : (announcementsQuery.data as any)?.announcements || [];
 
   // Mutations
   const saveSettingsMutation = useMutation({
@@ -371,6 +381,7 @@ export function CMSConfig() {
       isPinned: annIsPinned,
       isActive: annIsActive,
       startDate: new Date().toISOString(),
+      endDate: annHasExpiry && annEndDate ? new Date(annEndDate).toISOString() : null,
     });
   };
 
@@ -980,7 +991,10 @@ export function CMSConfig() {
       {activeTab === 'announcements' && (
         <div className="space-y-4 text-left">
           <div className="flex justify-between items-center select-none">
-            <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider">Dismissible Alerts</h3>
+            <div>
+              <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider">Official Announcements & Alerts</h3>
+              <p className="text-[11px] text-text-tertiary">Publish live alerts, festival notices, or schedule auto-expiring banners on citizen portal.</p>
+            </div>
             <Button
               size="sm"
               onClick={() => {
@@ -990,6 +1004,8 @@ export function CMSConfig() {
                 setAnnType('notice');
                 setAnnIsPinned(false);
                 setAnnIsActive(true);
+                setAnnHasExpiry(false);
+                setAnnEndDate('');
                 setIsAnnModalOpen(true);
               }}
             >
@@ -998,48 +1014,91 @@ export function CMSConfig() {
           </div>
 
           {announcementsQuery.isLoading ? (
-            <Skeleton className="h-10 w-full animate-pulse" />
+            <Skeleton className="h-16 w-full animate-pulse" />
           ) : announcementsList.length === 0 ? (
-            <Card className="text-center p-8 border border-dashed border-border bg-surface select-none">
-              <p className="text-xs text-text-tertiary">No alerts listed.</p>
+            <Card className="text-center p-8 border border-dashed border-border bg-surface select-none space-y-2">
+              <p className="text-xs text-text-secondary font-semibold">No alerts published yet.</p>
+              <p className="text-[11px] text-text-tertiary">Click "+ Add Alert" to create an announcement or holiday notice for citizens.</p>
             </Card>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {announcementsList.map((ann) => (
-                <Card key={ann._id} className="p-4 flex flex-col justify-between items-start gap-4">
-                  <div className="text-left space-y-1">
-                    <span className="font-bold text-xs text-text-primary block">{ann.title}</span>
-                    <p className="text-[10px] text-text-secondary line-clamp-2 select-none">{ann.content}</p>
-                    <div className="flex gap-1.5 pt-2 select-none">
-                      <Badge variant="warning">{ann.type}</Badge>
-                      {ann.isPinned && <Badge variant="success">PINNED</Badge>}
+              {announcementsList.map((ann) => {
+                const isExpired = ann.endDate ? new Date(ann.endDate) < new Date() : false;
+                return (
+                  <Card key={ann._id} className="p-4 flex flex-col justify-between items-start gap-4 hover:border-accent/40 transition-colors">
+                    <div className="text-left space-y-2 w-full">
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="font-bold text-sm text-text-primary block line-clamp-1">{ann.title}</span>
+                        <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded uppercase ${
+                          ann.isActive && !isExpired
+                            ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                            : 'bg-error/10 text-error border border-error/20'
+                        }`}>
+                          {isExpired ? 'Expired' : ann.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-text-secondary line-clamp-2 select-none leading-relaxed">{ann.content}</p>
+
+                      <div className="flex flex-wrap items-center gap-1.5 pt-1 select-none">
+                        <Badge variant="warning">{ann.type.replace('_', ' ')}</Badge>
+                        {ann.isPinned && <Badge variant="success">PINNED TO TOP</Badge>}
+
+                        {ann.endDate ? (
+                          isExpired ? (
+                            <span className="px-2 py-0.5 rounded bg-error/15 border border-error/30 text-error font-bold text-[10px] font-mono">
+                              EXPIRED ({new Date(ann.endDate).toLocaleDateString()})
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded bg-surface-elevated border border-border text-text-secondary text-[10px] font-mono">
+                              ⏰ Expires: {new Date(ann.endDate).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                            </span>
+                          )
+                        ) : (
+                          <span className="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/25 text-emerald-500 font-bold text-[10px] font-mono">
+                            ♾️ Active Indefinitely
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex gap-2 select-none">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setEditingAnn(ann);
-                        setAnnTitle(ann.title);
-                        setAnnContent(ann.content);
-                        setAnnType(ann.type);
-                        setAnnIsPinned(ann.isPinned);
-                        setAnnIsActive(ann.isActive);
-                        setIsAnnModalOpen(true);
-                      }}
-                    >
-                      Edit
-                    </Button>
-                    <button
-                      onClick={() => deleteAnnMutation.mutate(ann._id)}
-                      className="text-text-tertiary hover:text-error p-1.5 hover:bg-surface-elevated rounded cursor-pointer"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </Card>
-              ))}
+
+                    <div className="flex justify-end gap-2 w-full pt-2 border-t border-border/50 select-none">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setEditingAnn(ann);
+                          setAnnTitle(ann.title);
+                          setAnnContent(ann.content);
+                          setAnnType(ann.type);
+                          setAnnIsPinned(ann.isPinned);
+                          setAnnIsActive(ann.isActive);
+                          if (ann.endDate) {
+                            setAnnHasExpiry(true);
+                            const d = new Date(ann.endDate);
+                            const pad = (n: number) => n.toString().padStart(2, '0');
+                            const formatted = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                            setAnnEndDate(formatted);
+                          } else {
+                            setAnnHasExpiry(false);
+                            setAnnEndDate('');
+                          }
+                          setIsAnnModalOpen(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <button
+                        onClick={() => deleteAnnMutation.mutate(ann._id)}
+                        className="text-text-tertiary hover:text-error p-1.5 hover:bg-surface-elevated rounded cursor-pointer transition-colors"
+                        title="Delete Alert"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </Card>
+                );
+              })}
             </div>
           )}
         </div>
@@ -1289,6 +1348,67 @@ export function CMSConfig() {
                 placeholder="Provide details about the notice or update..."
                 required
               />
+            </div>
+
+            {/* Expiry & Scheduling Section */}
+            <div className="p-3.5 rounded-xl border border-border bg-surface-elevated/40 space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="font-bold text-text-primary select-none text-xs">
+                  Alert Duration & Auto-Expiry
+                </label>
+                <span className="text-[10px] text-text-tertiary">
+                  {annHasExpiry ? 'Auto-expires on date' : 'Stays active indefinitely'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAnnHasExpiry(false);
+                    setAnnEndDate('');
+                  }}
+                  className={`p-2.5 rounded-lg border text-left cursor-pointer transition-colors ${
+                    !annHasExpiry
+                      ? 'border-accent bg-accent/10 text-accent font-bold shadow-sm'
+                      : 'border-border bg-surface hover:bg-surface-elevated text-text-secondary'
+                  }`}
+                >
+                  <div className="font-semibold text-xs">♾️ Keep Indefinitely</div>
+                  <div className="text-[10px] opacity-75 mt-0.5">Until manually deleted or switched off</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAnnHasExpiry(true)}
+                  className={`p-2.5 rounded-lg border text-left cursor-pointer transition-colors ${
+                    annHasExpiry
+                      ? 'border-accent bg-accent/10 text-accent font-bold shadow-sm'
+                      : 'border-border bg-surface hover:bg-surface-elevated text-text-secondary'
+                  }`}
+                >
+                  <div className="font-semibold text-xs">⏰ Set Auto-Expiry</div>
+                  <div className="text-[10px] opacity-75 mt-0.5">Auto-hide after specific date & time</div>
+                </button>
+              </div>
+
+              {annHasExpiry && (
+                <div className="space-y-1.5 pt-1 border-t border-border/40">
+                  <label className="font-bold text-text-secondary select-none text-[11px] block">
+                    Auto-Expire Date & Time
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={annEndDate}
+                    onChange={(e) => setAnnEndDate(e.target.value)}
+                    className="w-full px-3 py-2 text-xs rounded-lg bg-surface border border-border text-text-primary focus:outline-none focus:border-accent"
+                    required={annHasExpiry}
+                  />
+                  <p className="text-[10px] text-text-tertiary">
+                    After this exact date and time, the announcement will automatically stop showing on the Citizen Portal.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

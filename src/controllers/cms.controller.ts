@@ -156,12 +156,18 @@ export const getPublicFaqs = asyncHandler(async (req: Request, res: Response) =>
 
 export const createAnnouncement = asyncHandler(async (req: Request, res: Response) => {
   const tenantId = (req as any).tenantId || req.user?.tenantId;
-  const announcement = await Announcement.create({
+  const payload: Record<string, any> = {
     ...req.body,
     startDate: req.body.startDate ? new Date(req.body.startDate) : new Date(),
     ...(tenantId ? { tenantId } : {}),
     createdBy: req.user!.userId,
-  });
+  };
+  if (req.body.endDate) {
+    payload.endDate = new Date(req.body.endDate);
+  } else {
+    delete payload.endDate;
+  }
+  const announcement = await Announcement.create(payload);
   res.status(201).json(new ApiResponse(201, announcement, 'Announcement created'));
 });
 
@@ -171,7 +177,14 @@ export const getAnnouncements = asyncHandler(async (_req: Request, res: Response
 });
 
 export const updateAnnouncement = asyncHandler(async (req: Request, res: Response) => {
-  const announcement = await Announcement.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  const updateData: Record<string, any> = { ...req.body };
+  if (updateData.endDate) {
+    updateData.endDate = new Date(updateData.endDate);
+  } else if (updateData.endDate === null || updateData.endDate === '') {
+    updateData.$unset = { endDate: 1 };
+    delete updateData.endDate;
+  }
+  const announcement = await Announcement.findByIdAndUpdate(req.params.id, updateData, { new: true });
   if (!announcement) throw ApiError.notFound('Announcement not found');
   res.status(200).json(new ApiResponse(200, announcement, 'Announcement updated'));
 });
