@@ -184,14 +184,14 @@ export const deleteAnnouncement = asyncHandler(async (req: Request, res: Respons
 
 // GET /cms/announcements/public — active + currently within date range, pinned first
 export const getPublicAnnouncements = asyncHandler(async (_req: Request, res: Response) => {
-  const now = new Date();
+  const now = new Date(Date.now() + 60 * 1000); // 1-minute grace for slight server/client skew
   const announcements = await Announcement.find({
     isActive: true,
-    startDate: { $lte: now },
-    $or: [{ endDate: { $exists: false } }, { endDate: { $gte: now } }],
+    $or: [{ startDate: { $exists: false } }, { startDate: null }, { startDate: { $lte: now } }],
+    $and: [{ $or: [{ endDate: { $exists: false } }, { endDate: null }, { endDate: { $gte: new Date() } }] }],
   })
     .select('title content type isPinned priority startDate endDate')
-    .sort({ isPinned: -1, priority: -1, startDate: -1 })
+    .sort({ isPinned: -1, priority: -1, createdAt: -1 })
     .lean();
 
   res.status(200).json(new ApiResponse(200, announcements));

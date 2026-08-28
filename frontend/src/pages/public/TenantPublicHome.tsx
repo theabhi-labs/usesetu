@@ -19,6 +19,7 @@ import {
   FileCheck2,
   Clock,
   ShieldCheck,
+  Megaphone,
 } from 'lucide-react';
 
 export function TenantPublicHome() {
@@ -215,6 +216,33 @@ export function TenantPublicHome() {
           )}
         </div>
       </section>
+
+      {/* Active Official Notices & Announcements Section */}
+      {announcements.length > 0 && (
+        <section className="px-6 max-w-6xl mx-auto">
+          <div className="p-4 rounded-xl border border-accent/25 bg-accent/5 backdrop-blur-md space-y-3">
+            <div className="flex items-center gap-2 text-xs font-bold text-accent uppercase tracking-wider font-mono">
+              <Megaphone className="w-4 h-4" /> Latest Official Notices & Updates
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {announcements.map((item) => (
+                <div
+                  key={item._id}
+                  className="p-3.5 rounded-xl bg-surface border border-border flex items-start gap-3 shadow-sm hover:border-accent/40 transition-colors"
+                >
+                  <span className="text-[10px] font-bold font-mono uppercase px-2 py-0.5 rounded bg-accent/10 border border-accent/20 text-accent shrink-0 mt-0.5">
+                    {item.type.replace('_', ' ')}
+                  </span>
+                  <div className="space-y-0.5 flex-1 min-w-0">
+                    <h4 className="font-bold text-xs text-text-primary line-clamp-1">{item.title}</h4>
+                    <p className="text-[11px] text-text-secondary line-clamp-2 leading-relaxed">{item.content}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Citizen Service Catalog Section */}
       <section id="services" className="px-6 max-w-6xl mx-auto space-y-8 scroll-mt-20">
