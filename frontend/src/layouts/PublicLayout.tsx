@@ -237,9 +237,6 @@ export function PublicLayout() {
           <a href="#services" className="text-xs font-medium text-text-secondary hover:text-text-primary transition-colors">
             Services
           </a>
-          <a href="#lifecycle" className="text-xs font-medium text-text-secondary hover:text-text-primary transition-colors">
-            Process Cycle
-          </a>
           <Link
             to={tenantParam ? `/track?tenant=${tenantParam}` : '/track'}
             className="text-xs font-medium text-text-secondary hover:text-text-primary transition-colors flex items-center gap-1"
