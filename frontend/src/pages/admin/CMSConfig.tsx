@@ -538,9 +538,14 @@ export function CMSConfig() {
                     <Input value={tagline} onChange={(e) => setTagline(e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="font-bold text-text-secondary select-none">Logo URL / Image Link</label>
+                    <div className="flex items-center justify-between">
+                      <label className="font-bold text-text-secondary select-none">Logo URL / Image</label>
+                      <span className="text-[10px] text-accent font-medium font-mono">
+                        📐 Rec: 256x256 px or 200x60 px (PNG/SVG)
+                      </span>
+                    </div>
                     <div className="flex gap-2">
-                      <Input value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} />
+                      <Input value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} placeholder="https://... logo image link" />
                       <Button
                         type="button"
                         variant="secondary"
@@ -571,6 +576,9 @@ export function CMSConfig() {
                     <p className="text-[11px] text-text-secondary mt-0.5">
                       Display single thumbnail or multiple rotating image banners in the background of your Citizen Portal Hero section.
                     </p>
+                    <div className="mt-1.5 inline-block px-2 py-0.5 rounded bg-surface-elevated border border-border text-[10px] text-text-tertiary font-mono">
+                      📐 Recommended Size: 1920x1080 px or 1600x900 px (16:9 Landscape Full HD) • JPG, PNG, WebP
+                    </div>
                   </div>
                   <label className="flex items-center gap-2 cursor-pointer select-none bg-surface-elevated px-3 py-1.5 rounded-lg border border-border">
                     <input
@@ -1273,117 +1281,175 @@ export function CMSConfig() {
                     <Input
                       value={leftWingTitle}
                       onChange={(e) => setLeftWingTitle(e.target.value)}
-                      placeholder="e.g. Festival Greetings or Special Notice"
+                      placeholder="e.g. Festival Greetings or Important Documents"
                     />
                   </div>
 
-                  {/* Widget Type Selector */}
-                  <div className="space-y-1.5">
-                    <label className="font-bold text-text-secondary select-none">Content Type</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { id: 'banner', label: 'Image Banner', icon: ImageIcon },
-                        { id: 'legal_pages', label: 'Legal Pages List', icon: FileText },
-                        { id: 'custom_html', label: 'Custom HTML', icon: Code2 },
-                      ].map((t) => (
-                        <button
-                          key={t.id}
-                          type="button"
-                          onClick={() => setLeftWingType(t.id as any)}
-                          className={`p-2.5 rounded-lg border text-center transition-all cursor-pointer flex flex-col items-center gap-1 ${
-                            leftWingType === t.id
-                              ? 'border-accent bg-accent/10 text-accent font-bold shadow-sm'
-                              : 'border-border bg-surface hover:bg-surface-elevated text-text-secondary'
-                          }`}
-                        >
-                          <t.icon size={15} />
-                          <span className="text-[11px]">{t.label}</span>
-                        </button>
-                      ))}
-                    </div>
+                  {/* ⚡ 1-Click Master Checkbox for Legal / Custom Pages */}
+                  <div className={`p-3.5 rounded-xl border transition-all ${
+                    leftWingShowLegal
+                      ? 'bg-emerald-500/10 border-emerald-500/30'
+                      : 'bg-surface-elevated/50 border-border hover:border-accent/30'
+                  }`}>
+                    <label className="flex items-start gap-3 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={leftWingShowLegal}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setLeftWingShowLegal(checked);
+                          if (checked) {
+                            setLeftWingType('legal_pages');
+                          } else {
+                            setLeftWingType('banner');
+                          }
+                        }}
+                        className="rounded border-border text-emerald-500 focus:ring-emerald-500 w-4 h-4 cursor-pointer mt-0.5"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-text-primary">
+                            ⚡ 1-Click Auto-Display All Legal & Custom Pages
+                          </span>
+                          {leftWingShowLegal && (
+                            <Badge variant="success" className="text-[9px] font-mono">PAGES ACTIVE</Badge>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-text-secondary mt-0.5 leading-relaxed">
+                          Check this box to automatically show quick links to all {pagesList.length} published pages. Banner and HTML inputs will be locked.
+                        </p>
+                      </div>
+                    </label>
                   </div>
 
-                  {/* Type 1: Image Banner */}
-                  {leftWingType === 'banner' && (
-                    <div className="space-y-3 p-3.5 rounded-xl bg-surface-elevated/40 border border-border">
+                  {/* Condition A: Pages Checkbox IS CHECKED */}
+                  {leftWingShowLegal ? (
+                    <div className="p-3.5 rounded-xl bg-emerald-500/5 border border-emerald-500/20 space-y-2.5">
+                      <div className="flex items-center justify-between text-emerald-500 font-bold text-xs">
+                        <span className="flex items-center gap-1.5"><FileText size={14} /> Legal Pages Widget Active</span>
+                        <span className="text-[10px] font-mono font-normal">Banner Upload Disabled</span>
+                      </div>
+                      <p className="text-[11px] text-text-tertiary leading-relaxed">
+                        Aapke banaye huye saare published pages ke direct links yaha automatically list ho rahe hain. Agar aapko festival banner ya HTML greeting lagana hai, to upar diya checkbox uncheck karein.
+                      </p>
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {pagesList.length === 0 ? (
+                          <span className="text-[11px] text-text-tertiary">No pages published yet. Create one in Legal Pages tab.</span>
+                        ) : (
+                          pagesList.map((p: any) => (
+                            <span key={p._id} className="px-2.5 py-1 rounded-lg bg-surface border border-border text-[11px] font-medium text-text-primary shadow-xs">
+                              📄 {p.title}
+                            </span>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    /* Condition B: Pages Checkbox IS NOT CHECKED -> Show Banner & HTML Options */
+                    <div className="space-y-3">
+                      {/* Widget Type Selector */}
                       <div className="space-y-1.5">
-                        <label className="font-bold text-text-secondary select-none">Banner Image Link (PNG, JPG, JPEG)</label>
-                        <div className="flex gap-2">
-                          <Input
-                            value={leftWingBannerUrl}
-                            onChange={(e) => setLeftWingBannerUrl(e.target.value)}
-                            placeholder="https://... or pick from Media Assets"
-                          />
-                          <Button
+                        <label className="font-bold text-text-secondary select-none">Wing Content Type</label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
                             type="button"
-                            variant="secondary"
-                            onClick={() => {
-                              setMediaPickerTarget('left_wing_banner');
-                              setIsMediaPickerOpen(true);
-                            }}
-                            className="shrink-0 text-xs"
+                            onClick={() => setLeftWingType('banner')}
+                            className={`p-2.5 rounded-lg border text-center transition-all cursor-pointer flex flex-col items-center gap-1 ${
+                              leftWingType === 'banner'
+                                ? 'border-accent bg-accent/10 text-accent font-bold shadow-sm'
+                                : 'border-border bg-surface hover:bg-surface-elevated text-text-secondary'
+                            }`}
                           >
-                            <FolderOpen size={14} /> Media Assets
-                          </Button>
+                            <ImageIcon size={16} />
+                            <span className="text-[11px]">Image Banner (PNG, JPG)</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setLeftWingType('custom_html')}
+                            className={`p-2.5 rounded-lg border text-center transition-all cursor-pointer flex flex-col items-center gap-1 ${
+                              leftWingType === 'custom_html'
+                                ? 'border-accent bg-accent/10 text-accent font-bold shadow-sm'
+                                : 'border-border bg-surface hover:bg-surface-elevated text-text-secondary'
+                            }`}
+                          >
+                            <Code2 size={16} />
+                            <span className="text-[11px]">Custom HTML / Greeting</span>
+                          </button>
                         </div>
                       </div>
 
-                      {leftWingBannerUrl && (
-                        <div className="rounded-lg overflow-hidden border border-border aspect-video max-h-36 bg-bg">
-                          <img src={leftWingBannerUrl} alt="Left Wing Banner" className="w-full h-full object-cover" />
+                      {/* Type 1: Image Banner */}
+                      {leftWingType === 'banner' && (
+                        <div className="space-y-3 p-3.5 rounded-xl bg-surface-elevated/40 border border-border">
+                          <div className="p-2 rounded-lg bg-surface border border-border text-[10px] text-accent font-mono">
+                            📐 Recommended Size: 400x500 px or 600x800 px (3:4 or 4:5 Vertical Card) • PNG, JPG, JPEG • Max 2MB
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="font-bold text-text-secondary select-none">Banner Image Link</label>
+                            <div className="flex gap-2">
+                              <Input
+                                value={leftWingBannerUrl}
+                                onChange={(e) => setLeftWingBannerUrl(e.target.value)}
+                                placeholder="https://... or pick from Media Assets"
+                              />
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                onClick={() => {
+                                  setMediaPickerTarget('left_wing_banner');
+                                  setIsMediaPickerOpen(true);
+                                }}
+                                className="shrink-0 text-xs"
+                              >
+                                <FolderOpen size={14} /> Media Assets
+                              </Button>
+                            </div>
+                          </div>
+
+                          {leftWingBannerUrl && (
+                            <div className="rounded-lg overflow-hidden border border-border aspect-video max-h-36 bg-bg">
+                              <img src={leftWingBannerUrl} alt="Left Wing Banner" className="w-full h-full object-cover" />
+                            </div>
+                          )}
+
+                          <div className="space-y-1.5">
+                            <label className="font-bold text-text-secondary select-none">Click Destination URL (Optional)</label>
+                            <Input
+                              value={leftWingBannerLink}
+                              onChange={(e) => setLeftWingBannerLink(e.target.value)}
+                              placeholder="e.g. /pages/mera-work or https://..."
+                            />
+                          </div>
                         </div>
                       )}
 
-                      <div className="space-y-1.5">
-                        <label className="font-bold text-text-secondary select-none">Click Destination URL (Optional)</label>
-                        <Input
-                          value={leftWingBannerLink}
-                          onChange={(e) => setLeftWingBannerLink(e.target.value)}
-                          placeholder="e.g. /pages/mera-work or https://..."
-                        />
-                      </div>
-                    </div>
-                  )}
+                      {/* Type 2: Custom HTML */}
+                      {leftWingType === 'custom_html' && (
+                        <div className="space-y-2.5 p-3.5 rounded-xl bg-surface-elevated/40 border border-border">
+                          <div className="p-2 rounded-lg bg-surface border border-border text-[10px] text-text-tertiary font-mono">
+                            📐 Responsive Container: Width 280-320px • Supports HTML5 tags, CSS styles, & Festive Mubarak Banners
+                          </div>
 
-                  {/* Type 2: Legal Pages List */}
-                  {leftWingType === 'legal_pages' && (
-                    <div className="space-y-3 p-3.5 rounded-xl bg-surface-elevated/40 border border-border">
-                      <label className="flex items-center gap-2 cursor-pointer select-none">
-                        <input
-                          type="checkbox"
-                          checked={leftWingShowLegal}
-                          onChange={(e) => setLeftWingShowLegal(e.target.checked)}
-                          className="rounded border-border text-accent focus:ring-accent w-4 h-4 cursor-pointer"
-                        />
-                        <span className="text-xs font-bold text-text-primary">
-                          Automatically show all published legal / custom pages ({pagesList.length} pages)
-                        </span>
-                      </label>
-                      <p className="text-[11px] text-text-tertiary">
-                        Citizens can click any page link directly from the Left Wing widget to view your published documents.
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Type 3: Custom HTML */}
-                  {leftWingType === 'custom_html' && (
-                    <div className="space-y-2 p-3.5 rounded-xl bg-surface-elevated/40 border border-border">
-                      <div className="flex justify-between items-center">
-                        <label className="font-bold text-text-secondary select-none">Custom HTML / Festive Greeting Code</label>
-                        <button
-                          type="button"
-                          onClick={() => setLeftWingCustomHtml('<div class="p-4 text-center bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl text-white font-bold">✨ Happy Festival Mubarak! ✨<p class="text-xs mt-1 font-normal opacity-90">Visit our Kendra for digital certificate and token services.</p></div>')}
-                          className="text-accent text-[10px] hover:underline cursor-pointer"
-                        >
-                          Insert Greeting Template
-                        </button>
-                      </div>
-                      <Textarea
-                        value={leftWingCustomHtml}
-                        onChange={(e) => setLeftWingCustomHtml(e.target.value)}
-                        rows={4}
-                        placeholder="<div class='p-3 text-center'><h3>Festival Greeting</h3></div>"
-                      />
+                          <div className="flex justify-between items-center">
+                            <label className="font-bold text-text-secondary select-none">Custom HTML Code / Greeting</label>
+                            <button
+                              type="button"
+                              onClick={() => setLeftWingCustomHtml('<div class="p-4 text-center bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl text-white font-bold shadow-md">✨ Happy Festival Mubarak! ✨<p class="text-xs mt-1 font-normal opacity-90">Visit our Kendra for instant digital certificate and token services.</p></div>')}
+                              className="text-accent text-[10px] hover:underline cursor-pointer"
+                            >
+                              Insert Festive Template
+                            </button>
+                          </div>
+                          <Textarea
+                            value={leftWingCustomHtml}
+                            onChange={(e) => setLeftWingCustomHtml(e.target.value)}
+                            rows={4}
+                            placeholder="<div class='p-3 text-center'><h3>Festival Greeting</h3></div>"
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1420,117 +1486,175 @@ export function CMSConfig() {
                     <Input
                       value={rightWingTitle}
                       onChange={(e) => setRightWingTitle(e.target.value)}
-                      placeholder="e.g. Important Links or Quick Info"
+                      placeholder="e.g. Important Links or Quick Information"
                     />
                   </div>
 
-                  {/* Widget Type Selector */}
-                  <div className="space-y-1.5">
-                    <label className="font-bold text-text-secondary select-none">Content Type</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { id: 'banner', label: 'Image Banner', icon: ImageIcon },
-                        { id: 'legal_pages', label: 'Legal Pages List', icon: FileText },
-                        { id: 'custom_html', label: 'Custom HTML', icon: Code2 },
-                      ].map((t) => (
-                        <button
-                          key={t.id}
-                          type="button"
-                          onClick={() => setRightWingType(t.id as any)}
-                          className={`p-2.5 rounded-lg border text-center transition-all cursor-pointer flex flex-col items-center gap-1 ${
-                            rightWingType === t.id
-                              ? 'border-accent bg-accent/10 text-accent font-bold shadow-sm'
-                              : 'border-border bg-surface hover:bg-surface-elevated text-text-secondary'
-                          }`}
-                        >
-                          <t.icon size={15} />
-                          <span className="text-[11px]">{t.label}</span>
-                        </button>
-                      ))}
-                    </div>
+                  {/* ⚡ 1-Click Master Checkbox for Legal / Custom Pages */}
+                  <div className={`p-3.5 rounded-xl border transition-all ${
+                    rightWingShowLegal
+                      ? 'bg-emerald-500/10 border-emerald-500/30'
+                      : 'bg-surface-elevated/50 border-border hover:border-accent/30'
+                  }`}>
+                    <label className="flex items-start gap-3 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={rightWingShowLegal}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setRightWingShowLegal(checked);
+                          if (checked) {
+                            setRightWingType('legal_pages');
+                          } else {
+                            setRightWingType('banner');
+                          }
+                        }}
+                        className="rounded border-border text-emerald-500 focus:ring-emerald-500 w-4 h-4 cursor-pointer mt-0.5"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-text-primary">
+                            ⚡ 1-Click Auto-Display All Legal & Custom Pages
+                          </span>
+                          {rightWingShowLegal && (
+                            <Badge variant="success" className="text-[9px] font-mono">PAGES ACTIVE</Badge>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-text-secondary mt-0.5 leading-relaxed">
+                          Check this box to automatically show quick links to all {pagesList.length} published pages. Banner and HTML inputs will be locked.
+                        </p>
+                      </div>
+                    </label>
                   </div>
 
-                  {/* Type 1: Image Banner */}
-                  {rightWingType === 'banner' && (
-                    <div className="space-y-3 p-3.5 rounded-xl bg-surface-elevated/40 border border-border">
+                  {/* Condition A: Pages Checkbox IS CHECKED */}
+                  {rightWingShowLegal ? (
+                    <div className="p-3.5 rounded-xl bg-emerald-500/5 border border-emerald-500/20 space-y-2.5">
+                      <div className="flex items-center justify-between text-emerald-500 font-bold text-xs">
+                        <span className="flex items-center gap-1.5"><FileText size={14} /> Legal Pages Widget Active</span>
+                        <span className="text-[10px] font-mono font-normal">Banner Upload Disabled</span>
+                      </div>
+                      <p className="text-[11px] text-text-tertiary leading-relaxed">
+                        Aapke banaye huye saare published pages ke direct links yaha automatically list ho rahe hain. Agar aapko festival banner ya HTML greeting lagana hai, to upar diya checkbox uncheck karein.
+                      </p>
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {pagesList.length === 0 ? (
+                          <span className="text-[11px] text-text-tertiary">No pages published yet. Create one in Legal Pages tab.</span>
+                        ) : (
+                          pagesList.map((p: any) => (
+                            <span key={p._id} className="px-2.5 py-1 rounded-lg bg-surface border border-border text-[11px] font-medium text-text-primary shadow-xs">
+                              📄 {p.title}
+                            </span>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    /* Condition B: Pages Checkbox IS NOT CHECKED -> Show Banner & HTML Options */
+                    <div className="space-y-3">
+                      {/* Widget Type Selector */}
                       <div className="space-y-1.5">
-                        <label className="font-bold text-text-secondary select-none">Banner Image Link (PNG, JPG, JPEG)</label>
-                        <div className="flex gap-2">
-                          <Input
-                            value={rightWingBannerUrl}
-                            onChange={(e) => setRightWingBannerUrl(e.target.value)}
-                            placeholder="https://... or pick from Media Assets"
-                          />
-                          <Button
+                        <label className="font-bold text-text-secondary select-none">Wing Content Type</label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
                             type="button"
-                            variant="secondary"
-                            onClick={() => {
-                              setMediaPickerTarget('right_wing_banner');
-                              setIsMediaPickerOpen(true);
-                            }}
-                            className="shrink-0 text-xs"
+                            onClick={() => setRightWingType('banner')}
+                            className={`p-2.5 rounded-lg border text-center transition-all cursor-pointer flex flex-col items-center gap-1 ${
+                              rightWingType === 'banner'
+                                ? 'border-accent bg-accent/10 text-accent font-bold shadow-sm'
+                                : 'border-border bg-surface hover:bg-surface-elevated text-text-secondary'
+                            }`}
                           >
-                            <FolderOpen size={14} /> Media Assets
-                          </Button>
+                            <ImageIcon size={16} />
+                            <span className="text-[11px]">Image Banner (PNG, JPG)</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setRightWingType('custom_html')}
+                            className={`p-2.5 rounded-lg border text-center transition-all cursor-pointer flex flex-col items-center gap-1 ${
+                              rightWingType === 'custom_html'
+                                ? 'border-accent bg-accent/10 text-accent font-bold shadow-sm'
+                                : 'border-border bg-surface hover:bg-surface-elevated text-text-secondary'
+                            }`}
+                          >
+                            <Code2 size={16} />
+                            <span className="text-[11px]">Custom HTML / Greeting</span>
+                          </button>
                         </div>
                       </div>
 
-                      {rightWingBannerUrl && (
-                        <div className="rounded-lg overflow-hidden border border-border aspect-video max-h-36 bg-bg">
-                          <img src={rightWingBannerUrl} alt="Right Wing Banner" className="w-full h-full object-cover" />
+                      {/* Type 1: Image Banner */}
+                      {rightWingType === 'banner' && (
+                        <div className="space-y-3 p-3.5 rounded-xl bg-surface-elevated/40 border border-border">
+                          <div className="p-2 rounded-lg bg-surface border border-border text-[10px] text-accent font-mono">
+                            📐 Recommended Size: 400x500 px or 600x800 px (3:4 or 4:5 Vertical Card) • PNG, JPG, JPEG • Max 2MB
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="font-bold text-text-secondary select-none">Banner Image Link</label>
+                            <div className="flex gap-2">
+                              <Input
+                                value={rightWingBannerUrl}
+                                onChange={(e) => setRightWingBannerUrl(e.target.value)}
+                                placeholder="https://... or pick from Media Assets"
+                              />
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                onClick={() => {
+                                  setMediaPickerTarget('right_wing_banner');
+                                  setIsMediaPickerOpen(true);
+                                }}
+                                className="shrink-0 text-xs"
+                              >
+                                <FolderOpen size={14} /> Media Assets
+                              </Button>
+                            </div>
+                          </div>
+
+                          {rightWingBannerUrl && (
+                            <div className="rounded-lg overflow-hidden border border-border aspect-video max-h-36 bg-bg">
+                              <img src={rightWingBannerUrl} alt="Right Wing Banner" className="w-full h-full object-cover" />
+                            </div>
+                          )}
+
+                          <div className="space-y-1.5">
+                            <label className="font-bold text-text-secondary select-none">Click Destination URL (Optional)</label>
+                            <Input
+                              value={rightWingBannerLink}
+                              onChange={(e) => setRightWingBannerLink(e.target.value)}
+                              placeholder="e.g. /pages/terms or https://..."
+                            />
+                          </div>
                         </div>
                       )}
 
-                      <div className="space-y-1.5">
-                        <label className="font-bold text-text-secondary select-none">Click Destination URL (Optional)</label>
-                        <Input
-                          value={rightWingBannerLink}
-                          onChange={(e) => setRightWingBannerLink(e.target.value)}
-                          placeholder="e.g. /pages/terms or https://..."
-                        />
-                      </div>
-                    </div>
-                  )}
+                      {/* Type 2: Custom HTML */}
+                      {rightWingType === 'custom_html' && (
+                        <div className="space-y-2.5 p-3.5 rounded-xl bg-surface-elevated/40 border border-border">
+                          <div className="p-2 rounded-lg bg-surface border border-border text-[10px] text-text-tertiary font-mono">
+                            📐 Responsive Container: Width 280-320px • Supports HTML5 tags, CSS styles, & Festive Mubarak Banners
+                          </div>
 
-                  {/* Type 2: Legal Pages List */}
-                  {rightWingType === 'legal_pages' && (
-                    <div className="space-y-3 p-3.5 rounded-xl bg-surface-elevated/40 border border-border">
-                      <label className="flex items-center gap-2 cursor-pointer select-none">
-                        <input
-                          type="checkbox"
-                          checked={rightWingShowLegal}
-                          onChange={(e) => setRightWingShowLegal(e.target.checked)}
-                          className="rounded border-border text-accent focus:ring-accent w-4 h-4 cursor-pointer"
-                        />
-                        <span className="text-xs font-bold text-text-primary">
-                          Automatically show all published legal / custom pages ({pagesList.length} pages)
-                        </span>
-                      </label>
-                      <p className="text-[11px] text-text-tertiary">
-                        Citizens can click any page link directly from the Right Wing widget to view your published documents.
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Type 3: Custom HTML */}
-                  {rightWingType === 'custom_html' && (
-                    <div className="space-y-2 p-3.5 rounded-xl bg-surface-elevated/40 border border-border">
-                      <div className="flex justify-between items-center">
-                        <label className="font-bold text-text-secondary select-none">Custom HTML / Festive Greeting Code</label>
-                        <button
-                          type="button"
-                          onClick={() => setRightWingCustomHtml('<div class="p-4 text-center bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl text-white font-bold">🎉 Special Mubarak & Greetings! 🎉<p class="text-xs mt-1 font-normal opacity-90">All Kendra online services are running fast and active.</p></div>')}
-                          className="text-accent text-[10px] hover:underline cursor-pointer"
-                        >
-                          Insert Greeting Template
-                        </button>
-                      </div>
-                      <Textarea
-                        value={rightWingCustomHtml}
-                        onChange={(e) => setRightWingCustomHtml(e.target.value)}
-                        rows={4}
-                        placeholder="<div class='p-3 text-center'><h3>Custom Widget</h3></div>"
-                      />
+                          <div className="flex justify-between items-center">
+                            <label className="font-bold text-text-secondary select-none">Custom HTML Code / Greeting</label>
+                            <button
+                              type="button"
+                              onClick={() => setRightWingCustomHtml('<div class="p-4 text-center bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl text-white font-bold shadow-md">🎉 Special Mubarak & Greetings! 🎉<p class="text-xs mt-1 font-normal opacity-90">All Kendra online services are running fast and active.</p></div>')}
+                              className="text-accent text-[10px] hover:underline cursor-pointer"
+                            >
+                              Insert Festive Template
+                            </button>
+                          </div>
+                          <Textarea
+                            value={rightWingCustomHtml}
+                            onChange={(e) => setRightWingCustomHtml(e.target.value)}
+                            rows={4}
+                            placeholder="<div class='p-3 text-center'><h3>Custom Widget</h3></div>"
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1729,11 +1853,15 @@ export function CMSConfig() {
               </div>
             </div>
 
+            <div className="p-2.5 rounded-lg bg-surface-elevated/60 border border-border text-[10px] text-text-tertiary font-mono">
+              📐 Recommended Dimensions: Desktop: 1920x600 px (3:1 Aspect) | Mobile: 600x400 px (3:2 Aspect) • PNG, JPG, JPEG • Max 3MB
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="font-bold text-text-secondary select-none">Device targeting</label>
                 <Select value={bannerDevice} onChange={(e: any) => setBannerDevice(e.target.value)}>
-                  <option value="both">All Devices</option>
+                  <option value="both">All Devices (Auto-Responsive)</option>
                   <option value="desktop">Desktop Only</option>
                   <option value="mobile">Mobile Screen Only</option>
                 </Select>
@@ -1741,7 +1869,7 @@ export function CMSConfig() {
               <div className="space-y-1.5">
                 <label className="font-bold text-text-secondary select-none">Banner Image Link</label>
                 <div className="flex gap-2">
-                  <Input value={bannerImageUrl} onChange={(e) => setBannerImageUrl(e.target.value)} />
+                  <Input value={bannerImageUrl} onChange={(e) => setBannerImageUrl(e.target.value)} placeholder="https://..." />
                   <Button
                     type="button"
                     variant="secondary"
