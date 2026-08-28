@@ -17,6 +17,7 @@ import platformRoutes from './platform.routes';
 import publicApplicationRoutes from './publicApplication.routes';
 import webhookRoutes from './webhook.routes';
 import adminOperationsRoutes from './adminOperations.routes';
+import superAdminRoutes from './superAdmin.routes';
 
 const router = Router();
 
@@ -35,6 +36,7 @@ router.use('/dashboard', dashboardRoutes);
 router.use('/users', userRoutes);
 router.use('/locker', lockerRoutes);
 router.use('/platform', platformRoutes);
+router.use('/platform/super-admin', superAdminRoutes);
 router.use('/public/application', publicApplicationRoutes);
 router.use('/webhooks', webhookRoutes);
 router.use('/admin/operations', adminOperationsRoutes);

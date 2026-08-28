@@ -65,6 +65,20 @@ import { NotificationsPage } from '../pages/platform/Notifications';
 import { AccountPage } from '../pages/platform/Account';
 import { SecurityPage } from '../pages/platform/Security';
 
+// Super Admin Pages & Layout
+import { SuperAdminLayout } from '../layouts/SuperAdminLayout';
+import { SuperAdminDashboard } from '../pages/platform/super-admin/SuperAdminDashboard';
+import { SuperAdminTenants } from '../pages/platform/super-admin/SuperAdminTenants';
+import { SuperAdminTenantDetails } from '../pages/platform/super-admin/SuperAdminTenantDetails';
+import { SuperAdminRequests } from '../pages/platform/super-admin/SuperAdminRequests';
+import { SuperAdminPlans } from '../pages/platform/super-admin/SuperAdminPlans';
+import { SuperAdminRevenue } from '../pages/platform/super-admin/SuperAdminRevenue';
+import { SuperAdminOperations } from '../pages/platform/super-admin/SuperAdminOperations';
+import { SuperAdminIncidents } from '../pages/platform/super-admin/SuperAdminIncidents';
+import { SuperAdminErrors } from '../pages/platform/super-admin/SuperAdminErrors';
+import { SuperAdminJobs } from '../pages/platform/super-admin/SuperAdminJobs';
+import { SuperAdminSecurityEvents } from '../pages/platform/super-admin/SuperAdminSecurityEvents';
+
 // Shared Gates
 import { ProtectedRoute } from './ProtectedRoute';
 import { RoleGate } from './RoleGate';
@@ -174,6 +188,30 @@ export function AppRoutes() {
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="account" element={<AccountPage />} />
         <Route path="account/security" element={<SecurityPage />} />
+      </Route>
+
+      {/* Master Super Admin Control Center */}
+      <Route
+        path="/platform/super-admin"
+        element={
+          <ProtectedRoute>
+            <RoleGate allowedRoles={[Role.SUPER_ADMIN]}>
+              <SuperAdminLayout />
+            </RoleGate>
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<SuperAdminDashboard />} />
+        <Route path="tenants" element={<SuperAdminTenants />} />
+        <Route path="tenants/:id" element={<SuperAdminTenantDetails />} />
+        <Route path="requests" element={<SuperAdminRequests />} />
+        <Route path="plans" element={<SuperAdminPlans />} />
+        <Route path="revenue" element={<SuperAdminRevenue />} />
+        <Route path="operations" element={<SuperAdminOperations />} />
+        <Route path="incidents" element={<SuperAdminIncidents />} />
+        <Route path="errors" element={<SuperAdminErrors />} />
+        <Route path="jobs" element={<SuperAdminJobs />} />
+        <Route path="security" element={<SuperAdminSecurityEvents />} />
       </Route>
 
       <Route path="/verify-customer/:token" element={<CustomerVerification />} />
