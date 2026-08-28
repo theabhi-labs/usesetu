@@ -490,7 +490,7 @@ export function TenantPublicHome() {
 function HtmlWidget({ html }: { html?: string }) {
   if (!html || !html.trim()) {
     return (
-      <div className="p-3 text-center rounded-xl bg-accent/10 border border-accent/25 text-accent text-xs font-semibold">
+      <div className="p-3 text-center rounded-xl bg-accent/10 border border-accent/25 text-accent text-xs font-semibold flex-1 flex flex-col justify-center items-center">
         ✨ Special Mubarak & Greetings! ✨
         <p className="text-[10px] text-text-secondary mt-1 font-normal">All Kendra online services are live and available.</p>
       </div>
@@ -499,19 +499,44 @@ function HtmlWidget({ html }: { html?: string }) {
 
   const sanitizedDoc = `
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
       <head>
         <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <style>
-          * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-          body {
+          * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -ms-overflow-style: none !important;
+            scrollbar-width: none !important;
+          }
+          *::-webkit-scrollbar {
+            display: none !important;
+            width: 0px !important;
+            height: 0px !important;
+          }
+          html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
             background: transparent;
-            color: #ffffff;
-            font-size: 12px;
-            line-height: 1.4;
-            padding: 4px;
-            overflow-x: hidden;
+            overflow: hidden !important;
+            display: flex;
+            flex-direction: column;
+          }
+          body > * {
+            flex: 1 1 auto;
+            width: 100% !important;
+            max-width: 100% !important;
+            height: 100% !important;
+          }
+          img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
           }
           input, button, select, textarea {
             font-family: inherit;
@@ -541,7 +566,6 @@ function HtmlWidget({ html }: { html?: string }) {
           button:hover, input[type="submit"]:hover {
             opacity: 0.9;
           }
-          img { max-width: 100%; height: auto; border-radius: 8px; }
           a { color: #f97316; text-decoration: none; }
           a:hover { text-decoration: underline; }
         </style>
@@ -553,11 +577,12 @@ function HtmlWidget({ html }: { html?: string }) {
   `;
 
   return (
-    <div className="w-full rounded-xl overflow-hidden border border-border/60 bg-surface-elevated/40 shadow-inner">
+    <div className="w-full flex-1 min-h-[320px] rounded-xl overflow-hidden border border-border/60 bg-transparent flex flex-col">
       <iframe
         srcDoc={sanitizedDoc}
         title="Custom HTML Form Widget"
-        className="w-full min-h-[160px] h-[210px] max-h-[360px] border-0"
+        className="w-full flex-1 h-full min-h-[320px] border-0"
+        scrolling="no"
         sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-modals"
         loading="lazy"
       />
@@ -581,7 +606,7 @@ function SideWingCard({
 
   return (
     <div className="w-full lg:w-56 xl:w-60 shrink-0 flex flex-col justify-between gap-3 rounded-2xl border border-border bg-surface/90 backdrop-blur-md p-3.5 shadow-xl text-left self-stretch transition-all hover:border-accent/40">
-      <div className="space-y-2.5">
+      <div className="space-y-2.5 flex-1 flex flex-col">
         {wing.title && (
           <div className="flex items-center gap-1.5 border-b border-border/80 pb-2">
             <Sparkles className="w-3.5 h-3.5 text-accent shrink-0" />
@@ -593,7 +618,7 @@ function SideWingCard({
 
         {/* 1. Image Banner (PNG, JPG, JPEG) */}
         {wing.type === 'banner' && (
-          <div className="space-y-2">
+          <div className="space-y-2 flex-1 flex flex-col justify-center">
             {wing.bannerImageUrl ? (
               wing.bannerLink ? (
                 <a
@@ -604,7 +629,7 @@ function SideWingCard({
                   }
                   target={wing.bannerLink.startsWith('http') ? '_blank' : undefined}
                   rel={wing.bannerLink.startsWith('http') ? 'noopener noreferrer' : undefined}
-                  className="group block overflow-hidden rounded-xl border border-border/80 relative aspect-[3/4] bg-bg/50 shadow-md"
+                  className="group block overflow-hidden rounded-xl border border-border/80 relative aspect-[3/4] bg-bg/50 shadow-md flex-1"
                 >
                   <img
                     src={wing.bannerImageUrl}
@@ -614,7 +639,7 @@ function SideWingCard({
                   <div className="absolute inset-0 bg-black/15 group-hover:bg-black/0 transition-colors" />
                 </a>
               ) : (
-                <div className="overflow-hidden rounded-xl border border-border/80 relative aspect-[3/4] bg-bg/50 shadow-md">
+                <div className="overflow-hidden rounded-xl border border-border/80 relative aspect-[3/4] bg-bg/50 shadow-md flex-1">
                   <img
                     src={wing.bannerImageUrl}
                     alt={wing.title || 'Promotional Banner'}
@@ -632,7 +657,7 @@ function SideWingCard({
 
         {/* 2. Legal Pages Quick Links (All Published Pages) */}
         {(wing.type === 'legal_pages' || wing.showLegalPagesList) && (
-          <div className="space-y-2">
+          <div className="space-y-2 flex-1">
             <div className="text-[11px] font-semibold text-text-secondary">Official Documents:</div>
             {pages.length === 0 ? (
               <p className="text-[11px] text-text-tertiary">No pages published.</p>
