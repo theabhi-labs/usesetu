@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { formApi } from '../../services/form.api';
 import { serviceApi } from '../../services/service.api';
@@ -41,6 +41,7 @@ const FIELD_PALETTE: { type: FieldType; label: string; icon: string }[] = [
 export function FormBuilder() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
 
   const isNew = id === 'new';
@@ -105,7 +106,7 @@ export function FormBuilder() {
     onSuccess: (savedForm) => {
       queryClient.invalidateQueries({ queryKey: ['adminFormsList'] });
       if (isNew) {
-        navigate(`/admin/forms/build/${savedForm._id}`);
+        navigate(location.search ? `/admin/forms/build/${savedForm._id}${location.search}` : `/admin/forms/build/${savedForm._id}`);
       } else {
         queryClient.invalidateQueries({ queryKey: ['adminFormDetail', id] });
         setFormState(savedForm);
@@ -251,7 +252,7 @@ export function FormBuilder() {
       {/* Top Header */}
       <header className="h-16 border-b border-border bg-surface flex items-center justify-between px-6 shrink-0 z-10 select-none text-left">
         <div className="flex items-center gap-3">
-          <Link to="/admin/forms" className="text-text-secondary hover:text-text-primary">
+          <Link to={location.search ? `/admin/forms${location.search}` : '/admin/forms'} className="text-text-secondary hover:text-text-primary">
             <ArrowLeft size={18} />
           </Link>
           <div>

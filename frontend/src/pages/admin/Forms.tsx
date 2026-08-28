@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { formApi } from '../../services/form.api';
 import { serviceApi } from '../../services/service.api';
 import type { Form } from '../../types/form.types';
@@ -15,6 +15,7 @@ import { Plus, Edit2, Play, Copy, ListCollapse, Trash2 } from 'lucide-react';
 export function Forms() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const location = useLocation();
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
 
@@ -45,7 +46,7 @@ export function Forms() {
     mutationFn: (id: string) => formApi.clone(id),
     onSuccess: (newForm) => {
       queryClient.invalidateQueries({ queryKey: ['adminFormsList'] });
-      navigate(`/admin/forms/build/${newForm._id}`);
+      navigate(location.search ? `/admin/forms/build/${newForm._id}${location.search}` : `/admin/forms/build/${newForm._id}`);
     },
   });
 
@@ -56,6 +57,8 @@ export function Forms() {
     },
   });
 
+  const newFormUrl = location.search ? `/admin/forms/build/new${location.search}` : '/admin/forms/build/new';
+
   return (
     <div className="p-6 text-left space-y-6 max-w-6xl mx-auto">
       <div className="flex justify-between items-center border-b border-border pb-4">
@@ -63,7 +66,7 @@ export function Forms() {
           <h1 className="text-2xl font-bold font-sans text-text-primary">Forms Manager</h1>
           <p className="text-xs text-text-secondary mt-0.5 select-none">Design dynamic layout fields, validation schema rules, and versioning.</p>
         </div>
-        <Link to="/admin/forms/build/new">
+        <Link to={newFormUrl}>
           <Button size="sm">
             <Plus size={14} className="mr-1.5" /> New Form Canvas
           </Button>
@@ -80,7 +83,7 @@ export function Forms() {
         <Card className="text-center p-12 border border-dashed border-border bg-surface">
           <ListCollapse className="mx-auto text-text-tertiary mb-3" size={32} />
           <p className="text-sm text-text-secondary mb-4 select-none">No custom form schemas configured.</p>
-          <Link to="/admin/forms/build/new">
+          <Link to={newFormUrl}>
             <Button size="sm">Create First Form</Button>
           </Link>
         </Card>
@@ -100,6 +103,7 @@ export function Forms() {
             <TBody>
               {forms.map((form) => {
                 const srvObj = services.find((s) => s._id === form.service);
+                const editUrl = location.search ? `/admin/forms/build/${form._id}${location.search}` : `/admin/forms/build/${form._id}`;
                 return (
                   <TR key={form._id}>
                     <TD className="font-semibold text-text-primary">{form.title}</TD>
@@ -131,7 +135,7 @@ export function Forms() {
                           <Play size={13} />
                         </button>
                       )}
-                      <Link to={`/admin/forms/build/${form._id}`}>
+                      <Link to={editUrl}>
                         <button
                           className="p-1.5 text-text-secondary hover:text-accent hover:bg-surface-elevated rounded cursor-pointer"
                           title="Edit Builder"

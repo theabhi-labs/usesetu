@@ -91,6 +91,11 @@ export function getTenantContext(searchString?: string): TenantContext {
 
     // 3b. Query Parameter Fallback (Development only)
     if (paramTenant) {
+      try {
+        if (typeof window !== 'undefined' && window.sessionStorage) {
+          window.sessionStorage.setItem('dev_active_tenant', paramTenant.toLowerCase().trim());
+        }
+      } catch (e) {}
       return {
         type: 'TENANT',
         isRootPlatform: false,
@@ -100,7 +105,24 @@ export function getTenantContext(searchString?: string): TenantContext {
       };
     }
 
-    // 3c. Pure Localhost Root -> Platform
+    // 3c. Stored Dev Session Tenant Fallback (preserves tenant during in-admin sub-navigation)
+    try {
+      const savedTenant = typeof window !== 'undefined' && window.sessionStorage ? window.sessionStorage.getItem('dev_active_tenant') : null;
+      if (savedTenant && typeof window !== 'undefined') {
+        const isPlatformRoute = window.location.pathname.startsWith('/platform') || window.location.pathname.startsWith('/applications');
+        if (!isPlatformRoute) {
+          return {
+            type: 'TENANT',
+            isRootPlatform: false,
+            isTenantApplication: true,
+            tenantSlug: savedTenant.toLowerCase().trim(),
+            hostname,
+          };
+        }
+      }
+    } catch (e) {}
+
+    // 3d. Pure Localhost Root -> Platform
     return {
       type: 'PLATFORM',
       isRootPlatform: true,
