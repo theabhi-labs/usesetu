@@ -58,6 +58,11 @@ export function Login() {
   });
 
   const handleSuccessfulNavigation = (userRole: string) => {
+    if (userRole === 'super_admin' && (!redirectUrl || redirectUrl === '/platform/create-app' || redirectUrl === '/platform')) {
+      navigate('/platform/super-admin');
+      return;
+    }
+
     if (redirectUrl) {
       if (tenantContext.isRootPlatform && (redirectUrl === '/admin' || redirectUrl.startsWith('/admin?'))) {
         navigate('/platform');

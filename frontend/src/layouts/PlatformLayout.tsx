@@ -15,6 +15,7 @@ import {
   X,
   Server,
   ChevronRight,
+  Crown,
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { ApplicationSwitcher } from '../components/platform/ApplicationSwitcher';
@@ -43,6 +44,9 @@ export const PlatformLayout: React.FC = () => {
   };
 
   const navLinks = [
+    ...(user?.role === 'super_admin'
+      ? [{ name: '👑 Super Admin Console', path: '/platform/super-admin', icon: Crown, exact: false }]
+      : []),
     { name: 'Dashboard', path: '/platform', icon: Home, exact: true },
     { name: 'Applications', path: '/platform/applications', icon: Server, exact: false },
     { name: 'Billing & Plans', path: '/platform/billing', icon: CreditCard, exact: false },
@@ -96,6 +100,16 @@ export const PlatformLayout: React.FC = () => {
 
           {/* Right: Actions, Notifications, User */}
           <div className="flex items-center space-x-3">
+            {user?.role === 'super_admin' && (
+              <Link
+                to="/platform/super-admin"
+                className="inline-flex items-center space-x-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:opacity-95 text-white text-xs font-extrabold px-3.5 py-2 rounded-xl shadow-md shadow-amber-500/20 transition-all duration-150 transform active:scale-95 cursor-pointer"
+              >
+                <Crown className="w-4 h-4" />
+                <span>Super Admin Console</span>
+              </Link>
+            )}
+
             <Link
               to="/platform/create-app"
               className="hidden sm:inline-flex items-center space-x-2 bg-gradient-to-r from-accent to-accent-hover hover:opacity-90 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-md shadow-accent/20 transition-all duration-150 transform active:scale-95 cursor-pointer"
