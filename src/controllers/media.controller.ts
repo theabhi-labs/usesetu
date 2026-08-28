@@ -3,6 +3,7 @@ import { asyncHandler } from '../utils/asyncHandler';
 import { ApiError } from '../utils/ApiError';
 import { ApiResponse } from '../utils/ApiResponse';
 import { MediaAsset } from '../models/mediaAsset.model';
+import { Tenant } from '../models/tenant.model';
 import { uploadToImageKit, deleteFromImageKit } from '../services/imagekit.service';
 
 import { Application } from '../models/application.model';
@@ -11,9 +12,19 @@ import { EntitlementService } from '../services/entitlement.service';
 export const uploadMedia = asyncHandler(async (req: Request, res: Response) => {
   if (!req.file) throw ApiError.badRequest('No file provided');
 
+  let tenantId = req.tenantId || (req.user as any)?.tenantId;
+  if (!tenantId) {
+    const fallbackTenant =
+      (await Tenant.findOne({ slug: 'usesetu-master' }).setOptions({ bypassTenantQuery: true })) ||
+      (await Tenant.findOne().setOptions({ bypassTenantQuery: true }));
+    if (fallbackTenant) {
+      tenantId = String(fallbackTenant._id);
+    }
+  }
+
   let app: any = null;
-  if (req.tenantId) {
-    app = await Application.findOne({ tenantId: req.tenantId }).setOptions({ bypassTenantQuery: true });
+  if (tenantId) {
+    app = await Application.findOne({ tenantId }).setOptions({ bypassTenantQuery: true });
     if (app) {
       // Enforce storage byte quota before uploading
       await EntitlementService.assertWithinLimit(app._id, 'storage_bytes', req.file.size);
@@ -32,6 +43,7 @@ export const uploadMedia = asyncHandler(async (req: Request, res: Response) => {
     size: req.file.size,
     tags: req.body.tags ? String(req.body.tags).split(',').map((t) => t.trim()) : [],
     uploadedBy: req.user!.userId,
+    tenantId,
   });
 
   if (app) {
@@ -62,7 +74,11 @@ export const listMedia = asyncHandler(async (req: Request, res: Response) => {
   ]);
 
   res.status(200).json(
-    new ApiResponse(200, { assets, pagination: { page: pageNum, limit: limitNum, total, totalPages: Math.ceil(total / limitNum) } }),
+    new ApiResponse(200, {
+      assets,
+      media: assets,
+      pagination: { page: pageNum, limit: limitNum, total, totalPages: Math.ceil(total / limitNum) },
+    }),
   );
 });
 

@@ -28,7 +28,7 @@ export function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPickerModal
     enabled: isOpen,
   });
 
-  const assets: MediaAsset[] = mediaQuery.data?.media || [];
+  const assets: MediaAsset[] = mediaQuery.data?.assets || mediaQuery.data?.media || [];
   const pagination = mediaQuery.data?.pagination || { page: 1, limit: 12, total: 0, totalPages: 1 };
 
   // Mutations

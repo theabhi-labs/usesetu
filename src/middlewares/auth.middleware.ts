@@ -3,6 +3,7 @@ import { asyncHandler } from '../utils/asyncHandler';
 import { ApiError } from '../utils/ApiError';
 import { verifyAccessToken } from '../services/token.service';
 import { User } from '../models/user.model';
+import { tenantLocalStorage } from '../services/tenantContext.service';
 
 /**
  * Verifies the Bearer access token and attaches `req.user`.
@@ -28,11 +29,16 @@ export const isAuthenticated = asyncHandler(async (req: Request, _res: Response,
     throw ApiError.unauthorized('Session expired, please log in again');
   }
 
+  const userTenantId = user.tenantId ? String(user.tenantId) : undefined;
+  if (!req.tenantId && userTenantId) {
+    req.tenantId = userTenantId;
+  }
+
   req.user = {
     userId: payload.userId,
     role: payload.role,
     tokenVersion: payload.tokenVersion,
-    tenantId: user.tenantId ? String(user.tenantId) : undefined,
+    tenantId: userTenantId,
   };
 
   // Security Check: Host Tenant vs Authenticated User Tenant mismatch
@@ -41,5 +47,11 @@ export const isAuthenticated = asyncHandler(async (req: Request, _res: Response,
     throw ApiError.forbidden('Host and token tenant mismatch: Access denied to cross-tenant resources');
   }
 
-  next();
+  if (req.tenantId) {
+    tenantLocalStorage.run({ tenantId: req.tenantId }, () => {
+      next();
+    });
+  } else {
+    next();
+  }
 });
