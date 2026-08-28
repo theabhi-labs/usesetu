@@ -485,6 +485,87 @@ export function TenantPublicHome() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// CUSTOM HTML / FORM SANDBOXED WIDGET (BULLETPROOF & CRASH-PROOF)
+// ═══════════════════════════════════════════════════════════════════
+function HtmlWidget({ html }: { html?: string }) {
+  if (!html || !html.trim()) {
+    return (
+      <div className="p-3 text-center rounded-xl bg-accent/10 border border-accent/25 text-accent text-xs font-semibold">
+        ✨ Special Mubarak & Greetings! ✨
+        <p className="text-[10px] text-text-secondary mt-1 font-normal">All Kendra online services are live and available.</p>
+      </div>
+    );
+  }
+
+  const sanitizedDoc = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <style>
+          * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+          body {
+            background: transparent;
+            color: #ffffff;
+            font-size: 12px;
+            line-height: 1.4;
+            padding: 4px;
+            overflow-x: hidden;
+          }
+          input, button, select, textarea {
+            font-family: inherit;
+            font-size: 12px;
+            border-radius: 6px;
+            padding: 6px 10px;
+          }
+          input[type="text"], input[type="email"], input[type="number"], input[type="tel"], select, textarea {
+            background: #18181b;
+            border: 1px solid #3f3f46;
+            color: #ffffff;
+            width: 100%;
+            margin-bottom: 6px;
+            display: block;
+          }
+          button, input[type="submit"] {
+            background: #ea580c;
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            padding: 8px;
+            margin-top: 4px;
+            border-radius: 6px;
+          }
+          button:hover, input[type="submit"]:hover {
+            opacity: 0.9;
+          }
+          img { max-width: 100%; height: auto; border-radius: 8px; }
+          a { color: #f97316; text-decoration: none; }
+          a:hover { text-decoration: underline; }
+        </style>
+      </head>
+      <body>
+        ${html}
+      </body>
+    </html>
+  `;
+
+  return (
+    <div className="w-full rounded-xl overflow-hidden border border-border/60 bg-surface-elevated/40 shadow-inner">
+      <iframe
+        srcDoc={sanitizedDoc}
+        title="Custom HTML Form Widget"
+        className="w-full min-h-[160px] h-[210px] max-h-[360px] border-0"
+        sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-modals"
+        loading="lazy"
+      />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // SIDE DISPLAY WING WIDGET (BANNER / PAGES LIST / CUSTOM HTML GREETINGS)
 // ═══════════════════════════════════════════════════════════════════
 function SideWingCard({
@@ -577,21 +658,9 @@ function SideWingCard({
           </div>
         )}
 
-        {/* 3. Custom HTML / Festive Mubarak Greeting Code */}
+        {/* 3. Custom HTML / Forms / Festive Mubarak Greeting Code */}
         {wing.type === 'custom_html' && (
-          <div className="space-y-2">
-            {wing.customHtml && wing.customHtml.trim() ? (
-              <div
-                className="text-xs leading-relaxed overflow-hidden rounded-xl break-words"
-                dangerouslySetInnerHTML={{ __html: wing.customHtml }}
-              />
-            ) : (
-              <div className="p-3 text-center rounded-xl bg-accent/10 border border-accent/25 text-accent text-xs font-semibold">
-                ✨ Special Mubarak & Greetings! ✨
-                <p className="text-[10px] text-text-secondary mt-1 font-normal">All Kendra online services are live and available.</p>
-              </div>
-            )}
-          </div>
+          <HtmlWidget html={wing.customHtml} />
         )}
       </div>
 

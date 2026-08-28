@@ -1432,21 +1432,31 @@ export function CMSConfig() {
                             📐 Responsive Container: Width 280-320px • Supports HTML5 tags, CSS styles, & Festive Mubarak Banners
                           </div>
 
-                          <div className="flex justify-between items-center">
-                            <label className="font-bold text-text-secondary select-none">Custom HTML Code / Greeting</label>
-                            <button
-                              type="button"
-                              onClick={() => setLeftWingCustomHtml('<div class="p-4 text-center bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl text-white font-bold shadow-md">✨ Happy Festival Mubarak! ✨<p class="text-xs mt-1 font-normal opacity-90">Visit our Kendra for instant digital certificate and token services.</p></div>')}
-                              className="text-accent text-[10px] hover:underline cursor-pointer"
-                            >
-                              Insert Festive Template
-                            </button>
+                          <div className="flex flex-wrap justify-between items-center gap-1.5">
+                            <label className="font-bold text-text-secondary select-none">Custom HTML / Form Code</label>
+                            <div className="flex gap-2 text-[10px]">
+                              <button
+                                type="button"
+                                onClick={() => setLeftWingCustomHtml('<div style="text-align:center; padding:10px; background:linear-gradient(135deg, #d97706, #ea580c); border-radius:12px; color:#fff; font-weight:bold;">✨ Happy Festival Mubarak! ✨<p style="font-size:11px; margin-top:4px; font-weight:normal; opacity:0.9;">Visit our Kendra for instant digital services.</p></div>')}
+                                className="text-accent hover:underline cursor-pointer"
+                              >
+                                + Greeting
+                              </button>
+                              <span className="text-border">|</span>
+                              <button
+                                type="button"
+                                onClick={() => setLeftWingCustomHtml('<form onsubmit="alert(\'Request received!\'); return false;" style="padding:10px; background:#18181b; border:1px solid #3f3f46; border-radius:10px;"><h4 style="font-size:12px; font-weight:bold; margin-bottom:8px; color:#f97316;">⚡ Quick Help Desk</h4><input type="text" placeholder="Your Name" required style="width:100%; padding:6px; margin-bottom:6px; background:#27272a; border:1px solid #52525b; border-radius:6px; color:#fff; font-size:11px;"/><input type="tel" placeholder="Mobile No." required style="width:100%; padding:6px; margin-bottom:6px; background:#27272a; border:1px solid #52525b; border-radius:6px; color:#fff; font-size:11px;"/><button type="submit" style="width:100%; padding:7px; background:#ea580c; color:#fff; border:none; border-radius:6px; font-weight:bold; font-size:11px; cursor:pointer;">Submit Request</button></form>')}
+                                className="text-accent hover:underline cursor-pointer"
+                              >
+                                + Inquiry Form
+                              </button>
+                            </div>
                           </div>
                           <Textarea
                             value={leftWingCustomHtml}
                             onChange={(e) => setLeftWingCustomHtml(e.target.value)}
                             rows={4}
-                            placeholder="<div class='p-3 text-center'><h3>Festival Greeting</h3></div>"
+                            placeholder="<form>... or <div style='...'>...</form>"
                           />
                         </div>
                       )}
@@ -1637,21 +1647,31 @@ export function CMSConfig() {
                             📐 Responsive Container: Width 280-320px • Supports HTML5 tags, CSS styles, & Festive Mubarak Banners
                           </div>
 
-                          <div className="flex justify-between items-center">
-                            <label className="font-bold text-text-secondary select-none">Custom HTML Code / Greeting</label>
-                            <button
-                              type="button"
-                              onClick={() => setRightWingCustomHtml('<div class="p-4 text-center bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl text-white font-bold shadow-md">🎉 Special Mubarak & Greetings! 🎉<p class="text-xs mt-1 font-normal opacity-90">All Kendra online services are running fast and active.</p></div>')}
-                              className="text-accent text-[10px] hover:underline cursor-pointer"
-                            >
-                              Insert Festive Template
-                            </button>
+                          <div className="flex flex-wrap justify-between items-center gap-1.5">
+                            <label className="font-bold text-text-secondary select-none">Custom HTML / Form Code</label>
+                            <div className="flex gap-2 text-[10px]">
+                              <button
+                                type="button"
+                                onClick={() => setRightWingCustomHtml('<div style="text-align:center; padding:10px; background:linear-gradient(135deg, #059669, #0d9488); border-radius:12px; color:#fff; font-weight:bold;">🎉 Mubarak & Greetings! 🎉<p style="font-size:11px; margin-top:4px; font-weight:normal; opacity:0.9;">All Kendra digital services are active and fast.</p></div>')}
+                                className="text-accent hover:underline cursor-pointer"
+                              >
+                                + Greeting
+                              </button>
+                              <span className="text-border">|</span>
+                              <button
+                                type="button"
+                                onClick={() => setRightWingCustomHtml('<form onsubmit="alert(\'Request received!\'); return false;" style="padding:10px; background:#18181b; border:1px solid #3f3f46; border-radius:10px;"><h4 style="font-size:12px; font-weight:bold; margin-bottom:8px; color:#f97316;">⚡ Quick Help Desk</h4><input type="text" placeholder="Your Name" required style="width:100%; padding:6px; margin-bottom:6px; background:#27272a; border:1px solid #52525b; border-radius:6px; color:#fff; font-size:11px;"/><input type="tel" placeholder="Mobile No." required style="width:100%; padding:6px; margin-bottom:6px; background:#27272a; border:1px solid #52525b; border-radius:6px; color:#fff; font-size:11px;"/><button type="submit" style="width:100%; padding:7px; background:#ea580c; color:#fff; border:none; border-radius:6px; font-weight:bold; font-size:11px; cursor:pointer;">Submit Request</button></form>')}
+                                className="text-accent hover:underline cursor-pointer"
+                              >
+                                + Inquiry Form
+                              </button>
+                            </div>
                           </div>
                           <Textarea
                             value={rightWingCustomHtml}
                             onChange={(e) => setRightWingCustomHtml(e.target.value)}
                             rows={4}
-                            placeholder="<div class='p-3 text-center'><h3>Custom Widget</h3></div>"
+                            placeholder="<form>... or <div style='...'>...</form>"
                           />
                         </div>
                       )}
