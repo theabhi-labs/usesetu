@@ -3,7 +3,7 @@ import { asyncHandler } from '../utils/asyncHandler';
 import { ApiError } from '../utils/ApiError';
 import { ApiResponse } from '../utils/ApiResponse';
 import { LockerDocument } from '../models/lockerDocument.model';
-import { uploadToImageKit, deleteFromImageKit } from '../services/imagekit.service';
+import { uploadToR2, deleteFromR2 } from '../services/r2.service';
 import { Role } from '../types/auth.types';
 
 // ---------------------------------------------------------------------------
@@ -43,10 +43,11 @@ export const uploadLockerDocument = asyncHandler(async (req: Request, res: Respo
 
   const type = req.body.type || 'other';
 
-  const uploaded = await uploadToImageKit(
+  const uploaded = await uploadToR2(
     req.file.buffer,
     req.file.originalname,
-    `locker/${customerId}`
+    `locker/${customerId}`,
+    req.file.mimetype,
   );
 
   const doc = await LockerDocument.create({
@@ -78,9 +79,9 @@ export const deleteLockerDocument = asyncHandler(async (req: Request, res: Respo
   }
 
   try {
-    await deleteFromImageKit(doc.fileId);
+    await deleteFromR2(doc.fileId);
   } catch (err) {
-    // Suppress ImageKit delete errors to keep DB clean
+    // Suppress delete errors to keep DB clean
   }
 
   const docSize = doc.size;

@@ -4,7 +4,7 @@ import { ApiError } from '../utils/ApiError';
 import { ApiResponse } from '../utils/ApiResponse';
 import { MediaAsset } from '../models/mediaAsset.model';
 import { Tenant } from '../models/tenant.model';
-import { uploadToImageKit, deleteFromImageKit } from '../services/imagekit.service';
+import { uploadToR2, deleteFromR2 } from '../services/r2.service';
 
 import { Application } from '../models/application.model';
 import { EntitlementService } from '../services/entitlement.service';
@@ -32,7 +32,7 @@ export const uploadMedia = asyncHandler(async (req: Request, res: Response) => {
   }
 
   const folder = (req.body.folder as string) || 'general';
-  const uploaded = await uploadToImageKit(req.file.buffer, req.file.originalname, `media/${folder}`);
+  const uploaded = await uploadToR2(req.file.buffer, req.file.originalname, `media/${folder}`, req.file.mimetype);
 
   const asset = await MediaAsset.create({
     url: uploaded.url,
@@ -86,7 +86,7 @@ export const deleteMedia = asyncHandler(async (req: Request, res: Response) => {
   const asset = await MediaAsset.findById(req.params.id);
   if (!asset) throw ApiError.notFound('Media asset not found');
 
-  await deleteFromImageKit(asset.fileId);
+  await deleteFromR2(asset.fileId);
   const assetSize = asset.size;
   await asset.deleteOne();
 

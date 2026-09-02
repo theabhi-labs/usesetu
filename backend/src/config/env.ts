@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { cleanEnv, str, port, num, url } from 'envalid';
+import { cleanEnv, str, port, num } from 'envalid';
 
 dotenv.config();
 
@@ -31,10 +31,12 @@ export const env = cleanEnv(process.env, {
   BREVO_SENDER_EMAIL: str(),
   BREVO_SENDER_NAME: str({ default: 'CSC OS' }),
 
-  // ImageKit
-  IMAGEKIT_PUBLIC_KEY: str(),
-  IMAGEKIT_PRIVATE_KEY: str(),
-  IMAGEKIT_URL_ENDPOINT: url(),
+  // Cloudflare R2 Storage (S3-Compatible)
+  R2_ACCOUNT_ID: str({ default: 'placeholder_r2_account_id' }),
+  R2_ACCESS_KEY_ID: str({ default: 'placeholder_r2_access_key_id' }),
+  R2_SECRET_ACCESS_KEY: str({ default: 'placeholder_r2_secret_access_key' }),
+  R2_BUCKET_NAME: str({ default: 'csc-os' }),
+  R2_PUBLIC_URL: str({ default: 'https://cdn.usesetu.com' }),
 
   // Security
   RATE_LIMIT_WINDOW_MS: num({ default: 15 * 60 * 1000 }),

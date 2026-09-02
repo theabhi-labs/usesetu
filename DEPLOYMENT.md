@@ -8,7 +8,7 @@ Ships MongoDB (as a single-node replica set, required for transactions), the API
 ```bash
 cp .env.example .env
 # fill in real secrets — JWT_ACCESS_SECRET, JWT_REFRESH_SECRET, COOKIE_SECRET,
-# BREVO_API_KEY, IMAGEKIT_* keys, etc.
+# BREVO_API_KEY, R2_* keys, etc.
 
 docker compose up -d --build
 docker compose exec app npm run seed:super-admin
@@ -36,7 +36,7 @@ Before starting in production, confirm every variable in `.env.example` is set w
 - [ ] `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` / `COOKIE_SECRET` — long random strings, never reused across environments
 - [ ] `MONGO_URI` — points at a replica set (Atlas, or a self-managed `rs0`)
 - [ ] `BREVO_API_KEY` / `BREVO_SENDER_EMAIL` — a verified sender
-- [ ] `IMAGEKIT_*` — real project keys
+- [ ] `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET_NAME` / `R2_PUBLIC_URL` — Cloudflare R2 bucket credentials
 - [ ] `CLIENT_URL` — the actual frontend origin (CORS + password-reset links depend on this)
 - [ ] `NODE_ENV=production`
 - [ ] Super Admin seeded, then its password changed immediately after first login

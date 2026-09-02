@@ -8,7 +8,7 @@ import { RequestComment, CommentVisibility } from '../models/requestComment.mode
 import { RequestActivity } from '../models/requestActivity.model';
 import { WorkflowHistory } from '../models/workflowHistory.model';
 import { moveRequestStage } from '../services/request.service';
-import { uploadToImageKit } from '../services/imagekit.service';
+import { uploadToR2 } from '../services/r2.service';
 import { Role } from '../types/auth.types';
 
 const ADMIN_LIST_PROJECTION =
@@ -333,10 +333,11 @@ export const uploadDocument = asyncHandler(async (req: ExpressRequest, res: Resp
 
   if (!req.file) throw ApiError.badRequest('No file provided');
 
-  const uploaded = await uploadToImageKit(
+  const uploaded = await uploadToR2(
     req.file.buffer,
     req.file.originalname,
     `requests/${request.applicationNumber}`,
+    req.file.mimetype,
   );
 
   request.documents.push({
@@ -520,10 +521,11 @@ export const uploadCompletionDocument = asyncHandler(async (req: ExpressRequest,
 
   const downloadPolicy = req.body.downloadPolicy === 'once' ? 'once' : 'permanent';
 
-  const uploaded = await uploadToImageKit(
+  const uploaded = await uploadToR2(
     req.file.buffer,
     req.file.originalname,
     `requests/${request.applicationNumber}/receiving`,
+    req.file.mimetype,
   );
 
   request.completionDocument = {

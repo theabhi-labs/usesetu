@@ -61,6 +61,7 @@ const formFieldSchema = z.object({
       allowedExtensions: z.array(z.string()).optional(),
       maxSizeMB: z.number().optional(),
       maxFiles: z.number().optional(),
+      storageFolder: z.string().optional(),
       imagekitFolder: z.string().optional(),
     })
     .optional(),

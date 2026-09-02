@@ -89,6 +89,7 @@ interface IUploadConfig {
   allowedExtensions: string[];
   maxSizeMB: number;
   maxFiles: number;
+  storageFolder?: string;
   imagekitFolder?: string;
 }
 
@@ -234,6 +235,7 @@ const formFieldSchema = new Schema<IFormField>(
       allowedExtensions: [String],
       maxSizeMB: { type: Number, default: 5 },
       maxFiles: { type: Number, default: 1 },
+      storageFolder: String,
       imagekitFolder: String,
     },
     conditional: conditionalLogicSchema,

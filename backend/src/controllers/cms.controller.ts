@@ -6,7 +6,7 @@ import { Page } from '../models/page.model';
 import { Banner } from '../models/banner.model';
 import { Faq } from '../models/faq.model';
 import { Announcement } from '../models/announcement.model';
-import { uploadToImageKit, deleteFromImageKit } from '../services/imagekit.service';
+import { uploadToR2, deleteFromR2 } from '../services/r2.service';
 
 // ═══════════════════════════════════════════════════════════════════
 // PAGES
@@ -58,7 +58,7 @@ export const getPublicPage = asyncHandler(async (req: Request, res: Response) =>
 
 export const createBanner = asyncHandler(async (req: Request, res: Response) => {
   if (!req.file) throw ApiError.badRequest('Banner image is required');
-  const uploaded = await uploadToImageKit(req.file.buffer, req.file.originalname, 'banners');
+  const uploaded = await uploadToR2(req.file.buffer, req.file.originalname, 'banners', req.file.mimetype);
 
   const banner = await Banner.create({
     ...req.body,
@@ -78,8 +78,8 @@ export const updateBanner = asyncHandler(async (req: Request, res: Response) => 
   if (!banner) throw ApiError.notFound('Banner not found');
 
   if (req.file) {
-    await deleteFromImageKit(banner.image.fileId);
-    const uploaded = await uploadToImageKit(req.file.buffer, req.file.originalname, 'banners');
+    await deleteFromR2(banner.image.fileId);
+    const uploaded = await uploadToR2(req.file.buffer, req.file.originalname, 'banners', req.file.mimetype);
     banner.image = { url: uploaded.url, fileId: uploaded.fileId };
   }
   Object.assign(banner, req.body);
@@ -91,7 +91,7 @@ export const updateBanner = asyncHandler(async (req: Request, res: Response) => 
 export const deleteBanner = asyncHandler(async (req: Request, res: Response) => {
   const banner = await Banner.findById(req.params.id);
   if (!banner) throw ApiError.notFound('Banner not found');
-  await deleteFromImageKit(banner.image.fileId);
+  await deleteFromR2(banner.image.fileId);
   await banner.deleteOne();
   res.status(200).json(new ApiResponse(200, {}, 'Banner deleted'));
 });

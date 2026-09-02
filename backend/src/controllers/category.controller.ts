@@ -5,7 +5,7 @@ import { ApiResponse } from '../utils/ApiResponse';
 import { Category } from '../models/category.model';
 import { AuditLog } from '../models/auditLog.model';
 import { slugify } from '../utils/generateCode';
-import { uploadToImageKit, deleteFromImageKit } from '../services/imagekit.service';
+import { uploadToR2, deleteFromR2 } from '../services/r2.service';
 
 const logAudit = async (userId: string, action: string, req: Request, description?: string) => {
   await AuditLog.create({
@@ -48,7 +48,7 @@ export const createCategory = asyncHandler(async (req: Request, res: Response) =
 
   let banner;
   if (req.file) {
-    const uploaded = await uploadToImageKit(req.file.buffer, req.file.originalname, 'categories');
+    const uploaded = await uploadToR2(req.file.buffer, req.file.originalname, 'categories', req.file.mimetype);
     banner = { url: uploaded.url, fileId: uploaded.fileId };
   }
 
@@ -173,8 +173,8 @@ export const updateCategory = asyncHandler(async (req: Request, res: Response) =
   }
 
   if (req.file) {
-    if (category.banner?.fileId) await deleteFromImageKit(category.banner.fileId);
-    const uploaded = await uploadToImageKit(req.file.buffer, req.file.originalname, 'categories');
+    if (category.banner?.fileId) await deleteFromR2(category.banner.fileId);
+    const uploaded = await uploadToR2(req.file.buffer, req.file.originalname, 'categories', req.file.mimetype);
     category.banner = { url: uploaded.url, fileId: uploaded.fileId };
   }
 
@@ -208,7 +208,7 @@ export const deleteCategory = asyncHandler(async (req: Request, res: Response) =
 
   // TODO: once Service model exists, also block deletion if services reference this category.
 
-  if (category.banner?.fileId) await deleteFromImageKit(category.banner.fileId);
+  if (category.banner?.fileId) await deleteFromR2(category.banner.fileId);
   await category.deleteOne();
 
   await logAudit(req.user!.userId, 'CATEGORY_DELETED', req, `Deleted category: ${category.name}`);

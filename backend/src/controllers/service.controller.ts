@@ -6,7 +6,7 @@ import { Service } from '../models/service.model';
 import { Category } from '../models/category.model';
 import { AuditLog } from '../models/auditLog.model';
 import { slugify } from '../utils/generateCode';
-import { uploadToImageKit, deleteFromImageKit } from '../services/imagekit.service';
+import { uploadToR2, deleteFromR2 } from '../services/r2.service';
 import { toPublicServiceDTO } from '../dto/service.dto';
 
 const logAudit = async (userId: string, action: string, req: Request, description?: string) => {
@@ -52,7 +52,7 @@ export const createService = asyncHandler(async (req: Request, res: Response) =>
 
   let image;
   if (req.file) {
-    const uploaded = await uploadToImageKit(req.file.buffer, req.file.originalname, 'services');
+    const uploaded = await uploadToR2(req.file.buffer, req.file.originalname, 'services', req.file.mimetype);
     image = { url: uploaded.url, fileId: uploaded.fileId };
   }
 
@@ -191,8 +191,8 @@ export const updateService = asyncHandler(async (req: Request, res: Response) =>
   }
 
   if (req.file) {
-    if (service.image?.fileId) await deleteFromImageKit(service.image.fileId);
-    const uploaded = await uploadToImageKit(req.file.buffer, req.file.originalname, 'services');
+    if (service.image?.fileId) await deleteFromR2(service.image.fileId);
+    const uploaded = await uploadToR2(req.file.buffer, req.file.originalname, 'services', req.file.mimetype);
     service.image = { url: uploaded.url, fileId: uploaded.fileId };
   }
 

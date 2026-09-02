@@ -22,7 +22,7 @@ import {
   sendPasswordResetEmail,
   sendAccountLockedEmail,
 } from '../services/email.service';
-import { uploadToImageKit } from '../services/imagekit.service';
+import { uploadToR2 } from '../services/r2.service';
 import { generateOtp } from '../utils/generateCode';
 import {
   generateTotpSecret,
@@ -820,7 +820,7 @@ export const uploadAvatar = asyncHandler(async (req: Request, res: Response) => 
   let fileId = '';
 
   try {
-    const uploaded = await uploadToImageKit(req.file.buffer, req.file.originalname, 'avatars');
+    const uploaded = await uploadToR2(req.file.buffer, req.file.originalname, 'avatars', req.file.mimetype);
     avatarUrl = uploaded.url;
     fileId = uploaded.fileId;
   } catch (err) {
