@@ -263,7 +263,7 @@ export function Categories() {
   };
 
   return (
-    <div className="p-6 text-left space-y-6 max-w-4xl mx-auto">
+    <div className="p-6 text-left space-y-6 w-full">
       <div className="flex justify-between items-center border-b border-border pb-4">
         <div>
           <h1 className="text-2xl font-bold font-sans text-text-primary">Categories Management</h1>

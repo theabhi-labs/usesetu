@@ -20,19 +20,25 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: Install backend dependencies
+        working-directory: ./backend
         run: npm ci
 
-      - name: Lint
+      - name: Lint backend
+        working-directory: ./backend
         run: npm run lint
 
-      - name: Type-check & build
+      - name: Type-check & build backend
+        working-directory: ./backend
         run: npm run build
 
-      # Placeholder — wire in `npm test` once the Vitest/Supertest suite
-      # lands (see README "Testing" section for the planned structure).
-      # - name: Test
-      #   run: npm test
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
 
   docker-build:
     runs-on: ubuntu-latest
@@ -45,6 +51,6 @@ jobs:
       - name: Build Docker image (validation only, not pushed)
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./backend
           push: false
           tags: csc-os-backend:ci

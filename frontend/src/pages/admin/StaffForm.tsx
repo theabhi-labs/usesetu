@@ -92,7 +92,7 @@ export function StaffForm() {
 
   if (isEdit && userQuery.isLoading) {
     return (
-      <div className="p-8 max-w-xl mx-auto space-y-4 text-left">
+      <div className="p-8 w-full max-w-3xl space-y-4 text-left">
         <h2 className="h-6 w-32 bg-border-strong animate-pulse rounded" />
         <Card className="h-64 w-full bg-border-strong animate-pulse rounded" />
       </div>
@@ -100,7 +100,7 @@ export function StaffForm() {
   }
 
   return (
-    <div className="p-6 text-left space-y-6 max-w-xl mx-auto">
+    <div className="p-6 text-left space-y-6 w-full max-w-3xl">
       {/* Back Link */}
       <div className="select-none">
         <Link to="/admin/staff" className="flex items-center text-xs font-bold text-accent hover:underline gap-1">

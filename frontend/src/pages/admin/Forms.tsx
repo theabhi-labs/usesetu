@@ -60,7 +60,7 @@ export function Forms() {
   const newFormUrl = location.search ? `/admin/forms/build/new${location.search}` : '/admin/forms/build/new';
 
   return (
-    <div className="p-6 text-left space-y-6 max-w-6xl mx-auto">
+    <div className="p-6 text-left space-y-6 w-full">
       <div className="flex justify-between items-center border-b border-border pb-4">
         <div>
           <h1 className="text-2xl font-bold font-sans text-text-primary">Forms Manager</h1>

@@ -210,7 +210,7 @@ export function UseSetuProfile() {
   const staffPercent = Math.min(100, Math.round((activeStaffUsed / (activeStaffLimit || 1)) * 100));
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-8 text-left">
+    <div className="p-6 w-full space-y-8 text-left">
       {/* Hero Header Banner */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-accent/20 via-surface-elevated to-surface border border-accent/30 p-6 md:p-8 shadow-sm">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">

@@ -88,7 +88,7 @@ export function CustomerProfile() {
   };
 
   return (
-    <div className="p-6 text-left space-y-6 max-w-5xl mx-auto">
+    <div className="p-6 text-left space-y-6 w-full">
       {/* Back link */}
       <div>
         <Link to="/admin/customers" className="flex items-center text-xs font-bold text-accent hover:underline gap-1 select-none">

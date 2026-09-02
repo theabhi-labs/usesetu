@@ -82,7 +82,7 @@ export function TwoFactorAlertBanner({ className = '', variant = 'banner' }: Two
   return (
     <>
       <div className={`w-full bg-gradient-to-r from-warning/20 via-warning/10 to-accent/15 border-b border-warning/30 px-4 py-2.5 sm:px-6 transition-all ${className}`}>
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs text-left">
+        <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs text-left">
           <div className="flex items-center gap-2.5">
             <span className="flex h-2 w-2 relative shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning opacity-75" />

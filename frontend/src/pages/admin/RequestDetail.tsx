@@ -415,7 +415,7 @@ export function RequestDetail() {
   const selectedDoc = request.documents?.find((d) => d._id === selectedDocId);
 
   return (
-    <div className="p-6 text-left space-y-6 max-w-6xl mx-auto">
+    <div className="p-6 text-left space-y-6 w-full">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-border pb-4">
         <div className="flex items-center gap-3">

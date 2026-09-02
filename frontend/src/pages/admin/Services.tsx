@@ -310,7 +310,7 @@ export function Services() {
   ];
 
   return (
-    <div className="p-6 text-left space-y-6 max-w-6xl mx-auto">
+    <div className="p-6 text-left space-y-6 w-full">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-border pb-4">
         <div>
           <h1 className="text-2xl font-bold font-sans text-text-primary">Services Catalogue</h1>

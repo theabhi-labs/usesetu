@@ -52,7 +52,7 @@ export function Customers() {
   };
 
   return (
-    <div className="p-6 text-left space-y-6 max-w-6xl mx-auto">
+    <div className="p-6 text-left space-y-6 w-full">
       {/* Page Header */}
       <div className="border-b border-border pb-4 select-none">
         <h1 className="text-xl font-bold font-sans text-text-primary">Customers Directory</h1>

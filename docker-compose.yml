@@ -32,7 +32,7 @@ services:
 
   app:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
     container_name: csc-os-app
     restart: unless-stopped
@@ -40,7 +40,7 @@ services:
       mongo-init:
         condition: service_completed_successfully
     env_file:
-      - .env
+      - ./backend/.env
     environment:
       MONGO_URI: mongodb://mongo:27017/csc-os?replicaSet=rs0
     ports:

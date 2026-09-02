@@ -422,7 +422,7 @@ export function AdminDashboard() {
   };
 
   return (
-    <div className="p-6 text-left space-y-8 max-w-6xl mx-auto">
+    <div className="p-6 text-left space-y-8 w-full">
       {/* Header section */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-border pb-4">
         <div>
@@ -551,7 +551,7 @@ function StaffDashboardView({ user }: { user: any }) {
   const completedCount = requests.filter((r: any) => r.status === 'completed').length;
 
   return (
-    <div className="p-6 text-left space-y-6 max-w-6xl mx-auto">
+    <div className="p-6 text-left space-y-6 w-full">
       {/* Welcome Header */}
       <div className="border-b border-border pb-4">
         <h1 className="text-xl font-bold font-sans text-text-primary">Staff Operations Console</h1>
