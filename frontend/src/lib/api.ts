@@ -3,8 +3,12 @@ import type { InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '../store/authStore';
 import type { ApiResponse, ApiErrorResponse } from '../types/auth.types';
 
+const BASE_URL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL.replace(/\/+$/, '')}/api/v1`
+  : '/api/v1';
+
 export const api = axios.create({
-  baseURL: '/api/v1',
+  baseURL: BASE_URL,
   withCredentials: true,
 });
 
@@ -79,7 +83,7 @@ api.interceptors.response.use(
       try {
         // Request a new access token
         const refreshResponse = await axios.post<ApiResponse<{ accessToken: string; user: any }>>(
-          '/api/v1/auth/refresh',
+          `${BASE_URL}/auth/refresh`,
           {},
           { withCredentials: true }
         );
